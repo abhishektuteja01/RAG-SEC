@@ -1,0 +1,21 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Local secrets
+.env
+
+# Regeneratable data (raw filings, parsed/chunked output) -- large,
+# reproducible from scripts/day2_ingest.py and scripts/day2_chunk.py.
+# Keep: logs (*.jsonl), day2_findings.md, sample_pdfs (all small).
+data/filings/
+data/parsed/
+data/parsed_docling_v1/
+data/chunks/
