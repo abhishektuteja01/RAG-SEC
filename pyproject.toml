@@ -1,0 +1,26 @@
+[project]
+name = "rag-sec"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Abhishek Tuteja", email = "69643534+abhishektuteja01@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "docling>=2.122.0",
+    "fsspec>=2026.7.0",
+    "httpx>=0.28.1",
+    "huggingface-hub>=1.28.0",
+    "pandas>=2.2.2,<3.0.0",
+    "python-dotenv>=1.2.3",
+    "sec-parser==0.58.1",
+    "transformers>=5.8.1",
+]
+
+[project.scripts]
+rag-sec = "rag_sec:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
