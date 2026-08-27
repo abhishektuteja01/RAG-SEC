@@ -1,0 +1,3865 @@
+{
+  "model": "BAAI/bge-m3",
+  "top_k": 50,
+  "n": 120,
+  "metrics": {
+    "recall_10": {
+      "mean": 0.46,
+      "stderr": 0.04058656067669476
+    },
+    "recall_50": {
+      "mean": 0.6579166666666667,
+      "stderr": 0.037339740815441294
+    },
+    "ndcg_10": {
+      "mean": 0.32830606508184446,
+      "stderr": 0.03126478838293706
+    },
+    "mrr": {
+      "mean": 0.3453395392690269,
+      "stderr": 0.03473899602005061
+    }
+  },
+  "per_question": [
+    {
+      "id": "finqa_dev_15",
+      "question": "What percentage of A. O. Smith's total aggregate contractual obligations, as disclosed in the 2004 financial report, is attributable to purchase obligations?",
+      "chunk_file": "AOS_2004_91142.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "AOS_2004_91142",
+          15
+        ],
+        [
+          "AOS_2004_91142",
+          12
+        ],
+        [
+          "AOS_2004_91142",
+          31
+        ],
+        [
+          "AOS_2004_91142",
+          5
+        ],
+        [
+          "AOS_2004_91142",
+          3
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_17",
+      "question": "What percentage of Motorola Solutions' total long-term debt obligations, as of December 31, 2006, were due after 2011?",
+      "chunk_file": "MSI_2006_68505.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.03125,
+      "top_5_retrieved": [
+        [
+          "MSI_2014_68505",
+          46
+        ],
+        [
+          "MSI_2014_68505",
+          107
+        ],
+        [
+          "MSI_2018_68505",
+          83
+        ],
+        [
+          "MSI_2014_68505",
+          30
+        ],
+        [
+          "MSI_2006_68505",
+          36
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_19",
+      "question": "What was Applied Materials' net sales in 2018, as a percentage of the 2013 RD&E investment of $1.3 billion, expressed in billions?",
+      "chunk_file": "AMAT_2013_6951.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "AMAT_2016_6951",
+          5
+        ],
+        [
+          "AMAT_2013_6951",
+          12
+        ],
+        [
+          "AMAT_2013_6951",
+          31
+        ],
+        [
+          "AMAT_2013_6951",
+          40
+        ],
+        [
+          "AMAT_2013_6951",
+          67
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_28",
+      "question": "What percentage of Entergy Louisiana's payments do Entergy Arkansas' payments represent, according to the 2017 financial statements of Entergy Corporation and its subsidiaries?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          214
+        ],
+        [
+          "ETR_2017_65984",
+          181
+        ],
+        [
+          "ETR_2017_65984",
+          115
+        ],
+        [
+          "ETR_2017_65984",
+          216
+        ],
+        [
+          "ETR_2017_65984",
+          239
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_50",
+      "question": "What was the ratio of gallons hedged by Republic Services in 2017 to those in 2018, as outlined in their 2016 consolidated financial statements?",
+      "chunk_file": "RSG_2016_1060391.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.045454545454545456,
+      "top_5_retrieved": [
+        [
+          "RSG_2016_1060391",
+          84
+        ],
+        [
+          "RSG_2016_1060391",
+          81
+        ],
+        [
+          "RSG_2016_1060391",
+          38
+        ],
+        [
+          "RSG_2016_1060391",
+          37
+        ],
+        [
+          "RSG_2016_1060391",
+          10
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_70",
+      "question": "What was the percentage change in the NASDAQ Composite Index from December 30, 2017, to December 29, 2018, according to the 5-year cumulative total return graph presented in the 2019 report of Cadence Design Systems?",
+      "chunk_file": "CDNS_2018_813672.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "CDNS_2018_813672",
+          33
+        ],
+        [
+          "ILMN_2018_1110803",
+          30
+        ],
+        [
+          "CDNS_2018_813672",
+          71
+        ],
+        [
+          "CDNS_2018_813672",
+          58
+        ],
+        [
+          "CDNS_2018_813672",
+          53
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_112",
+      "question": "What is the difference in payments between Entergy Arkansas and Entergy Louisiana in the provided table, measured in millions?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          216
+        ],
+        [
+          "ETR_2008_65984",
+          87
+        ],
+        [
+          "ETR_2017_65984",
+          214
+        ],
+        [
+          "ETR_2008_65984",
+          90
+        ],
+        [
+          "ETR_2017_65984",
+          118
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_117",
+      "question": "What was the total cash flow result for Air Products in 2018, considering the cash provided by operating activities, cash used for investing activities, and cash used for financing activities?",
+      "chunk_file": "APD_2019_2969.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.037037037037037035,
+      "top_5_retrieved": [
+        [
+          "APD_2019_2969",
+          76
+        ],
+        [
+          "APD_2019_2969",
+          77
+        ],
+        [
+          "AAL_2018_6201",
+          69
+        ],
+        [
+          "AAL_2018_6201",
+          70
+        ],
+        [
+          "APD_2019_2969",
+          131
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_119",
+      "question": "What percentage of the change in Entergy New Orleans' net revenue from 2007 to 2008 can be attributed to the rider revenue, as outlined in the Management's Financial Discussion and Analysis for 2008?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          263
+        ],
+        [
+          "ETR_2008_65984",
+          203
+        ],
+        [
+          "ETR_2008_65984",
+          36
+        ],
+        [
+          "ETR_2008_65984",
+          264
+        ],
+        [
+          "ETR_2008_65984",
+          267
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_124",
+      "question": "What percentage of the $39 million increase in net revenue for Entergy Texas, Inc. from 2006 to 2007 can be attributed to the $6.1 million rise in transmission revenue, as outlined in the 2008 financial report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.7903864795495061,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          278
+        ],
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          220
+        ],
+        [
+          "ETR_2008_65984",
+          279
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_125",
+      "question": "What was the percentage change in Entergy Wholesale Commodities' net revenue from 2015 to 2016?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          14
+        ],
+        [
+          "ETR_2017_65984",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          17
+        ],
+        [
+          "ETR_2017_65984",
+          24
+        ],
+        [
+          "ETR_2017_65984",
+          11
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_132",
+      "question": "What was the ratio of the $92.9 million net income increase to the $1520.5 million net revenue in 2016 for Entergy Arkansas, Inc.?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6309297535714575,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          115
+        ],
+        [
+          "ETR_2017_65984",
+          295
+        ],
+        [
+          "ETR_2017_65984",
+          298
+        ],
+        [
+          "ETR_2017_65984",
+          312
+        ],
+        [
+          "ETR_2017_65984",
+          297
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_147",
+      "question": "What is the total return percentage of Ball Corporation's common stock over the five-year period ending December 31, 2010, assuming a $100 investment on December 31, 2005, with all dividends reinvested?",
+      "chunk_file": "BLL_2010_9389.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6309297535714575,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "BLL_2012_9389",
+          13
+        ],
+        [
+          "BLL_2010_9389",
+          12
+        ],
+        [
+          "BLL_2012_9389",
+          12
+        ],
+        [
+          "BLL_2010_9389",
+          13
+        ],
+        [
+          "BLL_2010_9389",
+          26
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_153",
+      "question": "As of December 31, 2005, what was the ratio of the breast implant receivables to the breast implant liabilities for 3M, as reflected in the company's estimation of probable liabilities and related insurance receivables?",
+      "chunk_file": "MMM_2005_66740.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.3562071871080222,
+      "mrr": 0.16666666666666666,
+      "top_5_retrieved": [
+        [
+          "MMM_2005_66740",
+          66
+        ],
+        [
+          "MMM_2005_66740",
+          33
+        ],
+        [
+          "MMM_2005_66740",
+          67
+        ],
+        [
+          "MMM_2005_66740",
+          27
+        ],
+        [
+          "MMM_2005_66740",
+          12
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_160",
+      "question": "What was the average net revenue for Entergy Arkansas, Inc. and its subsidiaries between 2016 and 2017, as reported in the 2017 financial discussion and analysis?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          214
+        ],
+        [
+          "ETR_2017_65984",
+          181
+        ],
+        [
+          "ETR_2017_65984",
+          295
+        ],
+        [
+          "ETR_2017_65984",
+          298
+        ],
+        [
+          "ETR_2017_65984",
+          8
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_181",
+      "question": "What percentage of the total number of shares purchased in November 2018 was bought as part of publicly announced plans or programs?",
+      "chunk_file": "VLO_2018_1035002.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "SPGI_2017_64040",
+          20
+        ],
+        [
+          "VLO_2018_1035002",
+          22
+        ],
+        [
+          "TMUS_2017_1283699",
+          26
+        ],
+        [
+          "SPGI_2015_64040",
+          20
+        ],
+        [
+          "RE_2017_1095073",
+          38
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_188",
+      "question": "What was the percentage increase in Entergy New Orleans' net revenue from $231.0 million in 2007 to $252.7 million in 2008?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.2,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          36
+        ],
+        [
+          "ETR_2008_65984",
+          8
+        ],
+        [
+          "ETR_2008_65984",
+          267
+        ],
+        [
+          "ETR_2008_65984",
+          154
+        ],
+        [
+          "ETR_2008_65984",
+          263
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_190",
+      "question": "What is the net change in net revenue for Entergy Texas, Inc. during 2007, as reflected in the analysis of the change in net revenue comparing 2007 to 2006 in the 2008 financial report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          278
+        ],
+        [
+          "ETR_2008_65984",
+          279
+        ],
+        [
+          "ETR_2008_65984",
+          290
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_198",
+      "question": "What is the expected percentage increase in the total capital investments of Union Pacific Corporation from $2.242 billion in 2006 to the anticipated amount in 2007?",
+      "chunk_file": "UNP_2006_100885.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "UNP_2006_100885",
+          10
+        ],
+        [
+          "UNP_2006_100885",
+          33
+        ],
+        [
+          "MS_2007_895421",
+          74
+        ],
+        [
+          "UNP_2006_100885",
+          48
+        ],
+        [
+          "PPG_2005_79879",
+          14
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_199",
+      "question": "What percentage of Union Pacific Corporation's total cash capital investments for the year ended December 31, 2006, was allocated to track investments?",
+      "chunk_file": "UNP_2006_100885.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.07142857142857142,
+      "top_5_retrieved": [
+        [
+          "UNP_2006_100885",
+          10
+        ],
+        [
+          "UNP_2006_100885",
+          33
+        ],
+        [
+          "UNP_2006_100885",
+          36
+        ],
+        [
+          "UNP_2006_100885",
+          48
+        ],
+        [
+          "UNP_2006_100885",
+          50
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_223",
+      "question": "What was the average annual rental expense, net of sublease income, for Motorola Solutions from 2004 to 2006?",
+      "chunk_file": "MSI_2006_68505.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "MSI_2018_68505",
+          34
+        ],
+        [
+          "MSI_2014_68505",
+          30
+        ],
+        [
+          "MSI_2006_68505",
+          22
+        ],
+        [
+          "HOLX_2005_859737",
+          59
+        ],
+        [
+          "MSI_2006_68505",
+          21
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_224",
+      "question": "What was the difference in percentage cumulative 5-year total stockholder return for Cadence Design Systems Inc. compared to the Nasdaq Composite for the period ending 12/29/2018?",
+      "chunk_file": "CDNS_2018_813672.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "CDNS_2018_813672",
+          33
+        ],
+        [
+          "CDNS_2018_813672",
+          58
+        ],
+        [
+          "CDNS_2018_813672",
+          71
+        ],
+        [
+          "CDNS_2018_813672",
+          53
+        ],
+        [
+          "CDNS_2018_813672",
+          83
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_226",
+      "question": "What is the net change in net revenue for Entergy Wholesale Commodities from 2015 to 2016, as reflected in the analysis of the change in net revenue provided in the 2017 financial report?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          14
+        ],
+        [
+          "ETR_2017_65984",
+          11
+        ],
+        [
+          "ETR_2017_65984",
+          17
+        ],
+        [
+          "ETR_2017_65984",
+          9
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_239",
+      "question": "What was the total return percentage for Delphi Automotive PLC from November 17, 2011, to December 31, 2014, considering the investment growth as illustrated in the stock performance graph?",
+      "chunk_file": "APTV_2014_1521332.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "APTV_2014_1521332",
+          31
+        ],
+        [
+          "APTV_2014_1521332",
+          116
+        ],
+        [
+          "APTV_2014_1521332",
+          84
+        ],
+        [
+          "APTV_2014_1521332",
+          114
+        ],
+        [
+          "APTV_2014_1521332",
+          56
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_255",
+      "question": "What was the percentage increase in net income for Entergy Arkansas, Inc. and subsidiaries between 2015 and 2016, given that the net income increased by $92.9 million during this period?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.43067655807339306,
+      "mrr": 0.25,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          115
+        ],
+        [
+          "ETR_2017_65984",
+          298
+        ],
+        [
+          "ETR_2017_65984",
+          182
+        ],
+        [
+          "ETR_2017_65984",
+          295
+        ],
+        [
+          "ETR_2017_65984",
+          312
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_274",
+      "question": "What was the percentage cumulative 5-year total stockholder return for Cadence Design Systems Inc. as of the fiscal year ending December 29, 2018, according to the comparison of 5-year cumulative total return graph?",
+      "chunk_file": "CDNS_2018_813672.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "CDNS_2018_813672",
+          71
+        ],
+        [
+          "CDNS_2018_813672",
+          58
+        ],
+        [
+          "CDNS_2018_813672",
+          33
+        ],
+        [
+          "CDNS_2018_813672",
+          53
+        ],
+        [
+          "CDNS_2018_813672",
+          87
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_289",
+      "question": "What was the cumulative total shareholder return percentage for Ball Corporation, as indicated by the $100 initial investment on December 31, 2005, that grew to $178.93 by December 31, 2010, according to the total return analysis on page 15 of the shareholder return performance report for the year 2010?",
+      "chunk_file": "BLL_2010_9389.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "BLL_2012_9389",
+          13
+        ],
+        [
+          "BLL_2012_9389",
+          12
+        ],
+        [
+          "BLL_2010_9389",
+          12
+        ],
+        [
+          "BLL_2010_9389",
+          13
+        ],
+        [
+          "BLL_2010_9389",
+          32
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_309",
+      "question": "Given the 5-year cumulative total return performance graph of Cadence Design Systems, Inc., what is the total return if $100,000 is invested in the S&P 500 index on January 1st, 2015, and sold at the end of 2016, considering the cumulative total return of the S&P 500 index as shown in the table?",
+      "chunk_file": "CDNS_2018_813672.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "CDNS_2018_813672",
+          33
+        ],
+        [
+          "GS_2016_886982",
+          238
+        ],
+        [
+          "ILMN_2018_1110803",
+          30
+        ],
+        [
+          "AMT_2016_1053507",
+          26
+        ],
+        [
+          "PNC_2007_713676",
+          19
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_319",
+      "question": "What is the annual interest expense for Entergy Louisiana incurred from the Series First Mortgage Bonds due September 2018, in millions, as disclosed in the 2008 financial report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 5,
+      "recall_10": 0.2,
+      "recall_50": 0.2,
+      "ndcg_10": 0.11305340175787204,
+      "mrr": 0.14285714285714285,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          100
+        ],
+        [
+          "ETR_2008_65984",
+          225
+        ],
+        [
+          "ETR_2017_65984",
+          132
+        ],
+        [
+          "ETR_2008_65984",
+          101
+        ],
+        [
+          "ETR_2008_65984",
+          33
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_327",
+      "question": "What was the percentage cumulative return for LKQ Corporation for the five years ended 12/31/2016, as reflected in the comparison of cumulative returns among LKQ Corporation, the S&P 500 index, and the peer group?",
+      "chunk_file": "LKQ_2016_1065696.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "LKQ_2016_1065696",
+          73
+        ],
+        [
+          "LKQ_2016_1065696",
+          113
+        ],
+        [
+          "LKQ_2016_1065696",
+          34
+        ],
+        [
+          "LKQ_2016_1065696",
+          117
+        ],
+        [
+          "LKQ_2016_1065696",
+          75
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_356",
+      "question": "What percentage do commercial and industrial customers represent of the total customer base for natural gas distribution in Minnesota, according to CenterPoint Energy's 2010 data?",
+      "chunk_file": "CNP_2010_1130310.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "CNP_2010_1130310",
+          8
+        ],
+        [
+          "CNP_2010_1130310",
+          20
+        ],
+        [
+          "CNP_2010_1130310",
+          9
+        ],
+        [
+          "CNP_2010_1130310",
+          40
+        ],
+        [
+          "CNP_2010_1130310",
+          34
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_404",
+      "question": "What percentage of the securitizations holding ASF framework loans were issued by third-party entities as of December 31, 2007, according to JPMorgan Chase's 2007 annual report?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          193
+        ],
+        [
+          "JPM_2007_19617",
+          192
+        ],
+        [
+          "JPM_2007_19617",
+          184
+        ],
+        [
+          "JPM_2007_19617",
+          176
+        ],
+        [
+          "JPM_2004_19617",
+          141
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_406",
+      "question": "What is the net change in net revenue for Entergy New Orleans, Inc. during 2008 compared to 2007, as reflected in the company's Management's Financial Discussion and Analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.05555555555555555,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          8
+        ],
+        [
+          "ETR_2008_65984",
+          271
+        ],
+        [
+          "ETR_2008_65984",
+          267
+        ],
+        [
+          "ETR_2008_65984",
+          138
+        ],
+        [
+          "ETR_2008_65984",
+          140
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_407",
+      "question": "What is the average amount of cash provided by operating activities for Air Products during the fiscal years 2018 and 2019, as reflected in the consolidated statements of cash flows?",
+      "chunk_file": "APD_2019_2969.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.03571428571428571,
+      "top_5_retrieved": [
+        [
+          "APD_2019_2969",
+          76
+        ],
+        [
+          "APD_2019_2969",
+          77
+        ],
+        [
+          "APD_2019_2969",
+          131
+        ],
+        [
+          "APD_2019_2969",
+          130
+        ],
+        [
+          "APD_2019_2969",
+          123
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_409",
+      "question": "What was the percentage change in JPMorgan Chase's investment banking fees from 2006 to 2007, as reported in the company's 2007 annual report?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          28
+        ],
+        [
+          "JPM_2007_19617",
+          22
+        ],
+        [
+          "JPM_2004_19617",
+          29
+        ],
+        [
+          "JPM_2007_19617",
+          242
+        ],
+        [
+          "JPM_2007_19617",
+          41
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_423",
+      "question": "What percentage of Entergy's total workforce, as of December 31, 2008, is comprised of employees working for Entergy Mississippi?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          258
+        ],
+        [
+          "ETR_2017_65984",
+          351
+        ],
+        [
+          "ETR_2008_65984",
+          261
+        ],
+        [
+          "ETR_2017_65984",
+          217
+        ],
+        [
+          "ETR_2008_65984",
+          254
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_433",
+      "question": "As of December 31, 2018, what percentage of the $2.5 billion authorized for the 2018 stock repurchase program remained outstanding?",
+      "chunk_file": "VLO_2018_1035002.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.043478260869565216,
+      "top_5_retrieved": [
+        [
+          "SPGI_2017_64040",
+          20
+        ],
+        [
+          "SPGI_2015_64040",
+          20
+        ],
+        [
+          "AAL_2018_6201",
+          103
+        ],
+        [
+          "AAL_2018_6201",
+          68
+        ],
+        [
+          "MSI_2018_68505",
+          50
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_439",
+      "question": "What percentage of the total dividend paid by Air Products in 2019 was contributed by the first quarter?",
+      "chunk_file": "APD_2019_2969.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "APD_2019_2969",
+          76
+        ],
+        [
+          "APD_2019_2969",
+          130
+        ],
+        [
+          "APD_2019_2969",
+          38
+        ],
+        [
+          "APD_2019_2969",
+          98
+        ],
+        [
+          "APD_2019_2969",
+          124
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_461",
+      "question": "What percentage of the total net revenues from the Investing & Lending segment of Goldman Sachs in 2015 was attributed to equity securities?",
+      "chunk_file": "GS_2016_886982.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "GS_2016_886982",
+          62
+        ],
+        [
+          "GS_2016_886982",
+          139
+        ],
+        [
+          "GS_2016_886982",
+          3
+        ],
+        [
+          "GS_2016_886982",
+          121
+        ],
+        [
+          "GS_2016_886982",
+          61
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_472",
+      "question": "What was the average effective tax rate for Apple Inc. over the three-year period from 2003 to 2005, as disclosed in the notes to consolidated financial statements for 2005?",
+      "chunk_file": "AAPL_2005_320193.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "AAPL_2005_320193",
+          84
+        ],
+        [
+          "PNC_2007_713676",
+          81
+        ],
+        [
+          "MMM_2005_66740",
+          54
+        ],
+        [
+          "AAPL_2005_320193",
+          83
+        ],
+        [
+          "UNP_2006_100885",
+          42
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_478",
+      "question": "What is the percentage change in the balance of the Prudential Insurance Company of America from 2016 to 2017, as reflected in the estimated cost to replace all such annuities for which Everest Re Group, Ltd. was contingently liable?",
+      "chunk_file": "RE_2017_1095073.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "RE_2017_1095073",
+          149
+        ],
+        [
+          "RE_2017_1095073",
+          159
+        ],
+        [
+          "RE_2017_1095073",
+          15
+        ],
+        [
+          "RE_2017_1095073",
+          125
+        ],
+        [
+          "RE_2017_1095073",
+          156
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_496",
+      "question": "What is the percentage increase in the first quarter dividend for Air Products' common stock from 2018 to 2019, based on the cash dividend payments summarized in the table?",
+      "chunk_file": "APD_2019_2969.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6309297535714575,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "APD_2019_2969",
+          76
+        ],
+        [
+          "APD_2019_2969",
+          38
+        ],
+        [
+          "APD_2019_2969",
+          131
+        ],
+        [
+          "APD_2019_2969",
+          130
+        ],
+        [
+          "APD_2019_2969",
+          41
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_551",
+      "question": "Did Ball Corporation's cumulative total shareholder return surpass that of the Dow Jones Containers & Packaging Index over the five-year period ending December 31, 2010, considering the initial $100 investment and reinvested dividends?",
+      "chunk_file": "BLL_2010_9389.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "BLL_2012_9389",
+          13
+        ],
+        [
+          "BLL_2012_9389",
+          12
+        ],
+        [
+          "BLL_2010_9389",
+          12
+        ],
+        [
+          "BLL_2010_9389",
+          26
+        ],
+        [
+          "BLL_2010_9389",
+          32
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_554",
+      "question": "What was the net change in the total staff at Goldman Sachs from 2015 to 2016?",
+      "chunk_file": "GS_2016_886982.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "GS_2016_886982",
+          3
+        ],
+        [
+          "GS_2016_886982",
+          42
+        ],
+        [
+          "GS_2016_886982",
+          41
+        ],
+        [
+          "GS_2016_886982",
+          121
+        ],
+        [
+          "GS_2016_886982",
+          126
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_556",
+      "question": "What was the difference in total additions of Mortgage Servicing Rights (MSRs) between 2006 and 2007, as reported in JPMorgan Chase's 2007 annual report, in millions?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.09090909090909091,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          52
+        ],
+        [
+          "JPM_2004_19617",
+          161
+        ],
+        [
+          "JPM_2007_19617",
+          93
+        ],
+        [
+          "JPM_2007_19617",
+          187
+        ],
+        [
+          "JPM_2007_19617",
+          51
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_557",
+      "question": "What is the net change in the total staff at Goldman Sachs from 2014 to 2015?",
+      "chunk_file": "GS_2016_886982.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "GS_2016_886982",
+          3
+        ],
+        [
+          "GS_2016_886982",
+          121
+        ],
+        [
+          "GS_2016_886982",
+          126
+        ],
+        [
+          "GS_2016_886982",
+          42
+        ],
+        [
+          "GS_2016_886982",
+          244
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_568",
+      "question": "What was the percentage change in the fair value of MSRs for JPMorgan Chase in 2007, considering the fair value at the beginning and end of the period as reported in the 2007 annual report?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.3065735963827292,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          52
+        ],
+        [
+          "JPM_2007_19617",
+          133
+        ],
+        [
+          "JPM_2007_19617",
+          207
+        ],
+        [
+          "JPM_2004_19617",
+          163
+        ],
+        [
+          "JPM_2007_19617",
+          209
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_571",
+      "question": "What percentage of A. O. Smith's total aggregate contractual obligations, as disclosed in the 2004 financial report, is attributed to long-term debt?",
+      "chunk_file": "AOS_2004_91142.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "AOS_2004_91142",
+          12
+        ],
+        [
+          "AOS_2004_91142",
+          15
+        ],
+        [
+          "DRE_2005_783280",
+          36
+        ],
+        [
+          "PPG_2003_79879",
+          12
+        ],
+        [
+          "JPM_2007_19617",
+          83
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_574",
+      "question": "What was the percentage increase in JPMorgan Chase's investment banking fees from 2005 to 2006, as reported in the 2007 annual report?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          28
+        ],
+        [
+          "JPM_2004_19617",
+          29
+        ],
+        [
+          "JPM_2007_19617",
+          41
+        ],
+        [
+          "JPM_2007_19617",
+          22
+        ],
+        [
+          "JPM_2007_19617",
+          93
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_578",
+      "question": "What was the lowest amount of research and development credit net for Apple Inc. in the years 2003, 2004, and 2005, as reported in the notes to consolidated financial statements for 2005, in millions?",
+      "chunk_file": "AAPL_2005_320193.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "AAPL_2005_320193",
+          31
+        ],
+        [
+          "AAPL_2005_320193",
+          83
+        ],
+        [
+          "AAPL_2005_320193",
+          84
+        ],
+        [
+          "DG_2005_29534",
+          38
+        ],
+        [
+          "AAPL_2005_320193",
+          24
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_593",
+      "question": "What was the percentage change in Applied Materials' RD&E spendings from fiscal 2012 to fiscal 2013?",
+      "chunk_file": "AMAT_2013_6951.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "AMAT_2013_6951",
+          40
+        ],
+        [
+          "AMAT_2013_6951",
+          12
+        ],
+        [
+          "AMAT_2013_6951",
+          67
+        ],
+        [
+          "AMAT_2013_6951",
+          32
+        ],
+        [
+          "AMAT_2013_6951",
+          41
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_599",
+      "question": "In the 2018 fiscal year, what percentage did the service cost represent of the interest cost for Becton Dickinson's pension plans?",
+      "chunk_file": "BDX_2018_10795.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "BDX_2018_10795",
+          74
+        ],
+        [
+          "BDX_2018_10795",
+          76
+        ],
+        [
+          "APD_2019_2969",
+          109
+        ],
+        [
+          "MSI_2018_68505",
+          91
+        ],
+        [
+          "HWM_2018_4281",
+          86
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_605",
+      "question": "What was the difference in percentage cumulative return between LKQ Corporation and the S&P 500 Index for the five-year period ending December 31, 2016, as reflected in the comparative stock performance table?",
+      "chunk_file": "LKQ_2016_1065696.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.07692307692307693,
+      "top_5_retrieved": [
+        [
+          "HWM_2018_4281",
+          43
+        ],
+        [
+          "LKQ_2016_1065696",
+          73
+        ],
+        [
+          "LKQ_2016_1065696",
+          75
+        ],
+        [
+          "LKQ_2016_1065696",
+          127
+        ],
+        [
+          "LKQ_2016_1065696",
+          111
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_607",
+      "question": "What is the percentage increase in the number of gas customers for Entergy New Orleans, Inc. from December 31, 2007, to December 31, 2008?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          263
+        ],
+        [
+          "ETR_2008_65984",
+          154
+        ],
+        [
+          "ETR_2008_65984",
+          36
+        ],
+        [
+          "ETR_2008_65984",
+          264
+        ],
+        [
+          "ETR_2008_65984",
+          21
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_632",
+      "question": "What was the decrease in Motorola Solutions' lease obligations from 2004 to 2011, based on the contractual obligations summarized in the table as of December 31, 2006?",
+      "chunk_file": "MSI_2006_68505.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.047619047619047616,
+      "top_5_retrieved": [
+        [
+          "MSI_2014_68505",
+          46
+        ],
+        [
+          "MSI_2014_68505",
+          30
+        ],
+        [
+          "MSI_2014_68505",
+          107
+        ],
+        [
+          "MSI_2018_68505",
+          120
+        ],
+        [
+          "MSI_2014_68505",
+          101
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_640",
+      "question": "What percentage of CenterPoint Energy's total natural gas distribution customers in Arkansas were residential customers as of December 31, 2010?",
+      "chunk_file": "CNP_2010_1130310.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.3562071871080222,
+      "mrr": 0.16666666666666666,
+      "top_5_retrieved": [
+        [
+          "CNP_2010_1130310",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          218
+        ],
+        [
+          "CNP_2010_1130310",
+          10
+        ],
+        [
+          "CNP_2010_1130310",
+          33
+        ],
+        [
+          "ETR_2008_65984",
+          164
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_643",
+      "question": "What is the percentage growth rate in net revenue for Entergy Texas, Inc. from 2006 to 2007, considering the variances in purchased power capacity, securitization transition charge, volume/weather, transmission revenue, base revenue, and other factors as outlined in the 2008 financial report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          278
+        ],
+        [
+          "ETR_2008_65984",
+          277
+        ],
+        [
+          "ETR_2008_65984",
+          219
+        ],
+        [
+          "ETR_2008_65984",
+          204
+        ],
+        [
+          "ETR_2017_65984",
+          369
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_647",
+      "question": "How much higher is the 2017 net revenue of Entergy Arkansas, Inc. compared to its 2016 net revenue, as reported in the 2019 financial discussion and analysis?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          295
+        ],
+        [
+          "ETR_2017_65984",
+          298
+        ],
+        [
+          "ETR_2017_65984",
+          115
+        ],
+        [
+          "ETR_2017_65984",
+          303
+        ],
+        [
+          "ETR_2017_65984",
+          297
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_651",
+      "question": "What was the estimated total cost to replace the annuities that Everest Re Group, Ltd. was contingently liable for as of December 31, 2017, according to the table presenting the estimated cost to replace such annuities with The Prudential Insurance Company of America and an unaffiliated life insurance company?",
+      "chunk_file": "RE_2017_1095073.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "RE_2017_1095073",
+          149
+        ],
+        [
+          "RE_2017_1095073",
+          159
+        ],
+        [
+          "RE_2017_1095073",
+          156
+        ],
+        [
+          "CB_2008_896159",
+          117
+        ],
+        [
+          "RE_2017_1095073",
+          25
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_652",
+      "question": "What was the average service cost for Becton Dickinson's pension plans from 2016 to 2018, as reported in the 2018 financial report, in millions of dollars?",
+      "chunk_file": "BDX_2018_10795.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "BDX_2018_10795",
+          74
+        ],
+        [
+          "BDX_2018_10795",
+          76
+        ],
+        [
+          "BDX_2018_10795",
+          71
+        ],
+        [
+          "HWM_2018_4281",
+          89
+        ],
+        [
+          "MSI_2018_68505",
+          91
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_659",
+      "question": "What percentage of the total net revenues from the Investing & Lending segment of Goldman Sachs in 2016 was attributed to equity securities, as disclosed in the company's 2016 Form 10-K report?",
+      "chunk_file": "GS_2016_886982.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.043478260869565216,
+      "top_5_retrieved": [
+        [
+          "GS_2016_886982",
+          3
+        ],
+        [
+          "GS_2016_886982",
+          42
+        ],
+        [
+          "GS_2016_886982",
+          241
+        ],
+        [
+          "GS_2016_886982",
+          139
+        ],
+        [
+          "GS_2016_886982",
+          244
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_660",
+      "question": "What was the difference in percentage cumulative total shareholder return for Ball Corporation compared to the S&P 500 Index for the five-year period ending 12/31/10, given that $100 was invested on December 31, 2005, and all dividends were reinvested?",
+      "chunk_file": "BLL_2010_9389.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6309297535714575,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "BLL_2012_9389",
+          13
+        ],
+        [
+          "BLL_2010_9389",
+          12
+        ],
+        [
+          "BLL_2012_9389",
+          12
+        ],
+        [
+          "BLL_2010_9389",
+          13
+        ],
+        [
+          "BLL_2012_9389",
+          64
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_664",
+      "question": "What percentage of JPMorgan Chase-sponsored QSPEs that hold ASF framework loans are serviced by the firm, as of December 31, 2007?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.9197207891481876,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          193
+        ],
+        [
+          "JPM_2007_19617",
+          184
+        ],
+        [
+          "JPM_2007_19617",
+          192
+        ],
+        [
+          "JPM_2007_19617",
+          93
+        ],
+        [
+          "JPM_2004_19617",
+          148
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_676",
+      "question": "What is the percentage decrease in Motorola Solutions' long-term debt obligations from the total of $4,134 million in 2007 to the total of $607 million in 2011, as outlined in the company's contractual obligations table for the year 2006?",
+      "chunk_file": "MSI_2006_68505.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "MSI_2014_68505",
+          46
+        ],
+        [
+          "MSI_2014_68505",
+          30
+        ],
+        [
+          "MSI_2014_68505",
+          107
+        ],
+        [
+          "MSI_2014_68505",
+          61
+        ],
+        [
+          "MSI_2006_68505",
+          35
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_687",
+      "question": "What is the percentage change in Entergy Texas, Inc.'s net revenue from $403.3 million in 2006 to $442.3 million in 2007, as reported in the 2008 financial analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.48381288316677695,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          278
+        ],
+        [
+          "ETR_2008_65984",
+          291
+        ],
+        [
+          "ETR_2008_65984",
+          274
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_689",
+      "question": "As of December 31, 2017, what percentage of the 4,000,000 common shares authorized under the 2010 Employee Plan of Everest Re Group, Ltd. had been granted to officers and key employees?",
+      "chunk_file": "RE_2017_1095073.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "RE_2017_1095073",
+          90
+        ],
+        [
+          "RE_2017_1095073",
+          150
+        ],
+        [
+          "RE_2017_1095073",
+          37
+        ],
+        [
+          "RE_2017_1095073",
+          38
+        ],
+        [
+          "RE_2017_1095073",
+          36
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_694",
+      "question": "What percentage of Entergy's 2016 net revenue is accounted for by nuclear fuel expenses?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          312
+        ],
+        [
+          "ETR_2017_65984",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          336
+        ],
+        [
+          "ETR_2017_65984",
+          311
+        ],
+        [
+          "ETR_2017_65984",
+          9
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_709",
+      "question": "What was the net equity in the assets acquired by S&P Global during the acquisition of SNL Financial in 2015, as reflected in the preliminary allocation of purchase price?",
+      "chunk_file": "SPGI_2015_64040.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "SPGI_2015_64040",
+          76
+        ],
+        [
+          "SPGI_2017_64040",
+          24
+        ],
+        [
+          "SPGI_2017_64040",
+          71
+        ],
+        [
+          "SPGI_2015_64040",
+          28
+        ],
+        [
+          "SPGI_2017_64040",
+          72
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_717",
+      "question": "What was the ratio of the aggregate fair value of Republic Services' outstanding fuel hedges as of December 31, 2015, to that of December 31, 2016, as reported in the 2016 consolidated financial statements?",
+      "chunk_file": "RSG_2016_1060391.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.23719771276929622,
+      "mrr": 0.2,
+      "top_5_retrieved": [
+        [
+          "RSG_2016_1060391",
+          81
+        ],
+        [
+          "RSG_2016_1060391",
+          37
+        ],
+        [
+          "RSG_2016_1060391",
+          82
+        ],
+        [
+          "RSG_2016_1060391",
+          38
+        ],
+        [
+          "RSG_2016_1060391",
+          127
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_730",
+      "question": "What were the total equity securities for Goldman Sachs in millions for the years 2016, 2015, and 2014?",
+      "chunk_file": "GS_2016_886982.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.030303030303030304,
+      "top_5_retrieved": [
+        [
+          "GS_2016_886982",
+          241
+        ],
+        [
+          "GS_2016_886982",
+          3
+        ],
+        [
+          "GS_2016_886982",
+          244
+        ],
+        [
+          "GS_2016_886982",
+          139
+        ],
+        [
+          "GS_2016_886982",
+          121
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_734",
+      "question": "What percentage of Entergy's total workforce, which consisted of 14669 employees as of December 31, 2008, is employed by Entergy Arkansas, which had 1526 employees?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          215
+        ],
+        [
+          "ETR_2008_65984",
+          207
+        ],
+        [
+          "ETR_2017_65984",
+          217
+        ],
+        [
+          "ETR_2008_65984",
+          233
+        ],
+        [
+          "ETR_2008_65984",
+          91
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_742",
+      "question": "What is the percentage change in the estimated cost to replace annuities for the unaffiliated life insurance company from December 31, 2016, to December 31, 2017, as outlined in the table?",
+      "chunk_file": "RE_2017_1095073.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.3065735963827292,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "HUM_2016_49071",
+          48
+        ],
+        [
+          "SPGI_2017_64040",
+          81
+        ],
+        [
+          "RE_2017_1095073",
+          149
+        ],
+        [
+          "MSI_2018_68505",
+          91
+        ],
+        [
+          "PKG_2015_75677",
+          60
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_759",
+      "question": "In the context of JPMorgan Chase's 2007 Annual Report, what percentage of the total principal amount of beneficial interests did the retained interest represent as of December 31, 2007?",
+      "chunk_file": "JPM_2007_19617.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.037037037037037035,
+      "top_5_retrieved": [
+        [
+          "JPM_2007_19617",
+          139
+        ],
+        [
+          "JPM_2007_19617",
+          138
+        ],
+        [
+          "JPM_2004_19617",
+          150
+        ],
+        [
+          "JPM_2007_19617",
+          250
+        ],
+        [
+          "JPM_2007_19617",
+          93
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_761",
+      "question": "In the context of Goldman Sachs' 2016 Form 10-K report, what multiple of pre-tax earnings in 2015 did the operating expenses represent for the Investing & Lending segment?",
+      "chunk_file": "GS_2016_886982.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.034482758620689655,
+      "top_5_retrieved": [
+        [
+          "GS_2016_886982",
+          4
+        ],
+        [
+          "GS_2016_886982",
+          121
+        ],
+        [
+          "GS_2016_886982",
+          241
+        ],
+        [
+          "GS_2016_886982",
+          52
+        ],
+        [
+          "GS_2016_886982",
+          244
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_782",
+      "question": "What is the percentage change in Entergy Wholesale Commodities' net revenue from 2015 to 2016, considering the $1666 million initial revenue and the $124 million decrease?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          14
+        ],
+        [
+          "ETR_2017_65984",
+          17
+        ],
+        [
+          "ETR_2017_65984",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          24
+        ],
+        [
+          "ETR_2017_65984",
+          182
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_792",
+      "question": "What was the percentage increase in cash capital investments for track from $1328 million in 2004 to $1472 million in 2005, as reported by Union Pacific Corporation in their 2006 financial report?",
+      "chunk_file": "UNP_2006_100885.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.09090909090909091,
+      "top_5_retrieved": [
+        [
+          "UNP_2006_100885",
+          10
+        ],
+        [
+          "UNP_2006_100885",
+          50
+        ],
+        [
+          "UNP_2006_100885",
+          22
+        ],
+        [
+          "UNP_2006_100885",
+          33
+        ],
+        [
+          "UNP_2006_100885",
+          48
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_799",
+      "question": "What is the average interest cost, in millions of dollars, for the pension plans from 2016 to 2018, as reported in the 2018 financial report of Becton Dickinson?",
+      "chunk_file": "BDX_2018_10795.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.2,
+      "top_5_retrieved": [
+        [
+          "BDX_2018_10795",
+          76
+        ],
+        [
+          "MSI_2018_68505",
+          91
+        ],
+        [
+          "HWM_2018_4281",
+          91
+        ],
+        [
+          "HWM_2018_4281",
+          89
+        ],
+        [
+          "BDX_2018_10795",
+          74
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_801",
+      "question": "What is the total net pension cost for the years 2016-2018, as disclosed in Note 8 of Becton Dickinson's 2018 report, in millions of dollars?",
+      "chunk_file": "BDX_2018_10795.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.43067655807339306,
+      "mrr": 0.25,
+      "top_5_retrieved": [
+        [
+          "MSI_2018_68505",
+          91
+        ],
+        [
+          "HWM_2018_4281",
+          89
+        ],
+        [
+          "SPGI_2017_64040",
+          81
+        ],
+        [
+          "BDX_2018_10795",
+          74
+        ],
+        [
+          "ETR_2017_65984",
+          160
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_837",
+      "question": "What is the lowest monthly return for Delphi Automotive PLC during the first month of investment, from November 17, 2011, to December 31, 2011?",
+      "chunk_file": "APTV_2014_1521332.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "APTV_2014_1521332",
+          31
+        ],
+        [
+          "APTV_2014_1521332",
+          77
+        ],
+        [
+          "APTV_2014_1521332",
+          38
+        ],
+        [
+          "APTV_2014_1521332",
+          116
+        ],
+        [
+          "APTV_2014_1521332",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_861",
+      "question": "What is the total price paid by Valero Energy for the total number of shares of its common stock purchased during the fourth quarter of 2018?",
+      "chunk_file": "VLO_2018_1035002.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "VLO_2018_1035002",
+          55
+        ],
+        [
+          "VLO_2018_1035002",
+          22
+        ],
+        [
+          "VLO_2014_1035002",
+          47
+        ],
+        [
+          "VLO_2014_1035002",
+          18
+        ],
+        [
+          "VLO_2018_1035002",
+          54
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_871",
+      "question": "What was the ratio of LKQ Corporation's cumulative return to that of the peer group as of December 31, 2013, based on the comparison of their performance over time?",
+      "chunk_file": "LKQ_2016_1065696.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.3010299956639812,
+      "mrr": 0.1111111111111111,
+      "top_5_retrieved": [
+        [
+          "LKQ_2016_1065696",
+          118
+        ],
+        [
+          "LKQ_2016_1065696",
+          75
+        ],
+        [
+          "LKQ_2016_1065696",
+          73
+        ],
+        [
+          "LKQ_2016_1065696",
+          117
+        ],
+        [
+          "LKQ_2016_1065696",
+          112
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_872",
+      "question": "What was the percentage change in cash capital investments in track from 2005 to 2006 for Union Pacific Corporation?",
+      "chunk_file": "UNP_2006_100885.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.17723928678404774,
+      "mrr": 0.1,
+      "top_5_retrieved": [
+        [
+          "UNP_2006_100885",
+          10
+        ],
+        [
+          "UNP_2006_100885",
+          50
+        ],
+        [
+          "UNP_2006_100885",
+          33
+        ],
+        [
+          "UNP_2006_100885",
+          48
+        ],
+        [
+          "UNP_2006_100885",
+          1
+        ]
+      ]
+    },
+    {
+      "id": "finqa_dev_877",
+      "question": "What is the difference in return between the highest and lowest performing investment option for the first year, considering the $100 investment made on November 17, 2011, in Delphi Automotive PLC or October 31, 2011, in the relevant index?",
+      "chunk_file": "APTV_2014_1521332.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "APTV_2014_1521332",
+          31
+        ],
+        [
+          "APTV_2014_1521332",
+          77
+        ],
+        [
+          "APTV_2014_1521332",
+          116
+        ],
+        [
+          "APTV_2014_1521332",
+          52
+        ],
+        [
+          "APTV_2014_1521332",
+          38
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_11",
+      "question": "What is the difference between Entergy Mississippi, Inc.'s net revenue in 2008 and 2007, as reported in the 2008 Management's Financial Discussion and Analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          250
+        ],
+        [
+          "ETR_2008_65984",
+          253
+        ],
+        [
+          "ETR_2008_65984",
+          258
+        ],
+        [
+          "ETR_2008_65984",
+          261
+        ],
+        [
+          "ETR_2008_65984",
+          259
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_57",
+      "question": "What proportion of Nike's total contractual obligations in 2017 are related to endorsement contracts?",
+      "chunk_file": "NKE_2015_320187.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "NKE_2015_320187",
+          59
+        ],
+        [
+          "NKE_2009_320187",
+          33
+        ],
+        [
+          "NKE_2015_320187",
+          19
+        ],
+        [
+          "NKE_2015_320187",
+          2
+        ],
+        [
+          "NKE_2015_320187",
+          31
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_97",
+      "question": "What was the sale price of the Starter brand business when Nike, Inc. divested it to Iconix Brand Group, Inc. in 2007?",
+      "chunk_file": "NKE_2009_320187.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.2640681225725909,
+      "mrr": 0.25,
+      "top_5_retrieved": [
+        [
+          "NKE_2009_320187",
+          69
+        ],
+        [
+          "NKE_2009_320187",
+          28
+        ],
+        [
+          "NKE_2015_320187",
+          76
+        ],
+        [
+          "NKE_2009_320187",
+          64
+        ],
+        [
+          "NKE_2015_320187",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_109",
+      "question": "What was the change in net cash used in financing activities at 3M from 2004 to 2005, in millions?",
+      "chunk_file": "MMM_2005_66740.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6509209298071326,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "MMM_2005_66740",
+          41
+        ],
+        [
+          "MMM_2005_66740",
+          30
+        ],
+        [
+          "MMM_2005_66740",
+          28
+        ],
+        [
+          "MMM_2005_66740",
+          31
+        ],
+        [
+          "MMM_2005_66740",
+          23
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_156",
+      "question": "What was the change in Entergy's net revenue from 2016 to 2017, as reflected in the company's 2017 financial report?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 4,
+      "recall_10": 0.25,
+      "recall_50": 0.5,
+      "ndcg_10": 0.13905617951077562,
+      "mrr": 0.16666666666666666,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          51
+        ],
+        [
+          "ETR_2017_65984",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          298
+        ],
+        [
+          "ETR_2017_65984",
+          295
+        ],
+        [
+          "ETR_2017_65984",
+          372
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_220",
+      "question": "In the consolidated financial statements of Chubb Limited for the year 2008, what is the number of restricted stock granted in 2007?",
+      "chunk_file": "CB_2008_896159.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.6309297535714575,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "ADBE_2008_796343",
+          77
+        ],
+        [
+          "CB_2008_896159",
+          167
+        ],
+        [
+          "HUM_2009_49071",
+          96
+        ],
+        [
+          "MS_2007_895421",
+          123
+        ],
+        [
+          "CB_2008_896159",
+          166
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_294",
+      "question": "What was the difference in the share price of DISCB between December 31, 2011, and December 31, 2016, according to the table in the 2016 annual report of Discovery, Inc.?",
+      "chunk_file": "DISCA_2016_1437107.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.029411764705882353,
+      "top_5_retrieved": [
+        [
+          "DISCA_2016_1437107",
+          31
+        ],
+        [
+          "DISCA_2009_1437107",
+          90
+        ],
+        [
+          "DISCA_2016_1437107",
+          51
+        ],
+        [
+          "DISCA_2016_1437107",
+          113
+        ],
+        [
+          "DISCA_2016_1437107",
+          37
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_314",
+      "question": "What was the amount of the other-than-temporary impairment charge related to Discovery, Inc.'s investment in Lionsgate that was recorded on September 30, 2016?",
+      "chunk_file": "DISCA_2016_1437107.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "DISCA_2016_1437107",
+          34
+        ],
+        [
+          "DISCA_2016_1437107",
+          93
+        ],
+        [
+          "DISCA_2016_1437107",
+          120
+        ],
+        [
+          "DISCA_2016_1437107",
+          10
+        ],
+        [
+          "DISCA_2016_1437107",
+          122
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_375",
+      "question": "What was the percentage change in the weighted average fair value of options granted by Fidelity National Information Services from 2009 to 2010?",
+      "chunk_file": "FIS_2010_1136893.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "FIS_2010_1136893",
+          83
+        ],
+        [
+          "FIS_2010_1136893",
+          82
+        ],
+        [
+          "BLL_2010_9389",
+          63
+        ],
+        [
+          "FIS_2010_1136893",
+          81
+        ],
+        [
+          "DG_2009_29534",
+          70
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_429",
+      "question": "What was the net revenue for Entergy Louisiana, LLC in 2008, according to the Management's Financial Discussion and Analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          246
+        ],
+        [
+          "ETR_2008_65984",
+          138
+        ],
+        [
+          "ETR_2008_65984",
+          8
+        ],
+        [
+          "ETR_2008_65984",
+          328
+        ],
+        [
+          "ETR_2008_65984",
+          140
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_499",
+      "question": "What was the earnings per share (EPS) - basic pro forma for Union Pacific Corporation in 2004, considering the stock-based compensation expense determined under the fair value-based method for all awards?",
+      "chunk_file": "UNP_2006_100885.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.041666666666666664,
+      "top_5_retrieved": [
+        [
+          "UNP_2006_100885",
+          37
+        ],
+        [
+          "MS_2007_895421",
+          119
+        ],
+        [
+          "UNP_2006_100885",
+          50
+        ],
+        [
+          "MMM_2005_66740",
+          45
+        ],
+        [
+          "SNPS_2003_883241",
+          44
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_751",
+      "question": "What was the change in Entergy's net revenue from 2016 to 2017, as reflected in the company's 2017 financial report?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 4,
+      "recall_10": 0.25,
+      "recall_50": 0.5,
+      "ndcg_10": 0.13905617951077562,
+      "mrr": 0.16666666666666666,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          51
+        ],
+        [
+          "ETR_2017_65984",
+          8
+        ],
+        [
+          "ETR_2017_65984",
+          298
+        ],
+        [
+          "ETR_2017_65984",
+          295
+        ],
+        [
+          "ETR_2017_65984",
+          372
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_752",
+      "question": "What was Entergy's net revenue in 2017, as reflected in the company's financial analysis for that year?",
+      "chunk_file": "ETR_2017_65984.json",
+      "n_relevant": 4,
+      "recall_10": 0.0,
+      "recall_50": 0.25,
+      "ndcg_10": 0.0,
+      "mrr": 0.05263157894736842,
+      "top_5_retrieved": [
+        [
+          "ETR_2017_65984",
+          51
+        ],
+        [
+          "ETR_2017_65984",
+          217
+        ],
+        [
+          "ETR_2017_65984",
+          381
+        ],
+        [
+          "ETR_2017_65984",
+          180
+        ],
+        [
+          "ETR_2017_65984",
+          139
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_776",
+      "question": "What was the net change in the fair value of options granted by Fidelity National Information Services from 2009 to 2010, based on the Black-Scholes option pricing model?",
+      "chunk_file": "FIS_2010_1136893.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "BLL_2010_9389",
+          63
+        ],
+        [
+          "FIS_2010_1136893",
+          83
+        ],
+        [
+          "MKTX_2011_1278021",
+          60
+        ],
+        [
+          "DISH_2010_1001082",
+          99
+        ],
+        [
+          "FIS_2010_1136893",
+          82
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_853",
+      "question": "What was the decrease in Entergy Louisiana's net revenues from 2007 to 2008, considering the variances in retail electric price, purchased power capacity, net wholesale revenue, and other factors as outlined in the 2008 financial discussion and analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.2,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          154
+        ],
+        [
+          "ETR_2008_65984",
+          21
+        ],
+        [
+          "ETR_2008_65984",
+          236
+        ],
+        [
+          "ETR_2008_65984",
+          17
+        ],
+        [
+          "ETR_2008_65984",
+          235
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_966",
+      "question": "What is the difference between the 2005 pro forma basic earnings per share and the 2005 pro forma diluted earnings per share for Union Pacific Corporation?",
+      "chunk_file": "UNP_2006_100885.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.03225806451612903,
+      "top_5_retrieved": [
+        [
+          "MMM_2005_66740",
+          44
+        ],
+        [
+          "SYY_2006_96021",
+          46
+        ],
+        [
+          "UNP_2006_100885",
+          10
+        ],
+        [
+          "UNP_2006_100885",
+          33
+        ],
+        [
+          "UNP_2006_100885",
+          50
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_1031",
+      "question": "What is the net impact of granted and vested shares on the number of unvested restricted stocks for the year ended December 31, 2007, as reported by Chubb Limited in their 2008 financial statements?",
+      "chunk_file": "CB_2008_896159.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.3010299956639812,
+      "mrr": 0.1111111111111111,
+      "top_5_retrieved": [
+        [
+          "ADBE_2008_796343",
+          77
+        ],
+        [
+          "VLO_2018_1035002",
+          89
+        ],
+        [
+          "ADI_2007_6281",
+          62
+        ],
+        [
+          "CB_2008_896159",
+          166
+        ],
+        [
+          "MS_2007_895421",
+          159
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_1127",
+      "question": "What percentage of American Tower's total net operating loss carryforwards as of December 31, 2006, were set to expire between 2017 and 2021?",
+      "chunk_file": "AMT_2006_1053507.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "AMT_2016_1053507",
+          90
+        ],
+        [
+          "AMT_2016_1053507",
+          42
+        ],
+        [
+          "AMT_2016_1053507",
+          121
+        ],
+        [
+          "AMT_2016_1053507",
+          114
+        ],
+        [
+          "AMT_2016_1053507",
+          28
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_1455",
+      "question": "What was the total dollar value of shares purchased by Celanese in October 2009?",
+      "chunk_file": "CE_2009_1306830.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.07142857142857142,
+      "top_5_retrieved": [
+        [
+          "CE_2009_1306830",
+          61
+        ],
+        [
+          "CE_2009_1306830",
+          62
+        ],
+        [
+          "CE_2009_1306830",
+          92
+        ],
+        [
+          "CE_2006_1306830",
+          144
+        ],
+        [
+          "CE_2009_1306830",
+          2
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_1511",
+      "question": "As of December 31, 2015, what was the amount of the 5.0% senior notes issued by Devon Energy in June 2015 that mature in 2045?",
+      "chunk_file": "DVN_2015_1090012.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "DVN_2015_1090012",
+          63
+        ],
+        [
+          "DVN_2011_1090012",
+          52
+        ],
+        [
+          "DVN_2015_1090012",
+          83
+        ],
+        [
+          "RSG_2016_1060391",
+          64
+        ],
+        [
+          "DVN_2015_1090012",
+          65
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_1765",
+      "question": "What was the difference in average price paid per share for Celanese's series A common stock between the month of October 2009 and December 2009?",
+      "chunk_file": "CE_2009_1306830.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.43067655807339306,
+      "mrr": 0.25,
+      "top_5_retrieved": [
+        [
+          "CE_2009_1306830",
+          25
+        ],
+        [
+          "CE_2009_1306830",
+          61
+        ],
+        [
+          "CE_2006_1306830",
+          28
+        ],
+        [
+          "CE_2009_1306830",
+          26
+        ],
+        [
+          "CE_2006_1306830",
+          144
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_1981",
+      "question": "What is the foreign currency translation balance of Zimmer Biomet as of December 31, 2018, as reported in their 2018 Form 10-K Annual Report?",
+      "chunk_file": "ZBH_2018_1136869.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ZBH_2018_1136869",
+          47
+        ],
+        [
+          "ZBH_2018_1136869",
+          27
+        ],
+        [
+          "ZBH_2018_1136869",
+          91
+        ],
+        [
+          "ZBH_2018_1136869",
+          93
+        ],
+        [
+          "ZBH_2018_1136869",
+          92
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2118",
+      "question": "What was the percentage change in net revenue for Entergy Mississippi, Inc. from 2007 to 2008, according to the 2008 financial report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 1.0,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          250
+        ],
+        [
+          "ETR_2008_65984",
+          253
+        ],
+        [
+          "ETR_2008_65984",
+          258
+        ],
+        [
+          "ETR_2008_65984",
+          259
+        ],
+        [
+          "ETR_2008_65984",
+          261
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2174",
+      "question": "What is the decrease in interest paid by Zimmer Biomet from 2016 to 2017?",
+      "chunk_file": "ZBH_2018_1136869.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ZBH_2018_1136869",
+          47
+        ],
+        [
+          "ZBH_2018_1136869",
+          48
+        ],
+        [
+          "ZBH_2018_1136869",
+          93
+        ],
+        [
+          "ZBH_2018_1136869",
+          92
+        ],
+        [
+          "ZBH_2018_1136869",
+          31
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2201",
+      "question": "What was the value of the disca in 2016 for Discovery, Inc.?",
+      "chunk_file": "DISCA_2016_1437107.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.038461538461538464,
+      "top_5_retrieved": [
+        [
+          "DISCA_2016_1437107",
+          122
+        ],
+        [
+          "DISCA_2016_1437107",
+          37
+        ],
+        [
+          "DISCA_2016_1437107",
+          93
+        ],
+        [
+          "DISCA_2016_1437107",
+          103
+        ],
+        [
+          "DISCA_2016_1437107",
+          113
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2433",
+      "question": "What was Entergy Louisiana, LLC's net revenue in 2008, as reported in the Management's Financial Discussion and Analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          246
+        ],
+        [
+          "ETR_2008_65984",
+          8
+        ],
+        [
+          "ETR_2008_65984",
+          138
+        ],
+        [
+          "ETR_2008_65984",
+          140
+        ],
+        [
+          "ETR_2008_65984",
+          328
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2555",
+      "question": "What were the net revenues for Entergy Mississippi, Inc. in 2008, as reported in the Management's Financial Discussion and Analysis section of the 2008 financial report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.07142857142857142,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          258
+        ],
+        [
+          "ETR_2008_65984",
+          261
+        ],
+        [
+          "ETR_2008_65984",
+          259
+        ],
+        [
+          "ETR_2008_65984",
+          253
+        ],
+        [
+          "ETR_2008_65984",
+          138
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2606",
+      "question": "What was the net revenue for Entergy Louisiana, LLC in 2008, as reported in the Management's Financial Discussion and Analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 0.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.0,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          246
+        ],
+        [
+          "ETR_2008_65984",
+          138
+        ],
+        [
+          "ETR_2008_65984",
+          8
+        ],
+        [
+          "ETR_2008_65984",
+          140
+        ],
+        [
+          "ETR_2008_65984",
+          328
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_2625",
+      "question": "What was the net revenue for Entergy Mississippi, Inc. in 2008, as reported in the Management's Financial Discussion and Analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 0.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.0,
+      "mrr": 0.07142857142857142,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          258
+        ],
+        [
+          "ETR_2008_65984",
+          261
+        ],
+        [
+          "ETR_2008_65984",
+          259
+        ],
+        [
+          "ETR_2008_65984",
+          253
+        ],
+        [
+          "ETR_2008_65984",
+          152
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3030",
+      "question": "What is the combined impact of the retail electric price and purchased power capacity variances on Entergy Louisiana's net revenue in 2008 compared to 2007?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 1,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.43067655807339306,
+      "mrr": 0.25,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          154
+        ],
+        [
+          "ETR_2008_65984",
+          21
+        ],
+        [
+          "ETR_2008_65984",
+          17
+        ],
+        [
+          "ETR_2008_65984",
+          235
+        ],
+        [
+          "ETR_2008_65984",
+          236
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3041",
+      "question": "What proportion of gallons hedged in 2017 did the 3,000,000 gallons hedged in 2018 represent?",
+      "chunk_file": "RSG_2016_1060391.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 0.5,
+      "ndcg_10": 0.6131471927654584,
+      "mrr": 1.0,
+      "top_5_retrieved": [
+        [
+          "RSG_2016_1060391",
+          127
+        ],
+        [
+          "ZBH_2018_1136869",
+          32
+        ],
+        [
+          "NCLH_2018_1513761",
+          80
+        ],
+        [
+          "AAL_2018_6201",
+          54
+        ],
+        [
+          "NCLH_2018_1513761",
+          47
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3062",
+      "question": "What was the percentage change in Applied Materials' RD&E spendings from fiscal 2012 to fiscal 2013?",
+      "chunk_file": "AMAT_2013_6951.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "AMAT_2013_6951",
+          40
+        ],
+        [
+          "AMAT_2013_6951",
+          12
+        ],
+        [
+          "AMAT_2013_6951",
+          67
+        ],
+        [
+          "AMAT_2013_6951",
+          32
+        ],
+        [
+          "AMAT_2013_6951",
+          41
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3275",
+      "question": "What was the increase in net revenue for Entergy Texas in 2007 compared to 2006?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5640920940185894,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          278
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          220
+        ],
+        [
+          "ETR_2008_65984",
+          279
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3349",
+      "question": "What was the net change in revenue for Entergy Texas, Inc. from 2006 to 2007, as reflected in the financial analysis for that period?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 1.0,
+      "recall_50": 1.0,
+      "ndcg_10": 0.5,
+      "mrr": 0.3333333333333333,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          278
+        ],
+        [
+          "ETR_2008_65984",
+          290
+        ],
+        [
+          "ETR_2008_65984",
+          291
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3393",
+      "question": "What was the percentage change in Applied Materials' RD&E spendings from fiscal 2012 to fiscal 2013?",
+      "chunk_file": "AMAT_2013_6951.json",
+      "n_relevant": 2,
+      "recall_10": 0.5,
+      "recall_50": 1.0,
+      "ndcg_10": 0.38685280723454163,
+      "mrr": 0.5,
+      "top_5_retrieved": [
+        [
+          "AMAT_2013_6951",
+          40
+        ],
+        [
+          "AMAT_2013_6951",
+          12
+        ],
+        [
+          "AMAT_2013_6951",
+          67
+        ],
+        [
+          "AMAT_2013_6951",
+          32
+        ],
+        [
+          "AMAT_2013_6951",
+          41
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3403",
+      "question": "What was the net revenue of Entergy Texas, Inc. in 2007, as reported in the 2008 financial discussion and analysis?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.037037037037037035,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          290
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          291
+        ],
+        [
+          "ETR_2008_65984",
+          274
+        ]
+      ]
+    },
+    {
+      "id": "convfinqa_3455",
+      "question": "What was the net revenue for Entergy Texas, Inc. in 2007, as reflected in the Entergy 2008 report?",
+      "chunk_file": "ETR_2008_65984.json",
+      "n_relevant": 2,
+      "recall_10": 0.0,
+      "recall_50": 0.5,
+      "ndcg_10": 0.0,
+      "mrr": 0.041666666666666664,
+      "top_5_retrieved": [
+        [
+          "ETR_2008_65984",
+          291
+        ],
+        [
+          "ETR_2008_65984",
+          288
+        ],
+        [
+          "ETR_2008_65984",
+          290
+        ],
+        [
+          "ETR_2008_65984",
+          218
+        ],
+        [
+          "ETR_2008_65984",
+          274
+        ]
+      ]
+    }
+  ]
+}

@@ -13,8 +13,11 @@ dependencies = [
     "httpx>=0.28.1",
     "huggingface-hub>=1.28.0",
     "pandas>=2.2.2,<3.0.0",
+    "pgvector>=0.5.0",
+    "psycopg[binary]>=3.3.4",
     "python-dotenv>=1.2.3",
     "sec-parser==0.58.1",
+    "sentence-transformers>=6.0.0",
     "transformers>=5.8.1",
 ]
 
