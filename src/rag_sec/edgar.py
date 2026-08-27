@@ -27,13 +27,16 @@ def _get(url: str) -> httpx.Response:
 
 
 def _search_filings_block(block: dict, cik: int, fiscal_year: int) -> dict | None:
-    for form, filing_date, accession, primary_doc in zip(
-        block["form"], block["filingDate"], block["accessionNumber"], block["primaryDocument"]
+    for form, filing_date, accession, primary_doc, report_date in zip(
+        block["form"],
+        block["filingDate"],
+        block["accessionNumber"],
+        block["primaryDocument"],
+        block["reportDate"],
     ):
         if form != "10-K":
             continue
-        filing_year = int(filing_date[:4])
-        if filing_year in (fiscal_year, fiscal_year + 1):
+        if report_date and int(report_date[:4]) == fiscal_year:
             return {
                 "cik": cik,
                 "accession_number": accession,
@@ -46,8 +49,13 @@ def _search_filings_block(block: dict, cik: int, fiscal_year: int) -> dict | Non
 def find_10k_accession(cik: int, fiscal_year: int) -> dict | None:
     """Finds the 10-K filed for a given fiscal year.
 
-    A 10-K for fiscal year Y is filed in Y or Y+1 (companies file a few months
-    after fiscal year-end), so we match on filingDate year in {Y, Y+1}.
+    Matches on the filing's `reportDate` (period of report) year, not `filingDate`.
+    A prior version matched filingDate in {fiscal_year, fiscal_year+1} to account for
+    the filing lag after fiscal year-end — but for non-calendar-fiscal-year filers
+    (e.g. Sysco, Apple, Nike), consecutive fiscal years' 10-Ks can both have filingDate
+    in that window, and since EDGAR lists filings most-recent-first, the wrong
+    (later) fiscal year's 10-K would be returned. Confirmed on the 100-filing corpus:
+    26/100 had the wrong fiscal year under the old logic (DECISIONS.md #14).
 
     The submissions API's "recent" block only covers roughly the company's last
     ~1,000 filings; older filings live in separate paginated JSON files listed

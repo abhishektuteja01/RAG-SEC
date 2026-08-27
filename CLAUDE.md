@@ -42,4 +42,13 @@ for user to explain it in an interview easily, and then move forward.
   `src/rag_sec/chunking.py` (DECISIONS.md #10), 11,391 chunks over 100 filings, median
   885 tokens. Findings: `data/day2_findings.md`. TODO: full-corpus ingest (later day
   per spec.md).
-- Next: Day 3 — eval harness (recall@10/50, nDCG@10, MRR) + Arm 1 (dense only).
+- Day 3 (done): eval harness `src/rag_sec/eval.py` (shingle-overlap gold-relevance
+  labeling, `recall_at_k`/`ndcg_at_k`/`mrr`, DECISIONS.md #11-13). Found + fixed a real
+  bug along the way: 26/100 filings had the wrong fiscal year (`edgar.py` matched on
+  filing date, not report date — #14); re-ingested/re-chunked. Arm 1 (dense, BGE-M3 via
+  sentence-transformers, pgvector HNSW, `scripts/day3_index_chunks.py` +
+  `day3_run_arm1.py`, #15-16): dev-split (n=120) baseline recall@10=0.46±0.04,
+  recall@50=0.66±0.04, nDCG@10=0.33±0.03, MRR=0.35±0.04 (#17). Test split untouched.
+- Next: Day 4 — likely hybrid (dense + BM25) or reranking (Arm 3), given recall@50 »
+  recall@10 suggests a ranking problem, not a coverage problem. TAT-DQA CIK resolution
+  and cik+year metadata pre-filter both logged as deferred follow-ups, not yet built.
