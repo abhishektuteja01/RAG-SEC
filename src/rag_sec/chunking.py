@@ -14,6 +14,7 @@ from transformers import AutoTokenizer
 
 import re
 
+from rag_sec.config import EMBED_MODEL_NAME
 from rag_sec.parsing import Block, TableBlock
 
 MIN_CHUNK_TOKENS = 200
@@ -34,10 +35,9 @@ _TOKENIZER = None
 def _tokenizer():
     global _TOKENIZER
     if _TOKENIZER is None:
-        # BGE-M3 is spec.md's primary embedding candidate -- budget against
-        # its actual tokenizer so chunk sizes match what the embed step sees,
-        # not a generic proxy.
-        _TOKENIZER = AutoTokenizer.from_pretrained("BAAI/bge-m3")
+        # Budget against the actual embedding model's tokenizer (rag_sec.config) so
+        # chunk sizes match what the embed step sees, not a generic proxy.
+        _TOKENIZER = AutoTokenizer.from_pretrained(EMBED_MODEL_NAME)
     return _TOKENIZER
 
 

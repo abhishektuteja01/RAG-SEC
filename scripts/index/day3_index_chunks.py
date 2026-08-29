@@ -15,16 +15,16 @@ load_dotenv()
 
 from sentence_transformers import SentenceTransformer
 
+from rag_sec.config import EMBED_MODEL_NAME
 from rag_sec.store import HNSW_INDEX_SQL, get_conn, init_schema
 
-CHUNKS_DIR = Path(__file__).resolve().parent.parent / "data" / "chunks"
+CHUNKS_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "chunks"
 EMBED_BATCH_SIZE = 32
-MODEL_NAME = "BAAI/bge-m3"
 
 
 def main() -> None:
     init_schema()
-    model = SentenceTransformer(MODEL_NAME)
+    model = SentenceTransformer(EMBED_MODEL_NAME)
 
     paths = sorted(CHUNKS_DIR.glob("*.json"))
     print(f"Embedding chunks from {len(paths)} filings")
