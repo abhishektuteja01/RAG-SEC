@@ -1,0 +1,236 @@
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (29253 > 8192). Running this sequence through the model will result in indexing errors
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+/Users/abhishektuteja/code-projects/RAG-SEC/.venv/lib/python3.12/site-packages/sec_parser/utils/bs4_/approx_table_metrics.py:31: UserWarning: Failed to get table metrics: 'NoneType' object has no attribute 'text'
+  warnings.warn(f"Failed to get table metrics: {e}", stacklevel=0)
+403 pairs already done, 396 remaining in pool
+Sampled 200 (cik, year) targets
+[1/200] MAR 2018
+[2/200] DISH 2002
+[3/200] HOLX 2009
+[4/200] UPS 2016
+[5/200] BLK 2010
+[6/200] MRO 2012
+[7/200] JKHY 2016
+[8/200] AMT 2012
+[9/200] UNP 2018
+[10/200] SWKS 2012
+[11/200] KIM 2009
+[12/200] MRO 2018
+[13/200] IPG 2014
+[14/200] BLK 2014
+[15/200] JKHY 2015
+[16/200] CE 2010
+[17/200] RE 2013
+[18/200] L 2016
+[19/200] CAT 2017
+[20/200] DISCA 2008
+[21/200] DRE 2002
+[22/200] EW 2004
+[23/200] STT 2006
+[24/200] HII 2017
+[25/200] CE 2007
+[26/200] BLL 2007
+[27/200] RSG 2010
+[28/200] BKNG 2018
+[29/200] MRO 2017
+[30/200] LKQ 2007
+[31/200] ANSS 2014
+[32/200] AAPL 2013
+[33/200] HFC 2018
+[34/200] CME 2017
+[35/200] UA 2005
+[36/200] AES 2002
+[37/200] AES 2011
+[38/200] SLG 2012
+[39/200] TFX 2014
+[40/200] NTAP 2014
+[41/200] RCL 2012
+[42/200] MKTX 2009
+[43/200] JKHY 2008
+[44/200] RCL 2009
+[45/200] GPN 2015
+[46/200] BDX 2019
+[47/200] EMN 2006
+[48/200] RSG 2014
+[49/200] IPG 2016
+[50/200] ZBH 2003
+[51/200] PPG 2011
+[52/200] MSI 2007
+[53/200] RSG 2013
+[54/200] CNC 2003
+[55/200] CB 2009
+[56/200] VNO 2011
+[57/200] GRMN 2006
+[58/200] AMAT 2012
+[59/200] AWK 2012
+[60/200] TFX 2006
+[61/200] ANET 2017
+[62/200] EXPD 2017
+[63/200] AMAT 2018
+[64/200] UPS 2009
+[65/200] GS 2017
+[66/200] SLG 2010
+[67/200] IP 2007
+[68/200] RE 2006
+[69/200] KIM 2010
+[70/200] ALLE 2017
+[71/200] CE 2017
+[72/200] TROW 2009
+[73/200] RE 2015
+[74/200] C 2017
+[75/200] ETR 2003
+[76/200] CNC 2005
+[77/200] LLY 2018
+[78/200] ADI 2011
+[79/200] HOLX 2015
+[80/200] EL 2009
+[81/200] AMT 2007
+[82/200] ETFC 2013
+[83/200] PNC 2016
+[84/200] ZBH 2015
+[85/200] LLY 2008
+[86/200] RE 2016
+[87/200] STZ 2006
+[88/200] KIM 2006
+[89/200] APD 2013
+[90/200] FIS 2012
+[91/200] VNO 2010
+[92/200] JPM 2003
+[93/200] EOG 2016
+[94/200] WELL 2016
+[95/200] TFX 2017
+[96/200] UPS 2012
+[97/200] MAA 2018
+[98/200] UNP 2009
+[99/200] HII 2013
+[100/200] STT 2014
+[101/200] PNC 2018
+[102/200] JKHY 2009
+[103/200] DRE 2013
+[104/200] SWKS 2008
+[105/200] CDNS 2007
+[106/200] TMUS 2018
+[107/200] SWKS 2010
+[108/200] VRTX 2003
+[109/200] AON 2018
+[110/200] DVN 2004
+[111/200] VLO 2011
+[112/200] GPN 2010
+[113/200] LKQ 2012
+[114/200] DVN 2010
+[115/200] ADBE 2014
+[116/200] JKHY 2014
+[117/200] MO 2012
+[118/200] SYY 2019
+[119/200] LKQ 2010
+[120/200] LMT 2013
+[121/200] ORLY 2009
+[122/200] PPG 2010
+[123/200] DISCA 2011
+[124/200] PM 2015
+[125/200] HII 2015
+[126/200] IPG 2007
+[127/200] GRMN 2007
+[128/200] AON 2015
+[129/200] MKTX 2004
+[130/200] ETFC 2011
+[131/200] HII 2018
+[132/200] TMUS 2016
+[133/200] RSG 2008
+[134/200] L 2009
+[135/200] SNA 2012
+[136/200] INTC 2017
+[137/200] MAR 2010
+[138/200] MRO 2013
+[139/200] ZBH 2004
+[140/200] ADBE 2013
+[141/200] HIG 2012
+[142/200] JPM 2008
+[143/200] CE 2005
+[144/200] IPG 2006
+[145/200] AAP 2007
+[146/200] CME 2012
+[147/200] ORLY 2018
+[148/200] UA 2007
+[149/200] MSI 2005
+[150/200] FTV 2017
+[151/200] RE 2010
+[152/200] APD 2015
+[153/200] UPS 2017
+[154/200] EW 2014
+[155/200] UPS 2014
+[156/200] AES 2016
+[157/200] RE 2018
+[158/200] KHC 2016
+[159/200] ADI 2009
+[160/200] AMT 2015
+[161/200] ETFC 2012
+[162/200] LMT 2007
+[163/200] STT 2012
+[164/200] PKG 2011
+[165/200] RCL 2017
+[166/200] CNC 2006
+[167/200] PNC 2015
+[168/200] GPN 2007
+[169/200] FRT 2005
+[170/200] AMT 2008
+[171/200] RL 2014
+[172/200] GPN 2018
+[173/200] RCL 2010
+[174/200] PNC 2008
+[175/200] CDW 2017
+[176/200] ILMN 2007
+[177/200] PNC 2013
+[178/200] FIS 2016
+[179/200] CAG 2008
+[180/200] MRO 2014
+[181/200] UA 2015
+[182/200] GIS 2006
+[183/200] AWK 2017
+[184/200] HUM 2017
+[185/200] TFX 2018
+[186/200] EW 2013
+[187/200] GRMN 2008
+[188/200] DRE 2007
+[189/200] DRE 2008
+[190/200] BLK 2012
+[191/200] SNA 2007
+[192/200] BKNG 2015
+[193/200] CAG 2007
+[194/200] ADBE 2003
+[195/200] CE 2016
+[196/200] JPM 2009
+[197/200] IP 2009
+[198/200] IP 2005
+[199/200] GPN 2009
+[200/200] AAP 2011
+Done. Log at /Users/abhishektuteja/code-projects/RAG-SEC/data/day4_ingest_log.jsonl
