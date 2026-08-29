@@ -12,10 +12,22 @@ wheels/
 # Local secrets
 .env
 
+# Personal working rules, not project source of truth (spec.md/DECISIONS.md are)
+CLAUDE.md
+
 # Regeneratable data (raw filings, parsed/chunked output) -- large,
 # reproducible from scripts/day2_ingest.py and scripts/day2_chunk.py.
-# Keep: logs (*.jsonl), day2_findings.md, sample_pdfs (all small).
+# Keep: logs (*.jsonl) except day2_chunk_log (raw per-chunk dump,
+# no findings), day2_findings.md.
 data/filings/
 data/parsed/
-data/parsed_docling_v1/
 data/chunks/
+data/day2_chunk_log.jsonl
+
+# Regeneratable HPC split-job payloads/outputs (embeddings, rerank scores) --
+# large, reproducible via the split-job scripts in scripts/index and scripts/arms.
+# Keep the small aggregated *_dev_results.json/*_dev_failures.md instead.
+data/*_embed_payload.json
+data/*_rerank_payload.json
+data/embed_results.jsonl
+data/rerank_scores*.jsonl
