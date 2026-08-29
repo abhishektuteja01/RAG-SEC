@@ -2,7 +2,7 @@
 
 sec-parser ships only Edgar10QParser (no native 10-K support as of 0.58.1), so
 this strips its 10-Q-specific top-section classification step and derives
-Item boundaries ourselves via regex. See DECISIONS.md #9 for why, and the
+Item boundaries ourselves via regex. See DECISIONS.md CHUNK-1 for why, and the
 fallback (Docling + normalization) if a sec-parser version bump breaks the
 internal classes this relies on.
 """
@@ -151,7 +151,7 @@ def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
     business-narrative headings (e.g. "EXECUTIVE OVERVIEW") instead, and
     "Item N" appears only once in the front-matter index. This returns an
     empty list for those filings rather than guessing; accepted as a known
-    limitation for now (see DECISIONS.md #9), not fixed via TOC
+    limitation for now (see DECISIONS.md CHUNK-1), not fixed via TOC
     cross-referencing.
     """
     boundaries = []

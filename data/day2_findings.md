@@ -1,10 +1,10 @@
 # Day 2 findings — where the parser breaks
 
 Eyeballed 100 Docling-parsed 10-Ks (`data/parsed_docling_v1/`) and the current
-sec-parser output (`data/parsed/`). Full context: `DECISIONS.md` #9, #10. This
+sec-parser output (`data/parsed/`). Full context: `DECISIONS.md` CHUNK-1, CHUNK-2. This
 list drives Day 6.
 
-## Fixed by switching to sec-parser (see #9)
+## Fixed by switching to sec-parser (see CHUNK-1)
 
 1. **Font-span fragmentation.** Filing-agent HTML wraps near-every phrase in
    its own `<font>` tag; Docling split each into its own paragraph
@@ -25,7 +25,7 @@ list drives Day 6.
 4. **No native 10-K support.** sec-parser ships only `Edgar10QParser`;
    10-K support is a workaround via undocumented internals. Fragile to a
    version bump — pinned exact (`==0.58.1`), fallback is Docling +
-   normalization (see #9).
+   normalization (see CHUNK-1).
 5. **Item-boundary detection fails for ~35/100 filings.** Some filers (e.g.
    JPM) never restate "Item N" as a body heading — they use narrative
    headings instead ("EXECUTIVE OVERVIEW"). `find_item_boundaries()` returns
@@ -40,4 +40,4 @@ list drives Day 6.
    blocks) as a heading instead of body text. Checked all 100 filings —
    16 titles over 100 tokens, none legitimate. Reclassified via
    `MAX_TITLE_TOKENS` threshold in `chunking.py`; empirical for this sample,
-   not a proven law (see #10).
+   not a proven law (see CHUNK-3).

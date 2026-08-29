@@ -1,3 +1,7 @@
+"""Loads T2-RAGBench (FinQA/ConvFinQA/TAT-DQA) from Hugging Face into a DataFrame,
+assigning a train/dev/test split to ConvFinQA (the only subset that ships without one).
+"""
+
 from typing import Literal
 from huggingface_hub import hf_hub_download
 import numpy as np

@@ -1,7 +1,7 @@
 """Fetches real 10-K filings from SEC EDGAR by CIK + fiscal year.
 
 Used to reconstruct full filings (not just the single annotated page T2-RAGBench
-ships) so Docling parses documents at production scale, not toy snippets.
+ships), so parsing and retrieval are exercised at production scale, not toy snippets.
 """
 
 import os
@@ -55,7 +55,7 @@ def find_10k_accession(cik: int, fiscal_year: int) -> dict | None:
     (e.g. Sysco, Apple, Nike), consecutive fiscal years' 10-Ks can both have filingDate
     in that window, and since EDGAR lists filings most-recent-first, the wrong
     (later) fiscal year's 10-K would be returned. Confirmed on the 100-filing corpus:
-    26/100 had the wrong fiscal year under the old logic (DECISIONS.md #14).
+    26/100 had the wrong fiscal year under the old logic (DECISIONS.md DATA-5).
 
     The submissions API's "recent" block only covers roughly the company's last
     ~1,000 filings; older filings live in separate paginated JSON files listed
