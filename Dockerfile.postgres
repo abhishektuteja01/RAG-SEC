@@ -1,0 +1,15 @@
+# Extends the pinned pgvector image (DECISIONS.md #4) with ParadeDB's pg_search —
+# a real BM25 index (DECISIONS.md #21), not Postgres's tsvector/ts_rank.
+FROM pgvector/pgvector:0.8.6-pg18-trixie
+
+ARG PARADEDB_VERSION=0.25.1
+ARG TARGETARCH=arm64
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl ca-certificates \
+    && curl -fL "https://github.com/paradedb/paradedb/releases/download/v${PARADEDB_VERSION}/postgresql-18-pg-search_${PARADEDB_VERSION}-1PARADEDB-trixie_${TARGETARCH}.deb" -o /tmp/pg_search.deb \
+    && apt-get install -y /tmp/pg_search.deb \
+    && rm /tmp/pg_search.deb \
+    && apt-get purge -y curl \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/*

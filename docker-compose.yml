@@ -1,7 +1,11 @@
 services:
   postgres:
-    image: pgvector/pgvector:0.8.6-pg18-trixie
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    image: rag-sec-postgres-pgsearch:0.8.6-pg18-trixie
     restart: unless-stopped
+    command: ["postgres", "-c", "shared_preload_libraries=pg_search"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
