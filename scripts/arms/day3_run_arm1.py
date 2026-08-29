@@ -5,7 +5,7 @@ hyperparameters to tune, but we still hold test back — first pass to confirm t
 plumbing (embed -> pgvector -> harness) is measuring something real before it becomes
 the number that goes in a comparison table.
 
-No cik+year metadata pre-filter (DECISIONS.md #16): pure semantic search across the
+No cik+year metadata pre-filter (DECISIONS.md ARM1-2): pure semantic search across the
 whole corpus, so recall reflects the actual retrieval difficulty, not "did we already
 know which filing to look in."
 """
@@ -20,13 +20,13 @@ load_dotenv()
 
 from sentence_transformers import SentenceTransformer
 
+from rag_sec.config import EMBED_MODEL_NAME
 from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mrr, ndcg_at_k, recall_at_k
 from rag_sec.store import get_conn
 
 TOP_K = 50
-MODEL_NAME = "BAAI/bge-m3"
-RESULTS_PATH = Path(__file__).resolve().parent.parent / "data" / "day3_arm1_dev_results.json"
-FAILURES_PATH = Path(__file__).resolve().parent.parent / "data" / "day3_arm1_dev_failures.md"
+RESULTS_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day3_arm1_dev_results.json"
+FAILURES_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day3_arm1_dev_failures.md"
 
 
 def retrieve(conn, embedding, k: int) -> list[tuple[str, int]]:
@@ -51,7 +51,7 @@ def main() -> None:
     dev = df[df["split"] == "dev"].reset_index(drop=True)
     print(f"Running Arm 1 on {len(dev)} dev-split questions")
 
-    model = SentenceTransformer(MODEL_NAME)
+    model = SentenceTransformer(EMBED_MODEL_NAME)
     per_question = []
 
     with get_conn() as conn:
@@ -82,7 +82,7 @@ def main() -> None:
         print(f"{key}: {mean:.3f} +/- {stderr:.3f}")
 
     RESULTS_PATH.write_text(
-        json.dumps({"model": MODEL_NAME, "top_k": TOP_K, "n": len(dev), "metrics": metrics, "per_question": per_question}, indent=2)
+        json.dumps({"model": EMBED_MODEL_NAME, "top_k": TOP_K, "n": len(dev), "metrics": metrics, "per_question": per_question}, indent=2)
     )
     print(f"Results written to {RESULTS_PATH}")
 

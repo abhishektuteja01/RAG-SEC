@@ -2,7 +2,7 @@
 
 Samples unique (cik, report_year) pairs from T2-RAGBench across its three
 subsets, downloads the real filing (not the dataset's single cut page), runs
-it through sec-parser (see rag_sec.parsing and DECISIONS.md #9 for why not
+it through sec-parser (see rag_sec.parsing and DECISIONS.md CHUNK-1 for why not
 Docling), and logs fetch/parse outcomes + timing so we have a concrete list
 of where the parser breaks (drives Day 6).
 """
@@ -24,7 +24,7 @@ from rag_sec.parsing import TableBlock, find_item_boundaries, parse_filing
 N_SAMPLES = 100
 SEED = 42
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 FILINGS_DIR = DATA_DIR / "filings"
 PARSED_DIR = DATA_DIR / "parsed"
 LOG_PATH = DATA_DIR / "day2_ingest_log.jsonl"

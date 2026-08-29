@@ -13,7 +13,7 @@ from pathlib import Path
 from rag_sec.chunking import chunk_blocks
 from rag_sec.parsing import TableBlock, TextBlock
 
-DATA_DIR = Path(__file__).resolve().parent.parent / "data"
+DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 PARSED_DIR = DATA_DIR / "parsed"
 CHUNKS_DIR = DATA_DIR / "chunks"
 LOG_PATH = DATA_DIR / "day2_chunk_log.jsonl"
