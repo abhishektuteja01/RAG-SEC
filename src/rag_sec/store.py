@@ -26,7 +26,16 @@ CREATE TABLE IF NOT EXISTS chunks (
     n_tokens INT,
     text TEXT NOT NULL,
     embedding VECTOR({EMBEDDING_DIM}),
-    UNIQUE (filing_stem, chunk_index)
+    -- Arm 4 (DECISIONS.md ARM4-*): 'A' = whole-table chunk (all Arm 1-3 data,
+    -- and the default for every filing). 'B'/'C' only exist for a handful of
+    -- gold-table-adjacent chunks in the 324 dev-relevant filings, alongside
+    -- 'A' rows. A given 'A' row is only ever superseded (excluded from that
+    -- run's retrieval) for the variants listed here -- e.g. an 'A' chunk that
+    -- IS a gold table gets ['B','C'] once replacements exist, so it doesn't
+    -- also appear as a duplicate answer in those runs.
+    variant TEXT NOT NULL DEFAULT 'A',
+    excluded_by_variant TEXT[] NOT NULL DEFAULT '{{}}',
+    UNIQUE (filing_stem, chunk_index, variant)
 );
 """
 

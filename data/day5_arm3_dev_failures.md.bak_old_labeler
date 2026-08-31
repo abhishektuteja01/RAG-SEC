@@ -1,5 +1,15 @@
 # Arm 3 (Arm 2 hybrid + local cross-encoder rerank) — 20 worst failures on dev split
 
+## finqa_dev_6 (recall@10=0.00, filing=JPM_2008_19617.json)
+Q: What was the Common Equity Tier 1 (CET1) ratio of JPMorgan Chase & Co. as of December 31, 2008, according to their 2008 Annual Report?
+
+Top 5 retrieved: [('JPM_2009_19617', 94), ('JPM_2010_19617', 369), ('JPM_2008_19617', 273), ('JPM_2010_19617', 25), ('JPM_2008_19617', 272)]
+
+## finqa_dev_11 (recall@10=0.00, filing=PKG_2009_75677.json)
+Q: What percentage of Packaging Corporation of America's total purchase commitments, which amount to $44,572 thousand as of 2009, are due after 2014?
+
+Top 5 retrieved: [('PKG_2009_75677', 19), ('PKG_2009_75677', 52), ('PKG_2002_75677', 32), ('PKG_2015_75677', 1), ('PKG_2001_75677', 39)]
+
 ## finqa_dev_12 (recall@10=0.00, filing=LMT_2013_936468.json)
 Q: What was the change in the weighted average common shares outstanding for diluted computations from 2012 to 2013 for Lockheed Martin, in millions?
 
@@ -30,15 +40,15 @@ Q: What percentage of Zimmer Holdings' total inventory value at the end of 2003 
 
 Top 5 retrieved: [('ZBH_2013_1136869', 2), ('ZBH_2003_1136869', 2), ('ZBH_2004_1136869', 2), ('ZBH_2004_1136869', 20), ('ZBH_2002_1136869', 22)]
 
+## finqa_dev_23 (recall@10=0.00, filing=AMT_2005_1053507.json)
+Q: What is the total value of net operating loss carryforwards for American Tower Corporation as of December 31, 2005, which will expire between 2006 and 2025?
+
+Top 5 retrieved: [('AMT_2005_1053507', 76), ('SNPS_2006_883241', 83), ('AMT_2005_1053507', 43), ('MKTX_2005_1278021', 70), ('FIS_2006_1136893', 75)]
+
 ## finqa_dev_24 (recall@10=0.00, filing=ETR_2015_65984.json)
 Q: What is the percent change in annual long-term debt maturities for Entergy Corporation from 2016 to 2017, as reported in the notes to the financial statements for the year 2015?
 
 Top 5 retrieved: [('ETR_2015_65984', 123), ('ETR_2016_65984', 127), ('ETR_2013_65984', 114), ('ETR_2011_65984', 89), ('ETR_2013_65984', 115)]
-
-## finqa_dev_25 (recall@10=0.00, filing=PNC_2009_713676.json)
-Q: What was the change in the percentage of Market Street commitments rated BBB/BA or below between December 31, 2008, and December 31, 2009, as reported by PNC Financial Services in their 2009 financial report?
-
-Top 5 retrieved: [('PNC_2009_713676', 53), ('PNC_2009_713676', 136), ('PNC_2009_713676', 50), ('PNC_2009_713676', 52), ('PNC_2008_713676', 50)]
 
 ## finqa_dev_27 (recall@10=0.00, filing=HOLX_2015_859737.json)
 Q: What is the percentage change in Hologic's estimated amortization expense from fiscal 2016 to fiscal 2017, based on the provided table in the 2015 report?
@@ -70,6 +80,11 @@ Q: What was the change in the amount of long-term debt for Apple Inc. between th
 
 Top 5 retrieved: [('AAPL_2014_320193', 19), ('AAPL_2015_320193', 17), ('AAPL_2012_320193', 16), ('AAPL_2014_320193', 38), ('AAPL_2014_320193', 21)]
 
+## finqa_dev_43 (recall@10=0.00, filing=SYY_2019_96021.json)
+Q: What was the percentage point change in sales to restaurants for Sysco Corporation from the 2018 fiscal year to the 2019 fiscal year, as estimated in the company's 2019 10-K report?
+
+Top 5 retrieved: [('SYY_2019_96021', 53), ('SYY_2005_96021', 1), ('SYY_2019_96021', 22), ('SYY_2019_96021', 21), ('SYY_2019_96021', 48)]
+
 ## finqa_dev_49 (recall@10=0.00, filing=PM_2015_1413329.json)
 Q: What was the average currency translation adjustment, in millions, for Philip Morris International from 2013 to 2015, as reported in the accumulated other comprehensive losses section of the 2015 financial report?
 
@@ -80,23 +95,8 @@ Q: What was the ratio of gallons hedged by Republic Services in 2017 to those in
 
 Top 5 retrieved: [('RSG_2018_1060391', 93), ('RSG_2017_1060391', 37), ('RSG_2017_1060391', 80), ('RSG_2017_1060391', 83), ('RSG_2018_1060391', 49)]
 
-## finqa_dev_58 (recall@10=0.00, filing=LMT_2006_936468.json)
-Q: As of December 31, 2006, what is the ratio of the expected future pension benefits after 2012 to those in 2008 for Lockheed Martin?
+## finqa_dev_55 (recall@10=0.00, filing=AES_2016_874761.json)
+Q: What was the change in millions of total redeemable stock of subsidiaries for The AES Corporation from 2015 to 2016, as reflected in the company's consolidated financial statements for the year ending December 31, 2016?
 
-Top 5 retrieved: [('LMT_2006_936468', 51), ('LMT_2007_936468', 73), ('LMT_2007_936468', 52), ('AOS_2007_91142', 34), ('LMT_2006_936468', 81)]
-
-## finqa_dev_64 (recall@10=0.00, filing=PM_2017_1413329.json)
-Q: What is the percentage change in net earnings attributable to Philip Morris International from 2016 to 2017?
-
-Top 5 retrieved: [('PM_2017_1413329', 62), ('PM_2017_1413329', 27), ('PM_2018_1413329', 100), ('PM_2017_1413329', 2), ('PM_2017_1413329', 38)]
-
-## finqa_dev_66 (recall@10=0.00, filing=GS_2017_886982.json)
-Q: What is the percentage change in the net commodities value from 2016 to 2017 for Goldman Sachs, as reported in their 2017 Form 10-K?
-
-Top 5 retrieved: [('GS_2017_886982', 3), ('GS_2017_886982', 53), ('GS_2017_886982', 52), ('GS_2017_886982', 164), ('GS_2016_886982', 3)]
-
-## finqa_dev_67 (recall@10=0.00, filing=IPG_2009_51644.json)
-Q: What was the percentage increase in contributions to defined contribution plans for foreign countries from 2007 to 2008 for The Interpublic Group of Companies?
-
-Top 5 retrieved: [('IPG_2008_51644', 2), ('IPG_2003_51644', 2), ('IPG_2009_51644', 45), ('IPG_2006_51644', 83), ('IPG_2009_51644', 40)]
+Top 5 retrieved: [('AES_2017_874761', 166), ('AES_2016_874761', 180), ('AES_2017_874761', 159), ('AES_2016_874761', 175), ('AES_2016_874761', 126)]
 
