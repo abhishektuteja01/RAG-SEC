@@ -372,9 +372,13 @@ Then the honest finding to look for: for questions needing arithmetic across cel
 query it as structured data)? That distinction — retrieval versus computation — is a
 genuinely senior observation and it is sitting right there in the data.
 
-**Day 7.** Arm 5: late interaction / multi-vector via BGE-M3. Measure the storage blowup
+**Day 7.** ~~Arm 5: late interaction / multi-vector via BGE-M3. Measure the storage blowup
 honestly — it's usually large, and reporting that it wasn't worth it is a stronger result
-than pretending it was. Write up the table so far.
+than pretending it was.~~ **DRIFT (2026-08-30, `DECISIONS.md` ARM5-1):** dropped without
+building — real corpus numbers (99,654 chunks, avg 927 tok/chunk, BGE-M3 multi-vector
+confirmed 1024-dim/token, no reduction) put storage at ~972x (389MB -> 378GB) before even
+accounting for the MaxSim query-index problem pgvector doesn't natively solve. Write up
+the table so far, move to Day 8.
 
 ### Days 8–11 · Agent and reliability (20h)
 

@@ -31,3 +31,9 @@ data/*_embed_payload.json
 data/*_rerank_payload.json
 data/embed_results.jsonl
 data/rerank_scores*.jsonl
+data/*_rerank_scores.jsonl
+
+# CPU smoke-test output (n=5 sanity check before the real HPC run) -- not the
+# recorded numbers, keep only the full *_dev_results.json/*_dev_failures.md.
+data/*_cpu_dev_results.json
+data/*_cpu_dev_failures.md

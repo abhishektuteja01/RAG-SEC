@@ -1,0 +1,102 @@
+# Arm 4 variant=C (Arm 2 hybrid + HPC cross-encoder rerank) — 20 worst failures on dev split
+
+## finqa_dev_2 (recall@10=0.00, filing=DVN_2007_1090012)
+Q: What percentage of Devon Energy's estimated total oil and gas production in MMBOE for 2008 comes from Canadian operations, given that the total estimated production is 243 MMBOE and Canadian operations are estimated to produce 60 MMBOE?
+
+Top 5 retrieved: [('DVN_2004_1090012', 3, 'A'), ('DVN_2004_1090012', 44, 'A'), ('DVN_2010_1090012', 106, 'A'), ('DVN_2011_1090012', 73, 'A'), ('DVN_2010_1090012', 105, 'A')]
+
+## finqa_dev_5 (recall@10=0.00, filing=PM_2017_1413329)
+Q: What was the change in millions of operating income for Philip Morris International from 2016 to 2017, as reflected in the company's 2017 financial report?
+
+Top 5 retrieved: [('PM_2017_1413329', 8, 'C'), ('PM_2017_1413329', 62, 'A'), ('PM_2017_1413329', 38, 'A'), ('PM_2017_1413329', 36, 'A'), ('PM_2017_1413329', 43, 'A')]
+
+## finqa_dev_9 (recall@10=0.00, filing=PNC_2013_713676)
+Q: What was the total balance of residential mortgages held for sale by PNC Financial Services in millions for the years 2013 and 2012, according to Table 15 in the 2013 Form 10-K report?
+
+Top 5 retrieved: [('PNC_2012_713676', 49, 'A'), ('PNC_2013_713676', 215, 'A'), ('PNC_2014_713676', 53, 'A'), ('PNC_2014_713676', 122, 'A'), ('PNC_2013_713676', 70, 'A')]
+
+## finqa_dev_13 (recall@10=0.00, filing=STT_2011_93751)
+Q: As of December 31, 2011, what was the pre-tax amount of unrealized losses related to reclassifications of securities available for sale to securities held to maturity for State Street Corporation?
+
+Top 5 retrieved: [('STT_2012_93751', 84, 'A'), ('STT_2012_93751', 167, 'A'), ('PNC_2011_713676', 53, 'A'), ('PNC_2011_713676', 184, 'A'), ('STT_2008_93751', 83, 'A')]
+
+## finqa_dev_14 (recall@10=0.00, filing=MRO_2007_101778)
+Q: If Marathon Oil's development costs incurred during 2008 increased by the same amount as they did from 2005 to 2006, what would be the total development costs for 2008, in millions, as reflected in the supplementary information on oil and gas producing activities?
+
+Top 5 retrieved: [('MRO_2007_101778', 8, 'A'), ('L_2008_60086', 149, 'A'), ('MRO_2004_101778', 8, 'A'), ('MRO_2007_101778', 109, 'A'), ('MRO_2007_101778', 107, 'A')]
+
+## finqa_dev_15 (recall@10=0.00, filing=AOS_2004_91142)
+Q: What percentage of A. O. Smith's total aggregate contractual obligations, as disclosed in the 2004 financial report, is attributable to purchase obligations?
+
+Top 5 retrieved: [('MRO_2008_101778', 50, 'A'), ('TFX_2006_96943', 27, 'A'), ('UNP_2006_100885', 24, 'A'), ('MRO_2004_101778', 41, 'A'), ('PNC_2015_713676', 106, 'A')]
+
+## finqa_dev_17 (recall@10=0.00, filing=MSI_2006_68505)
+Q: What percentage of Motorola Solutions' total long-term debt obligations, as of December 31, 2006, were due after 2011?
+
+Top 5 retrieved: [('MSI_2014_68505', 30, 'A'), ('MSI_2006_68505', 23, 'A'), ('MSI_2005_68505', 26, 'A'), ('MSI_2012_68505', 77, 'A'), ('MSI_2012_68505', 48, 'A')]
+
+## finqa_dev_18 (recall@10=0.00, filing=ABMD_2006_815094)
+Q: What is the percentage decline from the current year's future minimum lease payments to the following year's expected obligation for Abiomed, Inc. as of March 31, 2006?
+
+Top 5 retrieved: [('ABMD_2007_815094', 41, 'A'), ('ABMD_2006_815094', 12, 'A'), ('ABMD_2008_815094', 70, 'A'), ('ABMD_2003_815094', 57, 'A'), ('ABMD_2007_815094', 61, 'A')]
+
+## finqa_dev_22 (recall@10=0.00, filing=ZBH_2003_1136869)
+Q: What percentage of Zimmer Holdings' total inventory value at the end of 2003 is comprised of inventory ready for liquidation or sale?
+
+Top 5 retrieved: [('ZBH_2013_1136869', 2, 'A'), ('ZBH_2003_1136869', 2, 'A'), ('ZBH_2004_1136869', 2, 'A'), ('ZBH_2004_1136869', 20, 'A'), ('ZBH_2002_1136869', 22, 'A')]
+
+## finqa_dev_23 (recall@10=0.00, filing=AMT_2005_1053507)
+Q: What is the total value of net operating loss carryforwards for American Tower Corporation as of December 31, 2005, which will expire between 2006 and 2025?
+
+Top 5 retrieved: [('SNPS_2006_883241', 83, 'A'), ('AMT_2005_1053507', 43, 'A'), ('MKTX_2005_1278021', 70, 'A'), ('FIS_2006_1136893', 75, 'A'), ('AMT_2006_1053507', 47, 'A')]
+
+## finqa_dev_24 (recall@10=0.00, filing=ETR_2015_65984)
+Q: What is the percent change in annual long-term debt maturities for Entergy Corporation from 2016 to 2017, as reported in the notes to the financial statements for the year 2015?
+
+Top 5 retrieved: [('ETR_2015_65984', 123, 'A'), ('ETR_2016_65984', 127, 'A'), ('ETR_2013_65984', 114, 'A'), ('ETR_2011_65984', 89, 'A'), ('ETR_2013_65984', 115, 'A')]
+
+## finqa_dev_25 (recall@10=0.00, filing=PNC_2009_713676)
+Q: What was the change in the percentage of Market Street commitments rated BBB/BA or below between December 31, 2008, and December 31, 2009, as reported by PNC Financial Services in their 2009 financial report?
+
+Top 5 retrieved: [('PNC_2009_713676', 53, 'A'), ('PNC_2009_713676', 136, 'A'), ('PNC_2009_713676', 50, 'A'), ('PNC_2009_713676', 52, 'A'), ('PNC_2008_713676', 50, 'A')]
+
+## finqa_dev_27 (recall@10=0.00, filing=HOLX_2015_859737)
+Q: What is the percentage change in Hologic's estimated amortization expense from fiscal 2016 to fiscal 2017, based on the provided table in the 2015 report?
+
+Top 5 retrieved: [('SNPS_2017_883241', 46, 'A'), ('SNPS_2017_883241', 45, 'A'), ('NCLH_2017_1513761', 68, 'A'), ('BDX_2016_10795', 68, 'A'), ('RL_2017_1037038', 101, 'A')]
+
+## finqa_dev_28 (recall@10=0.00, filing=ETR_2017_65984)
+Q: What percentage of Entergy Louisiana's payments do Entergy Arkansas' payments represent, according to the 2017 financial statements of Entergy Corporation and its subsidiaries?
+
+Top 5 retrieved: [('ETR_2011_65984', 95, 'A'), ('ETR_2017_65984', 214, 'A'), ('ETR_2002_65984', 82, 'A'), ('ETR_2017_65984', 217, 'A'), ('ETR_2017_65984', 126, 'A')]
+
+## finqa_dev_30 (recall@10=0.00, filing=AES_2016_874761)
+Q: For the period ending December 31, 2016, what was the average amount of settlements, in millions, as reported in the reconciliation of unrecognized tax benefits for AES Corporation?
+
+Top 5 retrieved: [('AES_2018_874761', 204, 'A'), ('ALLE_2016_1579241', 83, 'A'), ('INTC_2016_50863', 67, 'A'), ('AES_2017_874761', 175, 'A'), ('AES_2016_874761', 187, 'A')]
+
+## finqa_dev_31 (recall@10=0.00, filing=ETFC_2007_1015780)
+Q: What percentage of E*TRADE Financial Corporation's total future principal payments of corporate debt, as of December 31, 2007, are due after 2012?
+
+Top 5 retrieved: [('ETFC_2011_1015780', 123, 'A'), ('ETFC_2012_1015780', 9, 'A'), ('ETFC_2012_1015780', 133, 'A'), ('ETFC_2013_1015780', 136, 'A'), ('ETFC_2016_1015780', 119, 'A')]
+
+## finqa_dev_32 (recall@10=0.00, filing=MAS_2012_62996)
+Q: What was the percentage change in total net goodwill for Masco Corporation between December 31, 2010, and December 31, 2011, as reported in the 2012 consolidated financial statements?
+
+Top 5 retrieved: [('MAS_2012_62996', 29, 'A'), ('MAS_2013_62996', 38, 'A'), ('MAS_2012_62996', 28, 'A'), ('MAS_2012_62996', 1, 'A'), ('MAS_2012_62996', 31, 'A')]
+
+## finqa_dev_39 (recall@10=0.00, filing=AAPL_2014_320193)
+Q: What was the change in the amount of long-term debt for Apple Inc. between the years ended September 27, 2014, and September 29, 2012, as reported in the company's 2014 Form 10-K?
+
+Top 5 retrieved: [('AAPL_2014_320193', 19, 'A'), ('AAPL_2015_320193', 17, 'A'), ('AAPL_2012_320193', 16, 'A'), ('AAPL_2014_320193', 38, 'A'), ('AAPL_2014_320193', 21, 'A')]
+
+## finqa_dev_43 (recall@10=0.00, filing=SYY_2019_96021)
+Q: What was the percentage point change in sales to restaurants for Sysco Corporation from the 2018 fiscal year to the 2019 fiscal year, as estimated in the company's 2019 10-K report?
+
+Top 5 retrieved: [('SYY_2019_96021', 53, 'A'), ('SYY_2005_96021', 1, 'A'), ('SYY_2019_96021', 21, 'A'), ('SYY_2019_96021', 48, 'A'), ('SYY_2019_96021', 83, 'A')]
+
+## finqa_dev_53 (recall@10=0.00, filing=JPM_2018_19617)
+Q: What was the net change in available-for-sale investment securities for JPMorgan Chase from 2017 to 2018?
+
+Top 5 retrieved: [('JPM_2018_19617', 268, 'A'), ('JPM_2018_19617', 340, 'A'), ('JPM_2017_19617', 174, 'A'), ('JPM_2018_19617', 266, 'A'), ('JPM_2018_19617', 152, 'A')]
+
