@@ -1,15 +1,5 @@
 # Arm 1 (dense, BGE-M3) — 20 worst failures on dev split
 
-## finqa_dev_0 (recall@10=0.00, filing=V_2008_1403161.json)
-Q: What was the average payment volume per transaction for American Express in 2007, based on its reported payments volume and total number of transactions?
-
-Top 5 retrieved: [('GPN_2009_1123360', 21), ('ETFC_2007_1015780', 18), ('MA_2008_1141391', 25), ('V_2008_1403161', 4), ('MA_2008_1141391', 2)]
-
-## finqa_dev_1 (recall@10=0.00, filing=C_2017_831001.json)
-Q: What was the percentage cumulative total return for Citi's common stock over the five-year period ended December 31, 2017, as reflected in the performance graph comparison?
-
-Top 5 retrieved: [('C_2017_831001', 0), ('C_2017_831001', 0), ('C_2017_831001', 7), ('C_2018_831001', 6), ('C_2015_831001', 4)]
-
 ## finqa_dev_2 (recall@10=0.00, filing=DVN_2007_1090012.json)
 Q: What percentage of Devon Energy's estimated total oil and gas production in MMBOE for 2008 comes from Canadian operations, given that the total estimated production is 243 MMBOE and Canadian operations are estimated to produce 60 MMBOE?
 
@@ -18,7 +8,7 @@ Top 5 retrieved: [('DVN_2018_1090012', 99), ('DVN_2007_1090012', 98), ('DVN_2013
 ## finqa_dev_5 (recall@10=0.00, filing=PM_2017_1413329.json)
 Q: What was the change in millions of operating income for Philip Morris International from 2016 to 2017, as reflected in the company's 2017 financial report?
 
-Top 5 retrieved: [('PM_2017_1413329', 8), ('PM_2017_1413329', 2), ('PM_2017_1413329', 25), ('IPG_2017_51644', 30), ('PM_2018_1413329', 2)]
+Top 5 retrieved: [('PM_2017_1413329', 2), ('PM_2017_1413329', 25), ('IPG_2017_51644', 30), ('PM_2018_1413329', 2), ('PM_2017_1413329', 62)]
 
 ## finqa_dev_9 (recall@10=0.00, filing=PNC_2013_713676.json)
 Q: What was the total balance of residential mortgages held for sale by PNC Financial Services in millions for the years 2013 and 2012, according to Table 15 in the 2013 Form 10-K report?
@@ -33,7 +23,7 @@ Top 5 retrieved: [('PKG_2004_75677', 34), ('PKG_2009_75677', 50), ('PKG_2005_756
 ## finqa_dev_12 (recall@10=0.00, filing=LMT_2013_936468.json)
 Q: What was the change in the weighted average common shares outstanding for diluted computations from 2012 to 2013 for Lockheed Martin, in millions?
 
-Top 5 retrieved: [('LMT_2013_936468', 3), ('LMT_2013_936468', 1), ('LMT_2015_936468', 13), ('LMT_2013_936468', 1), ('LMT_2013_936468', 2)]
+Top 5 retrieved: [('HIG_2012_874766', 269), ('UNP_2014_100885', 58), ('HIG_2013_874766', 272), ('DISCA_2014_1437107', 103), ('INTC_2013_50863', 99)]
 
 ## finqa_dev_13 (recall@10=0.00, filing=STT_2011_93751.json)
 Q: As of December 31, 2011, what was the pre-tax amount of unrealized losses related to reclassifications of securities available for sale to securities held to maturity for State Street Corporation?
@@ -63,7 +53,7 @@ Top 5 retrieved: [('ABMD_2007_815094', 61), ('ABMD_2012_815094', 56), ('ABMD_200
 ## finqa_dev_21 (recall@10=0.00, filing=SPGI_2018_64040.json)
 Q: What was the ratio of the US pension trust assets as of December 31, 2017, to the US pension trust assets as of December 31, 2018, as reported in the 72 S&P Global 2018 Annual Report?
 
-Top 5 retrieved: [('SPGI_2018_64040', 6), ('SPGI_2018_64040', 32), ('C_2017_831001', 174), ('C_2018_831001', 164), ('AAL_2017_6201', 151)]
+Top 5 retrieved: [('C_2017_831001', 174), ('C_2018_831001', 164), ('AAL_2017_6201', 151), ('VLO_2018_1035002', 87), ('UNP_2017_100885', 53)]
 
 ## finqa_dev_22 (recall@10=0.00, filing=ZBH_2003_1136869.json)
 Q: What percentage of Zimmer Holdings' total inventory value at the end of 2003 is comprised of inventory ready for liquidation or sale?
@@ -99,4 +89,14 @@ Top 5 retrieved: [('APTV_2016_1521332', 99), ('RL_2018_1037038', 101), ('RL_2017
 Q: What percentage of Entergy Louisiana's payments do Entergy Arkansas' payments represent, according to the 2017 financial statements of Entergy Corporation and its subsidiaries?
 
 Top 5 retrieved: [('ETR_2017_65984', 214), ('ETR_2007_65984', 32), ('ETR_2017_65984', 181), ('ETR_2016_65984', 211), ('ETR_2017_65984', 115)]
+
+## finqa_dev_29 (recall@10=0.00, filing=UNP_2008_100885.json)
+Q: As of December 31, 2008, what percentage of Union Pacific Corporation's total accounts payable and other current liabilities was comprised of accrued wages and vacation, as reported in their 2008 financial statements?
+
+Top 5 retrieved: [('UNP_2009_100885', 42), ('UNP_2008_100885', 42), ('UNP_2007_100885', 36), ('UNP_2010_100885', 42), ('UNP_2009_100885', 70)]
+
+## finqa_dev_30 (recall@10=0.00, filing=AES_2016_874761.json)
+Q: For the period ending December 31, 2016, what was the average amount of settlements, in millions, as reported in the reconciliation of unrecognized tax benefits for AES Corporation?
+
+Top 5 retrieved: [('AES_2015_874761', 214), ('AES_2017_874761', 181), ('AES_2016_874761', 161), ('AES_2017_874761', 122), ('INTC_2016_50863', 67)]
 

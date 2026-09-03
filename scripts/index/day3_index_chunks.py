@@ -29,7 +29,7 @@ def main() -> None:
     paths = sorted(CHUNKS_DIR.glob("*.json"))
     print(f"Embedding chunks from {len(paths)} filings")
 
-    with get_conn() as conn:
+    with get_conn(check=False) as conn:  # build-time: this script moves the counts
         done_stems = {r[0] for r in conn.execute("SELECT DISTINCT filing_stem FROM chunks").fetchall()}
         print(f"{len(done_stems)}/{len(paths)} filings already indexed, skipping those")
 

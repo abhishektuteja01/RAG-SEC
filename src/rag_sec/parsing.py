@@ -162,3 +162,17 @@ def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
         if match:
             boundaries.append((i, match.group(1).upper(), match.group(2).strip()))
     return boundaries
+
+def load_parsed_blocks(path) -> list[Block]:
+    """Inverse of what day2_ingest wrote to data/parsed/. Shared by the chunker and by
+    rag_sec.compress so the two can never disagree about how a stored block is rebuilt --
+    a divergent copy of this (bool vs string `is_title`) silently reshuffles every chunk
+    boundary while still looking like it worked."""
+    import json as _json
+    from pathlib import Path as _Path
+
+    data = _json.loads(_Path(path).read_text())
+    return [
+        TableBlock(rows=d["rows"]) if "rows" in d else TextBlock(text=d["text"], is_title=d["is_title"])
+        for d in data
+    ]

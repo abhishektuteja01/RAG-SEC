@@ -33,7 +33,7 @@ PAYLOAD_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day5_re
 
 def retrieve_dense(conn, embedding, k: int) -> list[tuple[str, int]]:
     rows = conn.execute(
-        "SELECT filing_stem, chunk_index FROM chunks ORDER BY embedding <=> %s LIMIT %s",
+        "SELECT filing_stem, chunk_index FROM chunks WHERE variant = 'A' ORDER BY embedding <=> %s LIMIT %s",
         (embedding, k),
     ).fetchall()
     return [(r[0], r[1]) for r in rows]
@@ -43,7 +43,7 @@ def retrieve_bm25(conn, query_text: str, k: int) -> list[tuple[str, int]]:
     rows = conn.execute(
         """SELECT filing_stem, chunk_index, paradedb.score(id) AS s
            FROM chunks
-           WHERE id @@@ paradedb.match('text', %s)
+           WHERE id @@@ paradedb.match('text', %s) AND variant = 'A'
            ORDER BY s DESC LIMIT %s""",
         (query_text, k),
     ).fetchall()
@@ -63,7 +63,7 @@ def fetch_texts(conn, pairs: list[tuple[str, int]]) -> dict[tuple[str, int], str
         return {}
     stems = list({p[0] for p in pairs})
     rows = conn.execute(
-        "SELECT filing_stem, chunk_index, text FROM chunks WHERE filing_stem = ANY(%s)",
+        "SELECT filing_stem, chunk_index, text FROM chunks WHERE variant = 'A' AND filing_stem = ANY(%s)",
         (stems,),
     ).fetchall()
     lookup = {(r[0], r[1]): r[2] for r in rows}

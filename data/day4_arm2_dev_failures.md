@@ -3,7 +3,7 @@
 ## finqa_dev_1 (recall@10=0.00, filing=C_2017_831001.json)
 Q: What was the percentage cumulative total return for Citi's common stock over the five-year period ended December 31, 2017, as reflected in the performance graph comparison?
 
-Top 5 retrieved: [('C_2017_831001', 0), ('TSCO_2018_916365', 0), ('ETFC_2014_1015780', 0), ('TSCO_2017_916365', 0), ('UPS_2006_1090727', 0)]
+Top 5 retrieved: [('BKR_2018_1701605', 30), ('AMAT_2017_6951', 25), ('PNC_2007_713676', 19), ('C_2017_831001', 7), ('TSCO_2018_916365', 26)]
 
 ## finqa_dev_2 (recall@10=0.00, filing=DVN_2007_1090012.json)
 Q: What percentage of Devon Energy's estimated total oil and gas production in MMBOE for 2008 comes from Canadian operations, given that the total estimated production is 243 MMBOE and Canadian operations are estimated to produce 60 MMBOE?
@@ -13,17 +13,12 @@ Top 5 retrieved: [('DVN_2004_1090012', 13), ('DVN_2010_1090012', 108), ('DVN_200
 ## finqa_dev_5 (recall@10=0.00, filing=PM_2017_1413329.json)
 Q: What was the change in millions of operating income for Philip Morris International from 2016 to 2017, as reflected in the company's 2017 financial report?
 
-Top 5 retrieved: [('PM_2017_1413329', 8), ('PM_2017_1413329', 25), ('PM_2017_1413329', 62), ('PM_2018_1413329', 29), ('PM_2018_1413329', 26)]
-
-## finqa_dev_6 (recall@10=0.00, filing=JPM_2008_19617.json)
-Q: What was the Common Equity Tier 1 (CET1) ratio of JPMorgan Chase & Co. as of December 31, 2008, according to their 2008 Annual Report?
-
-Top 5 retrieved: [('JPM_2014_19617', 0), ('JPM_2010_19617', 369), ('JPM_2012_19617', 36), ('JPM_2013_19617', 31), ('JPM_2008_19617', 18)]
+Top 5 retrieved: [('PM_2017_1413329', 25), ('PM_2017_1413329', 62), ('PM_2018_1413329', 29), ('PM_2018_1413329', 26), ('PM_2017_1413329', 2)]
 
 ## finqa_dev_12 (recall@10=0.00, filing=LMT_2013_936468.json)
 Q: What was the change in the weighted average common shares outstanding for diluted computations from 2012 to 2013 for Lockheed Martin, in millions?
 
-Top 5 retrieved: [('LMT_2013_936468', 1), ('LMT_2015_936468', 8), ('LMT_2013_936468', 3), ('LMT_2015_936468', 7), ('LMT_2013_936468', 2)]
+Top 5 retrieved: [('LMT_2016_936468', 60), ('CCI_2004_1051470', 53), ('CDW_2014_1402057', 92), ('HIG_2012_874766', 269), ('LMT_2005_936468', 57)]
 
 ## finqa_dev_13 (recall@10=0.00, filing=STT_2011_93751.json)
 Q: As of December 31, 2011, what was the pre-tax amount of unrealized losses related to reclassifications of securities available for sale to securities held to maturity for State Street Corporation?
@@ -58,7 +53,7 @@ Top 5 retrieved: [('PNC_2008_713676', 50), ('PNC_2009_713676', 53), ('PNC_2009_7
 ## finqa_dev_27 (recall@10=0.00, filing=HOLX_2015_859737.json)
 Q: What is the percentage change in Hologic's estimated amortization expense from fiscal 2016 to fiscal 2017, based on the provided table in the 2015 report?
 
-Top 5 retrieved: [('SNPS_2017_883241', 46), ('RL_2016_1037038', 46), ('AON_2015_315293', 0), ('RL_2017_1037038', 59), ('BDX_2016_10795', 68)]
+Top 5 retrieved: [('SNPS_2017_883241', 46), ('RL_2016_1037038', 46), ('RL_2017_1037038', 59), ('BDX_2016_10795', 68), ('CDNS_2016_813672', 36)]
 
 ## finqa_dev_28 (recall@10=0.00, filing=ETR_2017_65984.json)
 Q: What percentage of Entergy Louisiana's payments do Entergy Arkansas' payments represent, according to the 2017 financial statements of Entergy Corporation and its subsidiaries?
@@ -85,18 +80,23 @@ Q: What was the change in the amount of long-term debt for Apple Inc. between th
 
 Top 5 retrieved: [('AAPL_2014_320193', 19), ('AAPL_2016_320193', 49), ('RSG_2017_1060391', 144), ('AAPL_2013_320193', 17), ('RSG_2018_1060391', 154)]
 
-## finqa_dev_45 (recall@10=0.00, filing=ZBH_2003_1136869.json)
-Q: What was the percentage increase in Zimmer Holdings, Inc.'s inventories from 2002 to 2003, considering the finished goods, raw materials, and work in progress?
-
-Top 5 retrieved: [('ZBH_2003_1136869', 0), ('ZBH_2009_1136869', 2), ('ZBH_2003_1136869', 36), ('ZBH_2003_1136869', 5), ('ZBH_2003_1136869', 28)]
-
 ## finqa_dev_49 (recall@10=0.00, filing=PM_2015_1413329.json)
 Q: What was the average currency translation adjustment, in millions, for Philip Morris International from 2013 to 2015, as reported in the accumulated other comprehensive losses section of the 2015 financial report?
 
-Top 5 retrieved: [('CAG_2015_23217', 52), ('HOLX_2015_859737', 107), ('PPG_2013_79879', 1), ('MS_2015_895421', 218), ('FIS_2016_1136893', 0)]
+Top 5 retrieved: [('CAG_2015_23217', 52), ('HOLX_2015_859737', 107), ('MS_2015_895421', 218), ('AES_2015_874761', 148), ('PM_2017_1413329', 106)]
 
 ## finqa_dev_50 (recall@10=0.00, filing=RSG_2016_1060391.json)
 Q: What was the ratio of gallons hedged by Republic Services in 2017 to those in 2018, as outlined in their 2016 consolidated financial statements?
 
 Top 5 retrieved: [('RSG_2018_1060391', 93), ('RSG_2018_1060391', 51), ('RSG_2017_1060391', 80), ('RSG_2016_1060391', 79), ('RSG_2016_1060391', 80)]
+
+## finqa_dev_52 (recall@10=0.00, filing=GIS_2019_40704.json)
+Q: What was the percentage change in General Mills' accrued trade liabilities from May 27, 2018, to May 26, 2019?
+
+Top 5 retrieved: [('GIS_2019_40704', 13), ('GIS_2019_40704', 43), ('GIS_2019_40704', 65), ('GIS_2014_40704', 71), ('GIS_2019_40704', 75)]
+
+## finqa_dev_53 (recall@10=0.00, filing=JPM_2018_19617.json)
+Q: What was the net change in available-for-sale investment securities for JPMorgan Chase from 2017 to 2018?
+
+Top 5 retrieved: [('JPM_2018_19617', 152), ('JPM_2017_19617', 50), ('JPM_2018_19617', 395), ('JPM_2018_19617', 88), ('JPM_2018_19617', 138)]
 

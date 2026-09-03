@@ -141,7 +141,7 @@ def main() -> None:
     model = SentenceTransformer(EMBED_MODEL_NAME)
     summary_cache = load_summary_cache()
 
-    with get_conn() as conn:
+    with get_conn(check=False) as conn:  # build-time: this script moves the counts
         done = {
             (r[0], r[1])
             for r in conn.execute("SELECT DISTINCT filing_stem, variant FROM chunks WHERE variant != 'A'").fetchall()

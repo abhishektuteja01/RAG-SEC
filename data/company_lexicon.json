@@ -1,0 +1,919 @@
+{
+ "aliases": {
+  "a o smith": [
+   "AOS"
+  ],
+  "abiomed": [
+   "ABMD"
+  ],
+  "abiomed inc": [
+   "ABMD"
+  ],
+  "adobe": [
+   "ADBE"
+  ],
+  "adobe inc": [
+   "ADBE"
+  ],
+  "advance": [
+   "AAP"
+  ],
+  "advance auto parts": [
+   "AAP"
+  ],
+  "advance auto parts inc": [
+   "AAP"
+  ],
+  "aes": [
+   "AES"
+  ],
+  "aes corporation": [
+   "AES"
+  ],
+  "air": [
+   "APD"
+  ],
+  "air products": [
+   "APD"
+  ],
+  "alexion": [
+   "ALXN"
+  ],
+  "alexion pharmaceuticals": [
+   "ALXN"
+  ],
+  "alexion pharmaceuticals inc": [
+   "ALXN"
+  ],
+  "allegion": [
+   "ALLE"
+  ],
+  "altria": [
+   "MO"
+  ],
+  "american": [
+   "AAL",
+   "AMT",
+   "AWK"
+  ],
+  "american airlines": [
+   "AAL"
+  ],
+  "american airlines group": [
+   "AAL"
+  ],
+  "american tower": [
+   "AMT"
+  ],
+  "american water works": [
+   "AWK"
+  ],
+  "amerisourcebergen": [
+   "ABC"
+  ],
+  "amerisourcebergen corporation": [
+   "ABC"
+  ],
+  "analog": [
+   "ADI"
+  ],
+  "analog devices": [
+   "ADI"
+  ],
+  "ansys": [
+   "ANSS"
+  ],
+  "aon": [
+   "AON"
+  ],
+  "apple": [
+   "AAPL"
+  ],
+  "apple inc": [
+   "AAPL"
+  ],
+  "applied": [
+   "AMAT"
+  ],
+  "applied materials": [
+   "AMAT"
+  ],
+  "aptiv": [
+   "APTV"
+  ],
+  "arista": [
+   "ANET"
+  ],
+  "arista networks": [
+   "ANET"
+  ],
+  "baker": [
+   "BKR"
+  ],
+  "baker hughes": [
+   "BKR"
+  ],
+  "ball": [
+   "BLL"
+  ],
+  "ball corporation": [
+   "BLL"
+  ],
+  "becton": [
+   "BDX"
+  ],
+  "becton dickinson": [
+   "BDX"
+  ],
+  "blackrock": [
+   "BLK"
+  ],
+  "booking": [
+   "BKNG"
+  ],
+  "booking holdings": [
+   "BKNG"
+  ],
+  "cadence": [
+   "CDNS"
+  ],
+  "cadence design": [
+   "CDNS"
+  ],
+  "cadence design systems": [
+   "CDNS"
+  ],
+  "caterpillar": [
+   "CAT"
+  ],
+  "caterpillar inc": [
+   "CAT"
+  ],
+  "cdw": [
+   "CDW"
+  ],
+  "celanese": [
+   "CE"
+  ],
+  "centene": [
+   "CNC"
+  ],
+  "centene corporation": [
+   "CNC"
+  ],
+  "centerpoint": [
+   "CNP"
+  ],
+  "centerpoint energy": [
+   "CNP"
+  ],
+  "chubb": [
+   "CB"
+  ],
+  "chubb limited": [
+   "CB"
+  ],
+  "citigroup": [
+   "C"
+  ],
+  "cme": [
+   "CME"
+  ],
+  "cme group": [
+   "CME"
+  ],
+  "comcast": [
+   "CMCSA"
+  ],
+  "conagra": [
+   "CAG"
+  ],
+  "conagra brands": [
+   "CAG"
+  ],
+  "constellation": [
+   "STZ"
+  ],
+  "constellation brands": [
+   "STZ"
+  ],
+  "crown": [
+   "CCI"
+  ],
+  "crown castle": [
+   "CCI"
+  ],
+  "devon": [
+   "DVN"
+  ],
+  "devon energy": [
+   "DVN"
+  ],
+  "discovery": [
+   "DISCA"
+  ],
+  "discovery inc": [
+   "DISCA"
+  ],
+  "dish": [
+   "DISH"
+  ],
+  "dish network": [
+   "DISH"
+  ],
+  "dish network corporation": [
+   "DISH"
+  ],
+  "dollar": [
+   "DG"
+  ],
+  "dollar general": [
+   "DG"
+  ],
+  "dominion": [
+   "D"
+  ],
+  "dominion energy": [
+   "D"
+  ],
+  "duke": [
+   "DRE"
+  ],
+  "duke realty": [
+   "DRE"
+  ],
+  "duke realty corporation": [
+   "DRE"
+  ],
+  "dxc": [
+   "DXC"
+  ],
+  "dxc technology": [
+   "DXC"
+  ],
+  "dxc technology co": [
+   "DXC"
+  ],
+  "e trade financial": [
+   "ETFC"
+  ],
+  "e trade financial corporation": [
+   "ETFC"
+  ],
+  "eastman": [
+   "EMN"
+  ],
+  "eastman chemical": [
+   "EMN"
+  ],
+  "eastman chemical company": [
+   "EMN"
+  ],
+  "ecolab": [
+   "ECL"
+  ],
+  "edwards": [
+   "EW"
+  ],
+  "edwards lifesciences": [
+   "EW"
+  ],
+  "emerson": [
+   "EMR"
+  ],
+  "emerson electric": [
+   "EMR"
+  ],
+  "entergy": [
+   "ETR"
+  ],
+  "eog": [
+   "EOG"
+  ],
+  "eog resources": [
+   "EOG"
+  ],
+  "est": [
+   "EL"
+  ],
+  "est e lauder": [
+   "EL"
+  ],
+  "est e lauder companies": [
+   "EL"
+  ],
+  "est e lauder companies the": [
+   "EL"
+  ],
+  "everest": [
+   "RE"
+  ],
+  "everest re": [
+   "RE"
+  ],
+  "everest re group ltd": [
+   "RE"
+  ],
+  "expeditors": [
+   "EXPD"
+  ],
+  "expeditors international": [
+   "EXPD"
+  ],
+  "extra": [
+   "EXR"
+  ],
+  "extra space storage": [
+   "EXR"
+  ],
+  "federal": [
+   "FRT"
+  ],
+  "federal realty": [
+   "FRT"
+  ],
+  "fidelity": [
+   "FIS"
+  ],
+  "fidelity national information": [
+   "FIS"
+  ],
+  "fidelity national information services": [
+   "FIS"
+  ],
+  "fifth": [
+   "FITB"
+  ],
+  "fifth third bank": [
+   "FITB"
+  ],
+  "fortive": [
+   "FTV"
+  ],
+  "fortune": [
+   "FBHS"
+  ],
+  "fortune brands home and security": [
+   "FBHS"
+  ],
+  "garmin": [
+   "GRMN"
+  ],
+  "general": [
+   "GIS"
+  ],
+  "general mills": [
+   "GIS"
+  ],
+  "global": [
+   "GPN"
+  ],
+  "global payments": [
+   "GPN"
+  ],
+  "goldman": [
+   "GS"
+  ],
+  "goldman sachs": [
+   "GS"
+  ],
+  "hartford": [
+   "HIG"
+  ],
+  "hartford the": [
+   "HIG"
+  ],
+  "hollyfrontier": [
+   "HFC"
+  ],
+  "hollyfrontier corporation": [
+   "HFC"
+  ],
+  "hologic": [
+   "HOLX"
+  ],
+  "host": [
+   "HST"
+  ],
+  "host hotels and resorts": [
+   "HST"
+  ],
+  "howmet": [
+   "HWM"
+  ],
+  "howmet aerospace": [
+   "HWM"
+  ],
+  "humana": [
+   "HUM"
+  ],
+  "huntington": [
+   "HII"
+  ],
+  "huntington ingalls": [
+   "HII"
+  ],
+  "huntington ingalls industries": [
+   "HII"
+  ],
+  "illumina": [
+   "ILMN"
+  ],
+  "illumina inc": [
+   "ILMN"
+  ],
+  "intel": [
+   "INTC"
+  ],
+  "international paper": [
+   "IP"
+  ],
+  "interpublic": [
+   "IPG"
+  ],
+  "interpublic group of companies": [
+   "IPG"
+  ],
+  "interpublic group of companies the": [
+   "IPG"
+  ],
+  "interpublic of": [
+   "IPG"
+  ],
+  "iqvia": [
+   "IQV"
+  ],
+  "jack": [
+   "JKHY"
+  ],
+  "jack henry and associates": [
+   "JKHY"
+  ],
+  "jpmorgan": [
+   "JPM"
+  ],
+  "jpmorgan chase": [
+   "JPM"
+  ],
+  "kellanova": [
+   "K"
+  ],
+  "kimco": [
+   "KIM"
+  ],
+  "kimco realty": [
+   "KIM"
+  ],
+  "kinder": [
+   "KMI"
+  ],
+  "kinder morgan": [
+   "KMI"
+  ],
+  "kraft": [
+   "KHC"
+  ],
+  "kraft heinz": [
+   "KHC"
+  ],
+  "lilly": [
+   "LLY"
+  ],
+  "lilly eli": [
+   "LLY"
+  ],
+  "lkq": [
+   "LKQ"
+  ],
+  "lkq corporation": [
+   "LKQ"
+  ],
+  "lockheed": [
+   "LMT"
+  ],
+  "lockheed martin": [
+   "LMT"
+  ],
+  "loews": [
+   "L"
+  ],
+  "loews corporation": [
+   "L"
+  ],
+  "marathon": [
+   "MRO"
+  ],
+  "marathon oil": [
+   "MRO"
+  ],
+  "marketaxess": [
+   "MKTX"
+  ],
+  "marriott": [
+   "MAR"
+  ],
+  "marriott international": [
+   "MAR"
+  ],
+  "masco": [
+   "MAS"
+  ],
+  "mastercard": [
+   "MA"
+  ],
+  "merck": [
+   "MRK"
+  ],
+  "merck and": [
+   "MRK"
+  ],
+  "merck and co": [
+   "MRK"
+  ],
+  "mid": [
+   "MAA"
+  ],
+  "mid america apartment communities": [
+   "MAA"
+  ],
+  "morgan": [
+   "MS"
+  ],
+  "morgan stanley": [
+   "MS"
+  ],
+  "motorola": [
+   "MSI"
+  ],
+  "motorola solutions": [
+   "MSI"
+  ],
+  "netapp": [
+   "NTAP"
+  ],
+  "news": [
+   "NWS"
+  ],
+  "news class b": [
+   "NWS"
+  ],
+  "news corp class b": [
+   "NWS"
+  ],
+  "nike": [
+   "NKE"
+  ],
+  "nike inc": [
+   "NKE"
+  ],
+  "norwegian": [
+   "NCLH"
+  ],
+  "norwegian cruise line": [
+   "NCLH"
+  ],
+  "norwegian cruise line holdings": [
+   "NCLH"
+  ],
+  "o reilly auto parts": [
+   "ORLY"
+  ],
+  "oneok": [
+   "OKE"
+  ],
+  "packaging": [
+   "PKG"
+  ],
+  "packaging corporation of america": [
+   "PKG"
+  ],
+  "packaging of america": [
+   "PKG"
+  ],
+  "paper": [
+   "IP"
+  ],
+  "philip": [
+   "PM"
+  ],
+  "philip morris": [
+   "PM"
+  ],
+  "philip morris international": [
+   "PM"
+  ],
+  "pnc": [
+   "PNC"
+  ],
+  "pnc financial": [
+   "PNC"
+  ],
+  "pnc financial services": [
+   "PNC"
+  ],
+  "ppg": [
+   "PPG"
+  ],
+  "ppg industries": [
+   "PPG"
+  ],
+  "ralph": [
+   "RL"
+  ],
+  "ralph lauren": [
+   "RL"
+  ],
+  "ralph lauren corporation": [
+   "RL"
+  ],
+  "regeneron": [
+   "REGN"
+  ],
+  "republic": [
+   "RSG"
+  ],
+  "republic services": [
+   "RSG"
+  ],
+  "royal": [
+   "RCL"
+  ],
+  "royal caribbean": [
+   "RCL"
+  ],
+  "royal caribbean group": [
+   "RCL"
+  ],
+  "s and p global": [
+   "SPGI"
+  ],
+  "schlumberger": [
+   "SLB"
+  ],
+  "skyworks": [
+   "SWKS"
+  ],
+  "skyworks solutions": [
+   "SWKS"
+  ],
+  "sl green realty": [
+   "SLG"
+  ],
+  "sl green realty corp": [
+   "SLG"
+  ],
+  "snap": [
+   "SNA"
+  ],
+  "snap on": [
+   "SNA"
+  ],
+  "state": [
+   "STT"
+  ],
+  "state street": [
+   "STT"
+  ],
+  "state street corporation": [
+   "STT"
+  ],
+  "synopsys": [
+   "SNPS"
+  ],
+  "sysco": [
+   "SYY"
+  ],
+  "t mobile us": [
+   "TMUS"
+  ],
+  "t rowe price": [
+   "TROW"
+  ],
+  "teleflex": [
+   "TFX"
+  ],
+  "texas": [
+   "TXN"
+  ],
+  "texas instruments": [
+   "TXN"
+  ],
+  "tractor": [
+   "TSCO"
+  ],
+  "tractor supply": [
+   "TSCO"
+  ],
+  "under": [
+   "UA",
+   "UAA"
+  ],
+  "under armour": [
+   "UA",
+   "UAA"
+  ],
+  "under armour inc": [
+   "UA",
+   "UAA"
+  ],
+  "union": [
+   "UNP"
+  ],
+  "union pacific": [
+   "UNP"
+  ],
+  "union pacific corporation": [
+   "UNP"
+  ],
+  "united": [
+   "UPS"
+  ],
+  "united parcel service": [
+   "UPS"
+  ],
+  "valero": [
+   "VLO"
+  ],
+  "valero energy": [
+   "VLO"
+  ],
+  "ventas": [
+   "VTR"
+  ],
+  "vertex": [
+   "VRTX"
+  ],
+  "vertex pharmaceuticals": [
+   "VRTX"
+  ],
+  "visa": [
+   "V"
+  ],
+  "visa inc": [
+   "V"
+  ],
+  "vornado": [
+   "VNO"
+  ],
+  "vornado realty trust": [
+   "VNO"
+  ],
+  "walmart": [
+   "WMT"
+  ],
+  "welltower": [
+   "WELL"
+  ],
+  "westrock": [
+   "WRK"
+  ],
+  "westrock company": [
+   "WRK"
+  ],
+  "zimmer": [
+   "ZBH"
+  ],
+  "zimmer biomet": [
+   "ZBH"
+  ]
+ },
+ "tickers": [
+  "AAL",
+  "AAP",
+  "AAPL",
+  "ABC",
+  "ABMD",
+  "ADBE",
+  "ADI",
+  "AES",
+  "ALLE",
+  "ALXN",
+  "AMAT",
+  "AMT",
+  "ANET",
+  "ANSS",
+  "AON",
+  "AOS",
+  "APD",
+  "APTV",
+  "AWK",
+  "BDX",
+  "BKNG",
+  "BKR",
+  "BLK",
+  "BLL",
+  "C",
+  "CAG",
+  "CAT",
+  "CB",
+  "CCI",
+  "CDNS",
+  "CDW",
+  "CE",
+  "CMCSA",
+  "CME",
+  "CNC",
+  "CNP",
+  "D",
+  "DG",
+  "DISCA",
+  "DISH",
+  "DRE",
+  "DVN",
+  "DXC",
+  "ECL",
+  "EL",
+  "EMN",
+  "EMR",
+  "EOG",
+  "ETFC",
+  "ETR",
+  "EW",
+  "EXPD",
+  "EXR",
+  "FBHS",
+  "FIS",
+  "FITB",
+  "FRT",
+  "FTV",
+  "GIS",
+  "GPN",
+  "GRMN",
+  "GS",
+  "HFC",
+  "HIG",
+  "HII",
+  "HOLX",
+  "HST",
+  "HUM",
+  "HWM",
+  "ILMN",
+  "INTC",
+  "IP",
+  "IPG",
+  "IQV",
+  "JKHY",
+  "JPM",
+  "K",
+  "KHC",
+  "KIM",
+  "KMI",
+  "L",
+  "LKQ",
+  "LLY",
+  "LMT",
+  "MA",
+  "MAA",
+  "MAR",
+  "MAS",
+  "MKTX",
+  "MMM",
+  "MO",
+  "MRK",
+  "MRO",
+  "MS",
+  "MSI",
+  "NCLH",
+  "NKE",
+  "NTAP",
+  "NWS",
+  "OKE",
+  "ORLY",
+  "PKG",
+  "PM",
+  "PNC",
+  "PPG",
+  "RCL",
+  "RE",
+  "REGN",
+  "RL",
+  "RSG",
+  "SLB",
+  "SLG",
+  "SNA",
+  "SNPS",
+  "SPGI",
+  "STT",
+  "STZ",
+  "SWKS",
+  "SYY",
+  "TFX",
+  "TMUS",
+  "TROW",
+  "TSCO",
+  "TXN",
+  "UA",
+  "UAA",
+  "UNP",
+  "UPS",
+  "V",
+  "VLO",
+  "VNO",
+  "VRTX",
+  "VTR",
+  "WELL",
+  "WMT",
+  "WRK",
+  "ZBH"
+ ]
+}
