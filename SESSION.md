@@ -168,15 +168,6 @@ worth more than the original claim.
 
 ## 4. Housekeeping
 
-- **~1.5 GB of superseded payloads are still on disk** and gitignored pending deletion.
-  They are all scored and rebuildable; nothing reads them:
-  ```
-  rm -f data/day8_slice_payload_t150.json data/day8_slice_payload_t150_filtered_stripped.json \
-        data/day8_retr16v2_dev_payload.json data/day8_retr18_test_payload.json \
-        data/day5_rerank_payload.json data/day6_arm4_B_rerank_payload.json \
-        data/day6_arm4_C_rerank_payload.json data/day8_slice_scores_t150.jsonl \
-        data/day8_retr16_scores.jsonl data/day8_cost13_smoke.jsonl
-  ```
 - **No finalize script writes a results file.** `day8_finalize_retr16.py`,
   `day8_finalize_compression.py` and `day8_cost13_score.py` all print and exit, so
   `RETR-29`/`RETR-31`/`COST-18`/`COST-23` exist only as prose in `DECISIONS.md`. Every
