@@ -37,3 +37,26 @@ data/*_rerank_scores.jsonl
 # recorded numbers, keep only the full *_dev_results.json/*_dev_failures.md.
 data/*_cpu_dev_results.json
 data/*_cpu_dev_failures.md
+
+# Day 8 payloads: HPC round-trip inputs, rebuilt in minutes on the laptop from the
+# scripts that made them. The *scores* they produced are kept (13.5 GPU-hours) --
+# see the exceptions below, which override the *_rerank_payload rules above.
+data/day8_*payload*.json
+
+# Day 8 diagnostic dumps -- regeneratable free (no GPU, no API) from
+# scripts/diagnostics/day8_retrieval_failure_triage.py; 15MB of raw failure text.
+data/day8_failure_cases.json
+data/day8_failure_slices/
+
+# Superseded Day 8 outputs, kept ignored until deleted from disk:
+#   day8_retr16_scores.jsonl        the RETR-22 run, taken on the variant-contaminated
+#                                   pool; superseded by day8_retr16v2_dev_scores.jsonl
+#   day8_slice_scores_t150.jsonl    old (unfiltered, raw-query) ordering; superseded by
+#                                   the _filtered_stripped file per COST-17/COST-18
+#   day8_cost13_smoke.jsonl         n=2 smoke test, not a recorded number
+data/day8_retr16_scores.jsonl
+data/day8_slice_scores_t150.jsonl
+data/day8_cost13_smoke.jsonl
+
+# Superseded by SESSION.md; delete once you have skimmed it.
+SESSION-2026-09-01-day8.md

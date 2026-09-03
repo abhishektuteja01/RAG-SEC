@@ -8,9 +8,12 @@ BM25's document-length normalization and term saturation (spec.md's explicit tra
 """
 
 import os
+from urllib.parse import quote
 
 import psycopg
 from pgvector.psycopg import register_vector
+
+from rag_sec.preflight import assert_variant_predicates
 
 EMBEDDING_DIM = 1024
 
@@ -51,7 +54,63 @@ WITH (key_field='id');
 """
 
 
-def get_conn() -> psycopg.Connection:
+# DECISIONS.md RETR-24: Arm 4 added 6,373 B/C rows alongside A, and every retrieval
+# query outside day6_* still said `FROM chunks` with no variant predicate -- so B/C rows
+# entered A's candidate pools and, because B/C number chunk_index from 0 independently,
+# were scored as if they were different A chunks. The DB said 106,027 and the docs said
+# 99,654 for hours and nothing compared them. DATA-6 says trust the DB; this makes the DB
+# say so out loud. Pinned per-variant, so the next corpus change cannot land silently --
+# updating these numbers is the moment to re-audit every read for a variant predicate
+# (scripts/diagnostics/check_variant_predicates.py does that mechanically).
+EXPECTED_CHUNK_COUNTS = {"A": 99654, "B": 4708, "C": 1665}
+
+_preflight_done = False
+
+
+def preflight(conn) -> None:
+    """Fail if the corpus isn't the one every published number was measured on.
+
+    The other half of RETR-24 (a read that forgot its `variant` predicate) is checked in
+    get_conn before connecting -- neither subsumes the other, since pinned counts miss a
+    newly written bad query against a stable corpus.
+
+    Once per process (retrieve.py opens a connection per search, so this cannot be
+    per-connection). ~10ms: one grouped count.
+    """
+    global _preflight_done
+    if _preflight_done:
+        return
+    rows = conn.execute(
+        "SELECT variant, count(*), count(embedding) FROM chunks GROUP BY variant"
+    ).fetchall()
+    actual = {v: n for v, n, _ in rows}
+    unembedded = {v: n - e for v, n, e in rows if n != e}
+    problems = []
+    if actual != EXPECTED_CHUNK_COUNTS:
+        for variant in sorted(set(actual) | set(EXPECTED_CHUNK_COUNTS)):
+            want = EXPECTED_CHUNK_COUNTS.get(variant, 0)
+            got = actual.get(variant, 0)
+            if want != got:
+                problems.append(f"  variant {variant!r}: expected {want}, found {got} ({got - want:+d})")
+    if unembedded:
+        problems.append(f"  rows with NULL embedding: {unembedded}")
+    if problems:
+        raise RuntimeError(
+            "chunks table does not match EXPECTED_CHUNK_COUNTS (DECISIONS.md RETR-24):\n"
+            + "\n".join(problems)
+            + "\n\nIf this change was intentional, update EXPECTED_CHUNK_COUNTS in store.py"
+            "\nAND re-run scripts/diagnostics/check_variant_predicates.py -- new non-A rows"
+            "\nare only safe if every read constrains `variant`. Writers that legitimately"
+            "\nmove these counts should call get_conn(check=False)."
+        )
+    _preflight_done = True
+
+
+def get_conn(check: bool = True) -> psycopg.Connection:
+    if check:
+        # No DB needed, so it runs before connecting -- a forgotten `variant` predicate
+        # is caught even when Postgres is unreachable.
+        assert_variant_predicates()
     conn = psycopg.connect(
         host=os.environ.get("POSTGRES_HOST", "localhost"),
         port=int(os.environ.get("POSTGRES_PORT", 5432)),
@@ -60,10 +119,26 @@ def get_conn() -> psycopg.Connection:
         dbname=os.environ["POSTGRES_DB"],
     )
     register_vector(conn)
+    if check:
+        preflight(conn)
     return conn
 
 
+def get_conn_string() -> str:
+    """DSN form of get_conn()'s params, for libraries that want one string instead of
+    kwargs (e.g. LangGraph's PostgresSaver) -- built from the same env vars so the two
+    never drift apart.
+    """
+    host = os.environ.get("POSTGRES_HOST", "localhost")
+    port = int(os.environ.get("POSTGRES_PORT", 5432))
+    user = quote(os.environ["POSTGRES_USER"], safe="")
+    password = quote(os.environ["POSTGRES_PASSWORD"], safe="")
+    dbname = os.environ["POSTGRES_DB"]
+    return f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+
+
 def init_schema() -> None:
-    with get_conn() as conn:
+    # Table may not exist or be empty yet; nothing to assert about the corpus.
+    with get_conn(check=False) as conn:
         conn.execute(SCHEMA_SQL)
         conn.commit()

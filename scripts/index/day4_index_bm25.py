@@ -12,7 +12,7 @@ from rag_sec.store import BM25_INDEX_SQL, get_conn, init_schema
 
 def main() -> None:
     init_schema()
-    with get_conn() as conn:
+    with get_conn(check=False) as conn:  # build-time: this script moves the counts
         print("Building BM25 index (pg_search)...")
         conn.execute(BM25_INDEX_SQL)
         conn.commit()

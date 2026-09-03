@@ -20,7 +20,7 @@ PAYLOAD_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day5_em
 
 
 def main() -> None:
-    with get_conn() as conn:
+    with get_conn(check=False) as conn:  # build-time: this script moves the counts
         done_stems = {r[0] for r in conn.execute("SELECT DISTINCT filing_stem FROM chunks").fetchall()}
 
     paths = sorted(CHUNKS_DIR.glob("*.json"))

@@ -37,7 +37,7 @@ def main() -> None:
     print(f"Loaded embeddings for {len(by_stem)} filings")
 
     init_schema()
-    with get_conn() as conn:
+    with get_conn(check=False) as conn:  # build-time: this script moves the counts
         done_stems = {r[0] for r in conn.execute("SELECT DISTINCT filing_stem FROM chunks").fetchall()}
 
         for i, (stem, emb_by_idx) in enumerate(by_stem.items(), 1):

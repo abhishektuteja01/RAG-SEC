@@ -13,13 +13,18 @@ dependencies = [
     "fsspec>=2026.7.0",
     "httpx>=0.28.1",
     "huggingface-hub>=1.28.0",
+    "langchain-google-genai==4.3.7",
+    "langgraph==1.2.11",
+    "langgraph-checkpoint-postgres==3.1.2",
     "pandas>=2.2.2,<3.0.0",
     "pgvector>=0.5.0",
     "psycopg[binary]>=3.3.4",
+    "psycopg-pool>=3.2.0",
     "python-dotenv>=1.2.3",
     "sec-parser==0.58.1",
     "sentence-transformers>=6.0.0",
     "transformers>=5.8.1",
+    "google-genai>=2.21.0",
 ]
 
 [build-system]

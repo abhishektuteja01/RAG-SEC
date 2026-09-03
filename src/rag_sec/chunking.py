@@ -272,8 +272,16 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
     return packed
 
 
+def chunk_blocks_with_atoms(blocks: list[Block]) -> list[tuple[Chunk, list[Atom]]]:
+    """Each chunk paired with the atoms it was packed from. `chunk_blocks` drops the
+    atoms; rag_sec.compress needs them -- they are the structure-aware block boundaries
+    (table vs prose, one atom per source TableBlock) that would otherwise have to be
+    re-derived from the flattened chunk text by regex."""
+    return _pack_atoms(_blocks_to_atoms(blocks))
+
+
 def chunk_blocks(blocks: list[Block]) -> list[Chunk]:
-    return [chunk for chunk, _ in _pack_atoms(_blocks_to_atoms(blocks))]
+    return [chunk for chunk, _ in chunk_blocks_with_atoms(blocks)]
 
 
 def _build_chunk_from_atoms(atoms: list[Atom], heading: str | None) -> Chunk:
