@@ -1,22 +1,16 @@
-"""Evidence compression: keep the highest-scoring atoms of a retrieved chunk, drop the rest.
+"""Evidence compression (DSLR, arXiv:2407.03627): score the pieces of a retrieved chunk with
+the reranker already loaded and print only what fits a token budget. Retrieval still returns
+k=10, so recall is untouched -- only the prompt shrinks. DECISIONS.md COST-18..COST-26.
 
-Day 8 measured that ~89% of the agent's cost is one ~12,200-token evidence block sent
-twice (judge, then answer), while the `gold_inds` text that actually answers a question
-averages 38 tokens. Retrieval still returns k=10 chunks -- recall@10 is scored on chunk
-ids and is untouched -- but only the atoms that earn their place get printed into the
-prompt. This is DSLR (arXiv:2407.03627) with `bge-reranker-v2-m3`, the cross-encoder the
-Arm 3 pipeline already loads, so scoring costs no API tokens.
-
-The unit of selection is the `Atom` the chunker already packed the chunk from, replayed
-from data/parsed/ -- not a regex re-derivation of the flattened chunk text. Atoms know
-which spans are tables (never split) and which are prose, so the failure mode that
-matters here -- keeping `$1,740` and dropping the `(in millions)` that scales it -- is
-bounded by chunk packing rather than reintroduced by a parser of our own.
+The unit is the `Atom` the chunker packed the chunk from, replayed from data/parsed/ rather
+than re-derived by regex, so "keep `$1,740`, drop the `(in millions)` that scales it" stays
+bounded by chunk packing instead of by a parser of our own.
 """
 
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
@@ -28,11 +22,10 @@ PARSED_DIR = Path("data/parsed")
 
 @lru_cache(maxsize=1024)
 def _packed(stem: str) -> tuple[tuple[Chunk, tuple[Atom, ...]], ...]:
-    """Replay of the packer for one filing. Cached because a question's 10 retrieved
-    chunks routinely come from only two or three filings, and the replay re-tokenizes
-    every block in the filing. Sized to hold the whole 799-filing corpus (~220MB of atoms):
-    a batch job walking 50 candidates per question touches hundreds of filings per pass, and
-    a small cache thrashes badly enough to dominate runtime."""
+    """Replay of the packer for one filing -- it re-tokenizes every block, and a question's
+    10 chunks usually come from two or three filings. Sized to hold the whole 799-filing
+    corpus (~220MB of atoms): a batch pass touches hundreds per run, and a small cache
+    thrashes badly enough to dominate runtime."""
     blocks = load_parsed_blocks(PARSED_DIR / f"{stem}.json")
     return tuple((chunk, tuple(atoms)) for chunk, atoms in chunk_blocks_with_atoms(blocks))
 
@@ -44,15 +37,13 @@ def chunk_atoms(stem: str, chunk_index: int) -> tuple[Chunk, tuple[Atom, ...]]:
 def compress(atoms: list[Atom], scores: list[float], budget: int, heading: str | None) -> str:
     """Highest-scoring atoms up to `budget` tokens, re-emitted in document order.
 
-    CURRENTLY UNUSED -- kept deliberately. `pack_by_score` below is what every measured arm
-    actually calls, and it does neither of the two things this does: it emits in score order
-    and carries no heading. Whether that costs accuracy is an open question logged in the
-    session notes; this function is the template for the fix, not dead weight to delete.
+    CURRENTLY UNUSED, kept deliberately: every measured arm calls `pack_by_score`, which
+    emits in score order and carries no heading. This is the template for the fix that
+    SESSION.md 2(a) proposes, not dead weight.
 
-    Document order, not score order: DSLR found reassembling by relevance rank costs
-    accuracy, because the reader loses the discourse thread. The heading is always kept
-    and charged to the budget -- it is what identifies which filing and section the
-    numbers belong to, and it is a handful of tokens.
+    Document order because DSLR found relevance-rank reassembly costs accuracy -- the reader
+    loses the discourse thread. The heading is always kept and charged to the budget: it is
+    a handful of tokens and it is what says which filing and section the numbers are from.
     """
     prefix = f"# {heading}\n\n" if heading else ""
     remaining = budget - count_tokens(prefix)
@@ -66,16 +57,15 @@ def compress(atoms: list[Atom], scores: list[float], budget: int, heading: str |
             remaining -= atoms[i].tokens
     return prefix + "\n\n".join(atoms[i].text for i in sorted(kept))
 
+
 # --- slicing --------------------------------------------------------------------
-# An atom is too coarse to select on its own: a gold-bearing atom averages 684 tokens,
-# 76% of its chunk, so a budget holds ~3 of them and the result is effectively recall@2
-# (0.42 against 0.61 at k=10 -- measured, scripts/diagnostics). Slicing atoms to a token
-# target instead lets the same budget span far more of the retrieved set.
+# An atom is too coarse to select on: a gold-bearing atom averages 684 tokens, 76% of its
+# chunk, so a budget holds ~3 and the result is effectively recall@2 (0.42 against 0.61 at
+# k=10). Slicing to a token target lets the same budget span far more of the retrieved set.
 #
-# This deliberately does NOT reuse chunking._split_table/_split_text. Those run inside
-# _blocks_to_atoms at ingest; changing them changes chunk text, which invalidates the
-# embeddings, the BM25 index and every scored arm. The duplication is the price of
-# keeping the stored corpus frozen, and is intentional rather than an oversight.
+# Deliberately NOT chunking._split_table/_split_text: those run at ingest, and changing
+# them changes chunk text, which invalidates the embeddings, the BM25 index and every
+# scored arm. The duplication is the price of keeping the stored corpus frozen.
 
 # Row count is a weak guard -- a real balance sheet legitimately stacks date, year, a
 # two-line units note and a section header above its first figure. The token share is the
@@ -165,20 +155,16 @@ def slice_atom(atom: Atom, target: int) -> list[str]:
 def pack_by_score(units: list[tuple[str, int]], budget: int) -> list[str]:
     """Fill a token budget from (text, tokens) units already in descending score order.
 
-    Skip-don't-break: a cheaper unit further down still fits once an oversized one is
-    passed over. Consequence worth knowing (`COST-20`): this is not monotone per question --
-    a larger budget can admit one big unit that crowds out several small ones, measured at
-    6/1235 questions between budgets 500 and 1500.
+    Skip-don't-break: a cheaper unit further down still fits once an oversized one is passed
+    over. So this is not monotone per question -- a larger budget can admit one big unit that
+    crowds out several small ones, measured at 6/1235 between budgets 500 and 1500 (COST-20).
 
-    Lives here rather than in the sweep script because COST-13 has to reproduce byte-for-byte
-    the prompt whose gold survival the sweep measured; two copies of this rule would silently
-    invalidate the survival flags the experiment's strata are built from.
+    Lives here, not in the sweep script, because COST-13 must reproduce byte-for-byte the
+    prompt whose gold survival the sweep measured.
 
-    Returns units in SCORE order and carries no `[stem chunk N]` provenance -- unlike
-    `compress` above, which does both. Callers join the result directly, so every measured
-    compressed prompt is score-ordered and anonymous while its uncompressed control is
-    chunk-ordered and labelled. Open item, see the session notes: that makes COST-23 a
-    three-variable comparison rather than the one-variable one it is written up as.
+    Returns SCORE order with no `[stem chunk N]` provenance, unlike `compress` above, while
+    the uncompressed control is chunk-ordered and labelled -- so COST-23 varies three things,
+    not one. Open item, SESSION.md 2(a).
     """
     kept, remaining = [], budget
     for text, tokens in units:
@@ -186,3 +172,62 @@ def pack_by_score(units: list[tuple[str, int]], budget: int) -> list[str]:
             kept.append(text)
             remaining -= tokens
     return kept
+
+
+@dataclass(frozen=True)
+class Slice:
+    """A packable piece with the provenance `pack_by_score` throws away."""
+
+    text: str
+    tokens: int
+    stem: str
+    chunk_index: int
+    atom_i: int
+    piece_i: int
+    chunk_rank: int  # position in the retrieval ranking, NOT in this score-ordered list
+
+
+def slice_heading(stem: str, chunk_index: int) -> str:
+    """The label the *uncompressed* control has always carried (`answer_ab_prepare.py`)."""
+    return f"[{stem} chunk {chunk_index}]"
+
+
+def pack_grouped(slices: list[Slice], budget: int) -> str:
+    """Same greedy selection as `pack_by_score`, but emitted the way the control is:
+    grouped under a `[stem chunk N]` heading, chunks in retrieval-rank order, and slices in
+    document order within a chunk.
+
+    Why this exists (COST-27): `pack_by_score` returns score order with no provenance while
+    its own control is chunk-ordered and labelled, so COST-23 varied three things at once.
+    96% of compressed prompts hold two or more filing-years of the same company -- RETR-3's
+    wrong-document problem restated inside one prompt -- and unlabelled, nothing tells the
+    reader which year a number belongs to. 39.7% also split one table's rows apart.
+
+    Headings are charged to the budget, so slices@1500 stays honestly 1500 tokens and the
+    arm remains the one COST-18 priced. Measured cost of that: 3 questions in 300.
+
+    `pack_by_score` is kept, not replaced: COST-13's payload on disk has to stay reproducible
+    byte-for-byte.
+    """
+    # Chunks come out in retrieval-rank order, matching the uncompressed control. That rank
+    # has to be carried in: a chunk's first appearance in this score-ordered list is the
+    # chunk holding the best *slice*, which is a different ordering.
+    chunk_rank = {(s.stem, s.chunk_index): s.chunk_rank for s in slices}
+
+    kept: list[Slice] = []
+    seen: set[tuple[str, int]] = set()
+    remaining = budget
+    for s in slices:
+        key = (s.stem, s.chunk_index)
+        cost = s.tokens + (0 if key in seen else count_tokens(slice_heading(*key) + "\n"))
+        if cost <= remaining:  # skip-don't-break, as pack_by_score
+            kept.append(s)
+            seen.add(key)
+            remaining -= cost
+
+    out = []
+    for key in sorted({(s.stem, s.chunk_index) for s in kept}, key=lambda k: chunk_rank[k]):
+        body = sorted((s for s in kept if (s.stem, s.chunk_index) == key),
+                      key=lambda s: (s.atom_i, s.piece_i))
+        out.append(slice_heading(*key) + "\n" + "\n".join(s.text for s in body))
+    return "\n\n".join(out)
