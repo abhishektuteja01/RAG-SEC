@@ -1,4 +1,24 @@
-"""Day 5, Arm 3, stage 1 (laptop): run Arm 2's retrieval (dense + BM25 + RRF) for every
+"""ARCHIVED -- Day 5, Arm 3, stage 1 of the split job (old filename in `git log --follow`).
+
+What it did: stage 1 of Arm 3 on the laptop -- ran dense + BM25/RRF for every dev question
+and wrote each question's fused top-50, chunk text inlined, into one self-contained payload
+so the GPU stage needed no database connection.
+
+Provenance: DECISIONS.md `ARM3-2`. Output: `data/day5_rerank_payload.json` (gitignored as a
+rebuildable HPC payload; not currently on disk).
+
+Replaced by: `scripts/retrieval/rerank_prepare.py`, which builds all four cells of the
+company-filter x query-strip 2x2 in a single payload (`RETR-16`/`RETR-29`) instead of the
+one unfiltered cell this file builds.
+
+Safe to run today? It runs -- needs Postgres, embeds the dev questions locally, minutes not
+hours -- and its SQL is variant-clean (`RETR-27`/`RETR-28`). But what it produces is the
+superseded unfiltered / raw-query candidate pool, so the payload is not comparable to any
+current number.
+
+--- original header, kept verbatim ---
+
+Day 5, Arm 3, stage 1 (laptop): run Arm 2's retrieval (dense + BM25 + RRF) for every
 dev-split question and dump each question's fused top-50 candidates -- with chunk text
 inlined -- to a single JSON file. This is the only stage that needs Postgres.
 
@@ -7,7 +27,7 @@ candidates projected at ~25h wall clock (observed: per-question latency climbed 
 ~27s to a ~110s plateau over the first 15 questions, laptop under memory pressure from
 other running apps) -- not viable. Split the job instead of tunneling a live DB
 connection to the HPC node: this script prepares a self-contained payload so the GPU
-side (`day5_hpc_rerank.py`) needs no DB access and can't be broken by a dropped
+side (`arm3_rerank_hpc.py`) needs no DB access and can't be broken by a dropped
 connection mid-run.
 """
 

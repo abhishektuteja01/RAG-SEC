@@ -1,19 +1,39 @@
-"""Day 6, Arm 4, stage 1 (laptop): run this variant's retrieval (dense + BM25 + RRF,
-same as day6_run_arm4.py) for every dev-split question and dump each question's fused
+"""ARCHIVED -- Day 6, Arm 4, stage 1 of the split job (old filename in `git log --follow`).
+
+What it did: stage 1 of Arm 4 on the laptop, once per variant -- ran that variant's
+retrieval and dumped the fused top-50 with text inlined, candidates carrying a `variant`
+field so identities cannot collide across A/B/C.
+
+Provenance: DECISIONS.md `ARM4-3`, `ARM4-4`. Outputs:
+`data/day6_arm4_{A,B,C}_rerank_payload.json`. B and C have been deleted; **the A payload
+(230 MB) is still on disk and is not dead weight from Arm 4 alone** -- `COST-14` reused it
+as the byte-identical 50-candidate pool for the first slice payload, which is why the
+compression arms and the whole-chunk baseline saw the same candidates.
+
+Replaced by: `scripts/retrieval/rerank_prepare.py`.
+
+Safe to run today? Yes with Postgres; minutes per variant. Re-running `--variant A`
+overwrites the 230 MB payload `COST-14` used. The content should come out identical, but
+there is no reason to find out.
+
+--- original header, kept verbatim ---
+
+Day 6, Arm 4, stage 1 (laptop): run this variant's retrieval (dense + BM25 + RRF,
+same as arm4_singleprocess.py) for every dev-split question and dump each question's fused
 top-50 candidates -- with chunk text inlined -- to a self-contained JSON payload. This is
-the only stage that needs Postgres; the GPU side (day6_hpc_rerank.py) needs no DB access.
+the only stage that needs Postgres; the GPU side (arm4_rerank_hpc.py) needs no DB access.
 
 Candidates carry (filing_stem, chunk_index, variant) triples, not (filing_stem,
-chunk_index) pairs like Arm 3's day5_prepare_rerank_payload.py -- Strategy A and B/C each
+chunk_index) pairs like Arm 3's arm3_rerank_prepare.py -- Strategy A and B/C each
 number a filing's chunks from 0 independently, so a bare pair collides across variants
-(DECISIONS.md ARM4-*). Candidate pool per variant matches day6_run_arm4.py's retrieval
+(DECISIONS.md ARM4-*). Candidate pool per variant matches arm4_singleprocess.py's retrieval
 WHERE clause: `variant='A'` rows not superseded for this variant, plus this variant's own
-rows -- so scoring later (day6_finalize_arm4.py) sees exactly what retrieval saw here.
+rows -- so scoring later (arm4_rerank_score.py) sees exactly what retrieval saw here.
 
 Run once per variant:
-    python day6_prepare_rerank_payload.py --variant A
-    python day6_prepare_rerank_payload.py --variant B
-    python day6_prepare_rerank_payload.py --variant C
+    python arm4_rerank_prepare.py --variant A
+    python arm4_rerank_prepare.py --variant B
+    python arm4_rerank_prepare.py --variant C
 """
 
 import argparse
