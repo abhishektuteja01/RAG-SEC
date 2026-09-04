@@ -15,8 +15,8 @@ drifts mid-run (throttling, a model update), grouping by arm would put that drif
 in one arm and confound the paired comparison.
 
 Usage:
-    python scripts/agent/day8_cost13_run.py --limit 10      # wiring check, ~$0.06
-    python scripts/agent/day8_cost13_run.py                 # full run, ~$0.76
+    python scripts/compression/answer_ab_run.py --limit 10      # wiring check, ~$0.06
+    python scripts/compression/answer_ab_run.py                 # full run, ~$0.76
 """
 
 import argparse

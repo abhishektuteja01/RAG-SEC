@@ -1,4 +1,4 @@
-"""Day 8, stage 1 (laptop): payload for the RETR-16 2x2 rerank job.
+"""Stage 1 (laptop): payload for the RETR-16 2x2 rerank job.
 
 Two independent changes both need a cross-encoder pass over the same candidates, differing
 only in the query text, so they share one GPU booking:
@@ -12,8 +12,8 @@ result attributable -- without it a better number can't be assigned to the filte
 query cleanup.
 
 The stripped query is computed HERE, on the laptop, and travels as a field. The HPC stage
-stays self-contained (no `rag_sec` import, no DB) exactly as `day5_hpc_rerank.py` and
-`day8_hpc_slice_rerank.py` do, so it can't be broken by a dropped connection or a missing
+stays self-contained (no `rag_sec` import, no DB) exactly as `arm3_rerank_hpc.py` and
+`slice_rerank_hpc.py` do, so it can't be broken by a dropped connection or a missing
 package on the compute node.
 
 Chunk text is stored ONCE in a shared `texts` map keyed "stem|chunk_index", not inlined per
@@ -22,7 +22,7 @@ questions, so inlining would write the same text many times over -- the older pa
 that and paid ~240MB for one pool.
 
 Usage:
-    python scripts/arms/day8_prepare_filtered_rerank_payload.py [--n N]
+    python scripts/retrieval/rerank_prepare.py [--n N]
 """
 
 import argparse
@@ -143,7 +143,7 @@ def main() -> None:
     print(f"wrote {args.out}  ({args.out.stat().st_size / 1e6:.0f} MB)")
     print("\nCopy via the transfer node, not the login node (DECISIONS.md ARM3-2):")
     print(f"  scp {args.out} tuteja.a@xfer.discovery.neu.edu:~/{args.out.name}")
-    print("  scp scripts/arms/day8_hpc_retr16_rerank.py tuteja.a@xfer.discovery.neu.edu:~/")
+    print("  scp scripts/retrieval/rerank_hpc.py tuteja.a@xfer.discovery.neu.edu:~/")
     print("\nOn the GPU node (inside tmux -- srun --pty dies with the SSH session):")
     print("  srun --partition=gpu --gres=gpu:v100-sxm2:1 --cpus-per-task=4 \\")
     print("       --mem=48G --time=08:00:00 --pty /bin/bash")
@@ -151,7 +151,7 @@ def main() -> None:
     # Derived from the payload name, not hardcoded: the dev run's scores file is already on
     # disk, and a second job writing day8_retr16_scores.jsonl would clobber it on copy-back.
     scores_name = args.out.name.replace("_payload", "_scores").replace(".json", ".jsonl")
-    print(f"  python day8_hpc_retr16_rerank.py {args.out.name} {scores_name}")
+    print(f"  python rerank_hpc.py {args.out.name} {scores_name}")
 
 
 if __name__ == "__main__":

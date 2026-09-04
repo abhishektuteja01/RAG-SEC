@@ -1,7 +1,7 @@
-"""Day 8, stage 2 (HPC GPU node): score the RETR-16 2x2 with the local cross-encoder.
+"""Stage 2 (HPC GPU node): score the RETR-16 2x2 with the local cross-encoder.
 
 Cells (candidates x query form), from one payload
-(`day8_prepare_filtered_rerank_payload.py`):
+(`rerank_prepare.py`):
 
     unfiltered_raw       as today                                     -> baseline
     filtered_raw         + company filter                             -> isolates RETR-5
@@ -30,7 +30,7 @@ would, and `CrossEncoder.predict` sorts by length, so an over-large batch OOMs w
 seconds rather than hours in.
 
 Usage:
-    python day8_hpc_retr16_rerank.py day8_retr16_rerank_payload.json day8_retr16_scores.jsonl
+    python rerank_hpc.py day8_retr16_rerank_payload.json day8_retr16_scores.jsonl
 
 Output: JSONL, one line per question:
     {id, cells: {cell_name: [[stem, chunk_index, score], ...], ...}, latency_s}
@@ -80,7 +80,7 @@ def load_done_ids(output_path: Path) -> set[str]:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        print("Usage: python day8_hpc_retr16_rerank.py <payload.json> <output.jsonl>")
+        print("Usage: python rerank_hpc.py <payload.json> <output.jsonl>")
         sys.exit(1)
     payload_path, output_path = Path(sys.argv[1]), Path(sys.argv[2])
 
@@ -96,7 +96,15 @@ def main() -> None:
 
     import torch
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # cuda > mps > cpu, duplicated from rag_sec.config.pick_device() -- this script runs
+    # on the HPC node with no rag_sec package, by design. mps matters only when it is
+    # run locally on Apple Silicon (INFRA-6).
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
     print(f"Using device: {device}")
     cross_encoder = CrossEncoder(RERANK_MODEL_NAME, device=device)
 

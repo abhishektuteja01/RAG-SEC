@@ -1,12 +1,12 @@
 #!/bin/bash
 # COST-17/RETR-30: rerank slices on the corrected (filtered+stripped) pool.
-# 555,337 slices, ~4.3 GPU-h est. See scripts/arms/day8_retr18_test.sbatch for why sbatch.
+# 555,337 slices, ~4.3 GPU-h est. See scripts/retrieval/rerank_hpc.sbatch for why sbatch.
 #
 # Submit this SECOND, once the test job is past model load: both jobs read
 # BAAI/bge-reranker-v2-m3 from ~/.cache/huggingface, and two simultaneous cold downloads to
 # one cache path is an avoidable corruption risk.
 #
-#   sbatch scripts/agent/day8_slices.sbatch
+#   sbatch scripts/compression/slice_rerank_hpc.sbatch
 #
 #SBATCH --job-name=day8-slices
 #SBATCH --partition=gpu
@@ -20,6 +20,6 @@ set -euo pipefail
 module load python/3.13.5
 source ~/rerank-env/bin/activate
 cd ~
-python -u day8_hpc_slice_rerank.py \
+python -u slice_rerank_hpc.py \
     day8_slice_payload_t150_filtered_stripped.json \
     day8_slice_scores_t150_filtered_stripped.jsonl

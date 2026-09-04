@@ -1,10 +1,10 @@
-"""Day 5, corpus-growth embedding, stage 2 (HPC GPU node): embed every chunk in the
+"""Corpus-growth embedding, stage 2 (HPC GPU node): embed every chunk in the
 payload with BGE-M3. Self-contained -- no DB, no `rag_sec` import -- and checkpointed
-the same way as day5_hpc_rerank.py: writes results incrementally, skips ids already
+the same way as arm3_rerank_hpc.py: writes results incrementally, skips ids already
 done on restart.
 
 Usage:
-    python day5_hpc_embed.py embed_payload.json embed_results.jsonl
+    python embed_hpc.py embed_payload.json embed_results.jsonl
 """
 
 import json
@@ -33,7 +33,7 @@ def load_done_keys(output_path: Path) -> set[str]:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        print("Usage: python day5_hpc_embed.py <payload.json> <output.jsonl>")
+        print("Usage: python embed_hpc.py <payload.json> <output.jsonl>")
         sys.exit(1)
 
     payload_path = Path(sys.argv[1])
@@ -50,7 +50,15 @@ def main() -> None:
 
     import torch
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # cuda > mps > cpu, duplicated from rag_sec.config.pick_device() -- this script runs
+    # on the HPC node with no rag_sec package, by design. mps matters only when it is
+    # run locally on Apple Silicon (INFRA-6).
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
     print(f"Using device: {device}")
     # force safetensors -- avoids transformers' torch.load-based legacy .bin loading
     # path, which refuses to run under torch<2.6 (CVE-2025-32434) and our HPC node's

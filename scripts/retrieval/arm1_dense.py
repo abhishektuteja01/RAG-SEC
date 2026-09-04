@@ -1,4 +1,4 @@
-"""Day 3, Arm 1: dense-only retrieval, scored on the dev split.
+"""Arm 1: dense-only retrieval, scored on the dev split.
 
 spec.md 2.2: tune on dev, touch test once at the end per arm. Arm 1 has no
 hyperparameters to tune, but we still hold test back — first pass to confirm the
@@ -23,7 +23,7 @@ from sentence_transformers import SentenceTransformer
 
 from rag_sec.company import resolve as resolve_companies
 from rag_sec.config import EMBED_MODEL_NAME
-from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mrr, ndcg_at_k, recall_at_k
+from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
 from rag_sec.store import get_conn
 
 TOP_K = 50
@@ -39,15 +39,6 @@ def retrieve(conn, embedding, k: int, tickers: list[str] | None = None) -> list[
         args,
     ).fetchall()
     return [(r[0], r[1]) for r in rows]
-
-
-def mean_and_stderr(values: list[float]) -> tuple[float, float]:
-    values = [v for v in values if not math.isnan(v)]
-    n = len(values)
-    mean = sum(values) / n
-    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
 
 
 def main() -> None:

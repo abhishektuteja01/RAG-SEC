@@ -1,6 +1,6 @@
-"""Day 4, Arm 2: hybrid retrieval -- dense (Arm 1) + BM25 (pg_search), fused with
+"""Arm 2: hybrid retrieval -- dense (Arm 1) + BM25 (pg_search), fused with
 Reciprocal Rank Fusion. Same dev split, same metrics, same TOP_K as Arm 1
-(day3_run_arm1.py) so the two results are directly comparable -- one change
+(arm1_dense.py) so the two results are directly comparable -- one change
 (add a second ranked list + fuse it), per spec.md 2.2.
 
 DECISIONS.md INFRA-4/ARM2-1: real BM25 via pg_search, not tsvector/ts_rank (spec.md's
@@ -20,7 +20,7 @@ from sentence_transformers import SentenceTransformer
 
 from rag_sec.company import resolve as resolve_companies
 from rag_sec.config import EMBED_MODEL_NAME
-from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mrr, ndcg_at_k, recall_at_k
+from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
 from rag_sec.store import get_conn
 
 TOP_K = 50
@@ -65,15 +65,6 @@ def rrf_fuse(ranked_lists: list[list[tuple[str, int]]], k: int = RRF_K) -> list[
         for rank, doc_id in enumerate(ranked, start=1):
             scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank)
     return sorted(scores, key=lambda d: scores[d], reverse=True)
-
-
-def mean_and_stderr(values: list[float]) -> tuple[float, float]:
-    values = [v for v in values if not math.isnan(v)]
-    n = len(values)
-    mean = sum(values) / n
-    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
 
 
 def main() -> None:

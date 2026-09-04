@@ -10,7 +10,7 @@ Runnable, not pytest, to match the rest of `scripts/`. Two parts:
      dev is reported to confirm nothing was tuned into it.
 
 Usage:
-    python scripts/diagnostics/day8_company_resolver_check.py
+    python scripts/checks/company_resolver.py
 """
 
 from collections import Counter

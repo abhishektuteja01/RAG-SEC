@@ -5,10 +5,10 @@
 # Batch, not `srun --pty`+tmux: this job and the slice job are independent and can hold two
 # separate GPUs at once, and sbatch needs no terminal to stay alive for 7+ hours.
 #
-# Resumable: day8_hpc_retr16_rerank.py checkpoints per question id and skips what is already
+# Resumable: rerank_hpc.py checkpoints per question id and skips what is already
 # in the output file, so hitting the wall limit is not a loss -- resubmit this same script.
 #
-#   sbatch scripts/arms/day8_retr18_test.sbatch      # from ~ on the cluster
+#   sbatch scripts/retrieval/rerank_hpc.sbatch      # from ~ on the cluster
 #
 #SBATCH --job-name=retr18-test
 #SBATCH --partition=gpu
@@ -22,6 +22,6 @@ set -euo pipefail
 module load python/3.13.5
 source ~/rerank-env/bin/activate
 cd ~
-python -u day8_hpc_retr16_rerank.py \
+python -u rerank_hpc.py \
     day8_retr18_test_payload.json \
     day8_retr18_test_scores.jsonl

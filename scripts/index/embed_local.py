@@ -1,4 +1,4 @@
-"""Day 3, Arm 1: embed every chunk with BGE-M3 and load into pgvector.
+"""Arm 1: embed every chunk with BGE-M3 and load into pgvector.
 
 Loads data/chunks/*.json into the `chunks` table, skipping any filing_stem already
 present so an interrupted run can be resumed without re-embedding (BGE-M3 encode is

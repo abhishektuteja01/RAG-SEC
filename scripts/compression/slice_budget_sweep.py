@@ -1,4 +1,4 @@
-"""Day 8, stage 3 (laptop): sweep token budgets and measure how much gold evidence survives
+"""Stage 3 (laptop): sweep token budgets and measure how much gold evidence survives
 compression. See DECISIONS.md COST-6/COST-7/COST-11.
 
 Arms over an identical candidate pool:
@@ -33,8 +33,8 @@ about twice as much (6.7 pts on the control, 15.6 on slices@1500). Judge compres
 every-gold-figure survival (69.3% @1500), not on matcher survival (84.9%).
 
 Usage:
-    python scripts/agent/day8_finalize_compression.py --arms full,chunks
-    python scripts/agent/day8_finalize_compression.py \
+    python scripts/compression/slice_budget_sweep.py --arms full,chunks
+    python scripts/compression/slice_budget_sweep.py \
         --arms full,chunks,slices,slices50 \
         --scores data/day8_slice_scores_t150_filtered_stripped.jsonl
 """

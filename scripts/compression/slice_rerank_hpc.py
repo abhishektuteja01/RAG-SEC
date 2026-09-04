@@ -1,7 +1,7 @@
-"""Day 8, stage 2 (HPC GPU node): score every question's candidate *slices* with the local
+"""Stage 2 (HPC GPU node): score every question's candidate *slices* with the local
 cross-encoder. See DECISIONS.md COST-7/COST-11.
 
-Same contract as day5/day6_hpc_rerank.py -- deliberately self-contained (no `rag_sec`
+Same contract as day5/arm4_rerank_hpc.py -- deliberately self-contained (no `rag_sec`
 import, no DB), checkpointed by question id so a killed job resumes, cross-question
 batching into QUESTIONS_PER_CHUNK predict() calls.
 
@@ -23,7 +23,7 @@ that at ~200k tokens/batch, the same peak Arm 3 already ran successfully on a V1
 OOMs within seconds of starting rather than hours in -- so raising it is cheap to test.
 
 Usage:
-    python day8_hpc_slice_rerank.py day8_slice_payload_t150.json day8_slice_scores_t150.jsonl
+    python slice_rerank_hpc.py day8_slice_payload_t150.json day8_slice_scores_t150.jsonl
 
 Input:  JSON list of {id, question, slices: [[stem, chunk_index, atom_i, piece_i, text], ...]}
 Output: JSONL, one line per question:
@@ -61,7 +61,7 @@ def load_done_ids(output_path: Path) -> set[str]:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        print("Usage: python day8_hpc_slice_rerank.py <payload.json> <output.jsonl>")
+        print("Usage: python slice_rerank_hpc.py <payload.json> <output.jsonl>")
         sys.exit(1)
 
     payload_path, output_path = Path(sys.argv[1]), Path(sys.argv[2])
@@ -90,7 +90,15 @@ def main() -> None:
 
     import torch
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # cuda > mps > cpu, duplicated from rag_sec.config.pick_device() -- this script runs
+    # on the HPC node with no rag_sec package, by design. mps matters only when it is
+    # run locally on Apple Silicon (INFRA-6).
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
     print(f"Using device: {device}")
     cross_encoder = CrossEncoder(RERANK_MODEL_NAME, device=device)
 
