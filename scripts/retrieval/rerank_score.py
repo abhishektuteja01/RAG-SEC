@@ -53,8 +53,6 @@ def main() -> None:
         help="file supplying unfiltered_raw; omit when the scores file already has that cell",
     )
     args = ap.parse_args()
-    baseline = args.baseline or (BASELINE if args.split == "dev" else None)
-
     ranked: dict[str, dict[str, list]] = {}
     with open(args.scores) as f:
         for line in f:
@@ -64,6 +62,16 @@ def main() -> None:
                     c: [(s, i) for s, i, _sc in sorted(v, key=lambda x: -x[2])]
                     for c, v in r["cells"].items()
                 }
+    # Resolved AFTER loading, so a scores file that already carries unfiltered_raw is never
+    # silently overwritten by the cached one. That cache (day6_arm4_A) was scored against
+    # pre-RETR-7 chunk text, so after a re-index merging it would mix two corpora inside one
+    # 2x2 and mis-attribute the ablation. An explicit --baseline still wins.
+    baseline = args.baseline or (BASELINE if args.split == "dev" else None)
+    if baseline and not args.baseline and ranked and all("unfiltered_raw" in v for v in ranked.values()):
+        print(f"scores file already has unfiltered_raw for all {len(ranked)} questions "
+              f"-- NOT merging the cached baseline {BASELINE}")
+        baseline = None
+
     if baseline:
         merged = 0
         with open(baseline) as f:
