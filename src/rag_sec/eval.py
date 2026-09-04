@@ -33,6 +33,14 @@ _YEAR_TOKEN_RE = re.compile(r"^(19|20)\d{2}$")
 # separately despite being 4 digits, because a filing's own fiscal year recurs in nearly
 # every chunk of it (finqa_dev_321/AES: `2003` alone matched 130 chunks).
 MIN_ROW_NUMBER_DIGITS = 3
+# This constant empties `gold_nums` for whole classes of rows -- percentages, whole millions,
+# day/case counts, and small decimals (`len('4.2'.replace('.',''))==2`) -- which is why 35 of
+# `RETR-37`'s 66 cases fell through to Layer 3 with a usable pointer in hand. Locating those
+# rows by their LABEL instead was built and reverted (`RETR-38`): dev recall@10 +0.0008, test
+# +0.0000 over 9/1235 and 18/1546 changed labels. It rescues nothing because Layer 3 already
+# labels those questions -- it only substitutes for Layer 3, so there is no unlabeled
+# population to recover. Lowering the constant does not work either: at 1 the values are then
+# rejected as non-distinctive anyway (`22` occurred in 102 chunks of one filing).
 
 # Calibrated on a 200-row hand-checked sample spanning all three layers (GOLD-1): the min
 # block sizes separate a verbatim match from coincidental phrase overlap, MAX_CLUSTER_GAP
@@ -48,6 +56,12 @@ ROW_NUMBER_MATCH_THRESHOLD = 0.6
 # A number recurring in more of the same filing's own chunks than this is not a fingerprint
 # even at 3+ digits (finqa_dev_126: a `100%` column total matched 21 chunks).
 ROW_NUMBER_MAX_DOC_FREQ = 5
+# Exempting WIDE values from that cap was tried and reverted (RETR-38): a 5+ digit figure
+# recurring in one filing really is a restatement rather than a collision, but the exemption
+# admits the front-of-filing "selected financial data" summary -- and coverage then PREFERS
+# it, because one chunk covering every figure is a smaller cover than the two chunks at the
+# real location. 5 of 66 hand-verified cases went from correct to wrong. Coverage rejects a
+# redundant candidate; a summary table is not redundant, it is a more efficient cover.
 
 
 def _normalize_words(text: str) -> list[str]:

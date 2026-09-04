@@ -3,7 +3,8 @@
 Living document. Overwrite stale lines; don't append to them. Numbers and reasoning live
 in `DECISIONS.md` — this file only says where things stand and what to pick up.
 
-Last updated: 2026-09-03. Day 8 plus a follow-on session: `COST-27`/`COST-28`, `RETR-33`/`RETR-34`/`RETR-35`, and a `COST-25` provenance correction.
+Last updated: 2026-09-04. Day 8 plus two follow-on sessions: `COST-27`/`COST-28`, `RETR-33`/`RETR-34`/`RETR-35`, a `COST-25` provenance correction, then a housekeeping pass (`RETR-36`, `INFRA-10`, two `COST-21` corrections) and the Layer-3
+diagnosis (`RETR-37`/`RETR-38`).
 
 **"Day N" is a unit of planned work in `spec.md`, not a calendar date** — Day 8 spanned
 several days. The `COST-`/`RETR-` IDs follow the project label, not the calendar, so a
@@ -70,16 +71,14 @@ because their chunks are single rows and summaries, so there was no over-collect
 Everything previously listed here is done: the prompt-format fix (`COST-28`), `COST-26`'s
 three slice-ranking fixes (`COST-27`, all three lose, nothing shipped), the survival-pool
 provenance question (`COST-25` corrected — quote 67.0%), the failure-triage refresh
-(`RETR-33`), the label audit (`RETR-34`) and the matcher rewrite (`RETR-35`). What that work
-left behind:
+(`RETR-33`), the label audit (`RETR-34`), the matcher rewrite (`RETR-35`) and the Layer-3
+diagnosis (`RETR-37`; two candidate fixes built and reverted, `RETR-38`). Layer 3's own
+remaining bugs are logged there as known and parked — not on this list. What is left:
 
 - **Re-scoring: done except Arm 1 and Arm 2.** All four Arm 3 ablation cells and Arm 4 A/B/C
   are now on corrected labels (`rescore_labels.py`, `RETR-35`). **Arm 1 and Arm 2 are blocked**
   — their results files persist only `top_5_retrieved`, so recall@10/@50 is unrecoverable and
   they need a retrieval re-run against Postgres. No GPU, but it is a re-run, not a re-grade.
-- **Layer 3, the page-match fallback, is the remaining weak matcher.** `RETR-35` fixed
-  over-collection, not wrong-topic matching: the audit's `wrong_chunk` cases barely moved
-  (14%), and they concentrate in this layer. 10% of audited cases resolve through it.
 - **A trap, not a lead.** Restricting `COST-27`'s figure guard to the top chunk alone scored
   +1.3 (6 gained / 2 lost, **p=0.29**) and was the best of six swept variants. A hypothesis
   with a test-split price on it. Do not quote it; do not ship it on the dev number.
@@ -177,24 +176,20 @@ worth more than the original claim.
 
 ## 4. Housekeeping
 
-- **No finalize script writes a results file.** `rerank_score.py`,
-  `slice_budget_sweep.py` and `answer_ab_score.py` all print and exit, so
-  `RETR-29`/`RETR-31`/`COST-18`/`COST-23` exist only as prose in `DECISIONS.md`. Every
-  earlier arm has a `data/*_dev_results.json`. Adding `--out` and re-running off the score
-  files already on disk is free.
-- **Retrieval SQL is duplicated across 8 files.** `rag_sec.company` has one home;
-  dense/BM25/RRF does not. That duplication is what let `RETR-24` hide in seven places at
-  once. The AST guard now catches that specific failure, but the debt stands.
-- **Two `DECISIONS.md` corrections owed**, both verified against the data on
-  2026-09-02: `COST-21` says the scorer accepts `{identity, x100, /100}` — it accepts seven
-  factors, including the "(in thousands)"/"(in millions)" conventions (5 of 278 verdicts,
-  all genuine, ~0.7pt net). And it says 125+34=159 questions were excluded from the strata;
-  the code excludes 127, keeping the 32 that have one parseable gold field.
-- **One number owed a row: the 9.4x loop cost multiplier.** Still no `DECISIONS.md` row
-  (grep verified 2026-09-02, and again after the `CLAUDE.md` snapshot was cut to pointers:
-  zero hits anywhere but this line). So this line is now the only place it is written down.
-  Give it a row *with the job that produced it* — unprovenanced, it is exactly the failure
-  mode two bullets down. Until then, don't quote it.
+- **Done: results files, the SQL dedupe, and both `COST-21` corrections.** `--out` shipped
+  and the four missing `data/*_results.json` written (`INFRA-10`); dense/BM25/RRF now has one
+  home in `rag_sec.candidates` with `variant` required, byte-identical SQL, guarded by a new
+  `scripts/checks/candidate_sql.py` (`RETR-36`); `COST-21`'s row now says seven scale factors
+  and 127 exclusions, both re-verified against dev on 2026-09-03. `rerank_score.py` already
+  had `--out` — only the dev results file was missing.
+- **Still owed a row: the 9.4x loop cost multiplier — and provenance could NOT be
+  established.** Searched 2026-09-03: no artifact on disk produces it, nothing in `data/`
+  records it, and git only ever shows it in this bullet (the smoke test prints per-node token
+  counts but persists nothing). The nearest candidates are coincidences, not sources —
+  `$16.97 -> $3.10/pass` is 5.5x and `COST-24` marked every one of those figures suspect. It
+  most likely came from the deleted Day 8 session file. **No row was added, deliberately:** a
+  row is a provenance claim, and inventing one is worse than the number having no home. Don't
+  quote it; re-derive it from a real run or drop it.
 - **`CLAUDE.md` is gitignored on purpose** (personal working rules). Keep the standing
   context there short and number-free — `DECISIONS.md` is the source of truth for numbers,
   and an unversioned file is a bad last home for one.
