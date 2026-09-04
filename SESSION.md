@@ -109,7 +109,7 @@ remaining bugs are logged there as known and parked — not on this list. What i
   old packer — 99,654/99,654 chunks verified by `atom_replay.py`. The design constraint that
   drove everything: **chunk boundaries do not move**, so gold labels keep pointing at the
   same body text and the new numbers stay comparable to the published ones. Misattribution
-  51.7% -> 0.0% of atoms; 300/300 dev gold label sets unchanged. Verify with
+  45.9% -> 0.0% of atoms (all 799 filings); 300/300 dev gold label sets unchanged. Verify with
   `scripts/checks/heading_fix.py --labels 300`.
   **Do not attach a recall claim to this.** `RETR-33` measured `no_gold_chunk` = 0% twice and
   the heading is a median 0.91% of a chunk's tokens, so the expectation is ~0. It is a
