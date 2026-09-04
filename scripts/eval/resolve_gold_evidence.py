@@ -1,4 +1,4 @@
-"""Day 7: resolve `data/day7_gold_inds_matched_full.json`'s `gold_inds` pointers (e.g.
+"""Resolve `data/day7_gold_inds_matched_full.json`'s `gold_inds` pointers (e.g.
 `table_6`, `text_1`) into literal evidence -- raw table row cells or a literal sentence --
 by looking them up in the original FinQA/ConvFinQA source files (not T2-RAGBench's
 flattened `context`/`pre_text`/`post_text`/`table` columns, which lose the list structure
@@ -23,6 +23,7 @@ ConvFinQA's `Double_*` ids need a `qa_0`/`qa_1` suffix (stored in `matched_sourc
 everything else (FinQA, ConvFinQA `Single_*`) has one `qa` block.
 """
 
+import argparse
 import json
 import os
 
@@ -88,6 +89,24 @@ def resolve_one(matched_source_id: str, gold_inds: dict, raw_index: dict) -> dic
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--force", action="store_true",
+                    help="write even if this run resolves fewer ids than the file on disk")
+    args = ap.parse_args()
+
+    # Two hard-fails, because the failure mode here is silent and destructive rather than
+    # loud: with RAW_DATA_DIR absent, every lookup misses, `resolved` comes out empty, and
+    # the old code wrote `{}` straight over the evidence eval.py scores against. Neither
+    # guard is a size heuristic -- the first says nothing *can* resolve, the second says
+    # this run resolved strictly less than the file already on disk.
+    present = [p for p in RAW_FILES if os.path.exists(p)]
+    if not present:
+        raise SystemExit(
+            f"no raw FinQA/ConvFinQA files under {RAW_DATA_DIR} -- every id would fail to\n"
+            f"resolve and {os.path.basename(OUT_PATH)} would be overwritten with nothing.\n"
+            "Fetch them from the original repos, or set RAW_DATA_DIR."
+        )
+
     with open(MATCHED_PATH) as f:
         matched = json.load(f)
     print(f"resolving {len(matched)} matched ids")
@@ -105,6 +124,17 @@ def main() -> None:
 
     print(f"resolved: {len(resolved)}/{len(matched)} ({len(resolved)/len(matched):.1%})")
     print(f"unresolved (base id missing from fetched files, or all indices out of range): {unresolved}")
+
+    if os.path.exists(OUT_PATH) and not args.force:
+        with open(OUT_PATH) as f:
+            existing = json.load(f)
+        if len(resolved) < len(existing):
+            raise SystemExit(
+                f"refusing to overwrite: {len(resolved)} resolved now against "
+                f"{len(existing)} already in {os.path.basename(OUT_PATH)}. "
+                f"{len(RAW_FILES) - len(present)} of {len(RAW_FILES)} raw files are missing. "
+                "Pass --force if the shrink is intended."
+            )
 
     with open(OUT_PATH, "w") as f:
         json.dump(resolved, f)
