@@ -18,6 +18,19 @@ say `discovery.neu.edu` — that was the previous cluster name and those referen
 | what the venv has | `sentence-transformers`, `torch` 2.5.1+cu121, `tqdm`. No `rag_sec`, no DB driver, by design |
 | allocation | `srun --partition=gpu --gres=gpu:v100-sxm2:1 --cpus-per-task=4 --mem=48G --time=08:00:00 --pty /bin/bash` |
 
+**`login.explorer.northeastern.edu` is round-robin across `explorer-01` / `explorer-02`.**
+Home is shared NFS, so files and `squeue` look identical from either — but **`tmux` is
+per-host**, so a session created on one node is invisible from the other. If `tmux ls` does
+not show a session you know exists, you are simply on the other login node:
+
+```bash
+ssh tuteja.a@explorer-01.explorer.northeastern.edu 'tmux ls'
+ssh tuteja.a@explorer-02.explorer.northeastern.edu 'tmux ls'
+```
+
+Verified 2026-09-04, when `rr-dev` (explorer-01) was invisible from `explorer-02` and looked
+like a failed launch. It was not — the SLURM job was queued normally.
+
 **Interactive `srun` is the default**, for live visibility. Always start `tmux` *before*
 `srun` — an `srun --pty` session dies with the SSH connection and these jobs run for hours.
 The two `.sbatch` files are an unattended fallback, not the normal path.

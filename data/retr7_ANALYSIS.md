@@ -67,3 +67,21 @@ because a number moved 0.008.**
   text-comparable with variant A.
 - `RETR-33` failure triage: needs the Arm 3 scores.
 - All `COST-*` compression and answer-accuracy numbers: need LLM spend, untouched.
+
+## Where the Arm 3 jobs are (morning orientation)
+
+Login nodes are round-robin and `tmux` is per-host. As of 03:50:
+
+- `rr-dev`  -> tmux on **explorer-01**
+- `rr-test` -> whichever node the pipeline's ssh landed on; check both
+- your original `reembed` session -> **explorer-02**
+
+```bash
+ssh tuteja.a@explorer-01.explorer.northeastern.edu 'tmux ls'
+ssh tuteja.a@explorer-02.explorer.northeastern.edu 'tmux ls'
+squeue -u tuteja.a          # same from either node
+```
+
+Job 9950592 (Arm 3 dev) went in **PENDING (Priority)** — waiting for a free V100, which is
+the queue risk flagged before launch. Cluster-side logs are `~/rr-dev.log` and `~/rr-test.log`
+on shared home, readable from either login node.
