@@ -61,11 +61,6 @@ hundred questions would eat ~10 hours and produce numbers nobody can check. Inst
 | FinQA / ConvFinQA / TAT-DQA | the three sources T²-RAGBench is derived from | open individually | Fallback if T²-RAGBench has problems, and useful for slicing by question type. |
 | FinAgentBench | 18,000+ expert-curated agentic-retrieval samples | **availability unverified** — could not confirm an open download | Nice-to-have. Do not plan around it. Check on Day 1; if it's gated, drop it. |
 
-**This was a correction.** The first draft of this spec treated FinanceBench's 10,231
-triples as the primary eval set. They are not publicly available — the open release is
-150 examples. T²-RAGBench is now primary. Verify all of this yourself on Day 1 anyway;
-dataset access changes.
-
 Because these are public, your numbers are comparable to published results. "My
 hybrid+rerank config scores X on FinanceBench" is a real claim. "My config scored 0.8
 on questions I wrote" is not.

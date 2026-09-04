@@ -3,7 +3,13 @@
 Living document. Overwrite stale lines; don't append to them. Numbers and reasoning live
 in `DECISIONS.md` — this file only says where things stand and what to pick up.
 
-Last updated: 2026-09-02, end of Day 8.
+Last updated: 2026-09-03. Day 8 plus a follow-on session: `COST-27`/`COST-28`, `RETR-33`/`RETR-34`/`RETR-35`, and a `COST-25` provenance correction.
+
+**"Day N" is a unit of planned work in `spec.md`, not a calendar date** — Day 8 spanned
+several days. The `COST-`/`RETR-` IDs follow the project label, not the calendar, so a
+`day8_*` data filename says nothing about when it was written. Scripts no longer carry day
+prefixes at all: `scripts/` is organised by job and every file is named for what it does.
+`INVENTORY.md` maps every file to what it actually does.
 
 ---
 
@@ -21,21 +27,39 @@ and strip the company/filing framing from the query *before reranking only*.
 
 | test split (untouched until the end) | before | after |
 |---|---|---|
-| recall@10 | 0.581 | **0.726** |
-| nDCG@10 | 0.461 | 0.618 |
-| MRR | 0.490 | 0.658 |
+| recall@10 | 0.604 | **0.752** |
+| nDCG@10 | 0.464 | 0.621 |
 
-They are superadditive: filter alone +0.042, strip alone +0.015, together **+0.145** —
-2.5x the additive prediction. The gain is *larger* on test than on dev (+0.126), which is
-the anti-overfitting evidence, since dev informed the resolver's design. **Quote the test
-number, 0.726.**
+Both cells re-scored under `RETR-35`'s corrected labels. The pre-correction pair was
+0.581 -> 0.726; the *gain* is unchanged (+0.148 against +0.145), only the levels moved.
+MRR is deliberately absent: it is not comparable across labelings (`RETR-35`).
+
+They are superadditive: filter alone +0.040, strip alone +0.021, together **+0.148** —
+2.4x the additive prediction, with all four cells now scored under `RETR-35`'s corrected
+labels. The gain is *larger* on test than on dev, which is the anti-overfitting
+evidence, since dev informed the resolver's design. **Quote the test number, 0.752.**
 
 **Compression is a real trade, not free money.** slices@1500 cuts ~$13.00/pass to ~$5.27
 (2.5x, not the 4.1x once claimed) and costs roughly 9 points of answer accuracy. The
 failure mode is safe — the model refuses rather than fabricates.
 
-**Trustworthy right now** (all variant-clean): Arm 1 0.329/0.466, Arm 2 0.495/0.687,
-Arm 3 0.609/0.685. With filter+strip, Arm 3 dev 0.736/0.776.
+**Trustworthy right now**, recall@10 / recall@50, all variant-clean and all under
+`RETR-35`'s corrected labels unless marked:
+
+| arm (dev unless stated) | recall@10 | recall@50 |
+|---|---|---|
+| Arm 1, dense only | 0.329 | 0.466 |
+| Arm 2, + BM25/RRF | 0.495 | 0.687 |
+| Arm 3, + reranker (= Arm4-A) | 0.634 | 0.713 |
+| Arm 3 + filter + strip | **0.765** | 0.806 |
+| Arm 4-B / 4-C | 0.237 / 0.236 | 0.268 / 0.270 |
+| **Arm 3 + filter + strip, TEST** | **0.752** | 0.787 |
+
+**Arm 1 and Arm 2 are the two rows still on OLD labels** and understate by roughly 0.025;
+they cannot be re-scored from disk because their results files persist only
+`top_5_retrieved`, so they need a retrieval re-run against Postgres (no GPU). Every other row
+is corrected. The correction is not a constant: Arm 4-B/C barely moved (-0.002/-0.004)
+because their chunks are single rows and summaries, so there was no over-collection to remove.
 
 ---
 
@@ -43,52 +67,36 @@ Arm 3 0.609/0.685. With filter+strip, Arm 3 dev 0.736/0.776.
 
 ### Free — no GPU, no API spend
 
-**(a) Compressed prompts lose their labels and their order.** Found 2026-09-02, not yet
-acted on. `compress.pack_by_score` emits slices in *score* order with no `[stem chunk N]`
-prefix. The uncompressed control keeps chunk order and all 10 provenance labels. So the
-two arms of `COST-23` differ in three ways — how much text, what order, and whether the
-model can see which filing and year each block came from — when the write-up treats it as
-one.
+Everything previously listed here is done: the prompt-format fix (`COST-28`), `COST-26`'s
+three slice-ranking fixes (`COST-27`, all three lose, nothing shipped), the survival-pool
+provenance question (`COST-25` corrected — quote 67.0%), the failure-triage refresh
+(`RETR-33`), the label audit (`RETR-34`) and the matcher rewrite (`RETR-35`). What that work
+left behind:
 
-Why this probably matters: `RETR-3` showed 74% of retrieved chunks come from the wrong
-document, half of them the right company's wrong year. Worked case `convfinqa_1222` is
-stratum B (gold survived) and its compressed prompt holds *two near-identical UNP income
-statements from different years, both unlabeled*. The answer is present and unusable.
-
-This is a fourth candidate explanation for the stratum-B channel, alongside the three in
-`COST-26`, and it's the cheapest. Fix: group packed slices by source chunk and print each
-group under its heading in document order — about 5% of the token budget. `compress.compress`
-already does exactly this and is currently unused; it is the template.
-
-**(b) `COST-26`'s three slice-ranking fixes.** The gold table slice sits in chunk rank 0-2
-but scores near zero and lands at slice rank 22-46, beaten by its own caption and by
-wrong-year copies; only 12-19 slices fit in the budget. Three candidates: require a
-3+ digit non-year figure in some packed slice, bind a caption to its table's rows, cap the
-tokens any one chunk can take. Slice scores are already on disk.
-
-**Measure (a) and (b) against 69.3% figure survival, not 84.9% matcher survival**
-(`COST-25`). Only pay for a re-run of `COST-13` if the offline number moves.
-
-**(c) Wire the query strip into `retrieve.py`.** The module `agent.py` calls applies the
-company filter but never calls `strip_entity_framing` — so the shipping path implements
-the filter-only cell (+0.042) rather than the confirmed +0.145. The strip currently exists
-only in the offline payload builder. Deferred deliberately so today's commit stayed
-mechanical; it is a small standalone change and should get its own `DECISIONS.md` row.
+- **Re-scoring: done except Arm 1 and Arm 2.** All four Arm 3 ablation cells and Arm 4 A/B/C
+  are now on corrected labels (`rescore_labels.py`, `RETR-35`). **Arm 1 and Arm 2 are blocked**
+  — their results files persist only `top_5_retrieved`, so recall@10/@50 is unrecoverable and
+  they need a retrieval re-run against Postgres. No GPU, but it is a re-run, not a re-grade.
+- **Layer 3, the page-match fallback, is the remaining weak matcher.** `RETR-35` fixed
+  over-collection, not wrong-topic matching: the audit's `wrong_chunk` cases barely moved
+  (14%), and they concentrate in this layer. 10% of audited cases resolve through it.
+- **A trap, not a lead.** Restricting `COST-27`'s figure guard to the top chunk alone scored
+  +1.3 (6 gained / 2 lost, **p=0.29**) and was the best of six swept variants. A hypothesis
+  with a test-split price on it. Do not quote it; do not ship it on the dev number.
 
 ### Cheap
 
 - **`COST-12` — merge `judge` into `answer`.** One send instead of two, ~-22% cost, and it
   keeps a sufficiency signal rather than deleting one. Independent of everything else. ~1h.
+  *`COST-12` has no row of its own in `DECISIONS.md` — it is proposed inside `COST-11`/`COST-19`.
+  Same for `COST-13`, whose design and result live in `COST-20`/`COST-23`. Give each a row when
+  acted on.*
 - **Cap the thinking budget.** `gemini-3.7-flash` bills ~662 internal reasoning tokens per
-  call against ~110 visible, and that cost is near-constant across arms — a floor of about
-  $3.9/pass that compression cannot touch. For a task whose answer is one number, capping
-  it attacks the floor directly. Parameter name and 3.7-flash support not yet verified.
-- **`RETR-2` — widen `TOP_K` 10 → 20.** Recovers 4.3 of the reranker's 6.9-point bucket;
-  gold sits at median rank 18 when it misses. Only affordable once a token budget ships,
-  because the budget then caps tokens regardless of `k`.
-- **`RETR-9` — label noise.** ~15% of the 19.6% candidate-miss bucket looks mislabeled.
-  Measure before optimizing against it. Cases: `convfinqa_2530`, `convfinqa_1124`,
-  `finqa_dev_840`. The reranker bucket is *not* noisy — 19/20 are real failures.
+  call against ~110 visible, near-constant across arms — a floor of about $3.9/pass that
+  compression cannot touch. For a task whose answer is one number, capping it attacks the
+  floor directly. Parameter name and 3.7-flash support not yet verified.
+- **`RETR-2` — widen `TOP_K`: DEAD (`RETR-33`).** Recovered 4.3 points on the Day 6 ordering;
+  recovers 1.2 on the shipped one, because the whole reranker bucket is now 1.5 points.
 
 ### Expensive, and it invalidates everything upstream
 
@@ -143,7 +151,8 @@ boilerplate. I ran the strip-alone cell specifically so the interaction would be
 attributable — with three cells the conclusion would have been "stripping helps," which is
 false.
 *Caveat:* dev informed the resolver's design. The generalization rests on the untouched
-test split, which is why the headline is 0.726 and not 0.736.
+test split, which is why the headline is test's **0.752** and not dev's 0.765 (both under
+`RETR-35`'s corrected labels; the pre-correction pair was 0.726 / 0.736).
 
 **3. I found a bug that had been silently corrupting my results, and the guard isn't the
 obvious one.**
@@ -168,8 +177,8 @@ worth more than the original claim.
 
 ## 4. Housekeeping
 
-- **No finalize script writes a results file.** `day8_finalize_retr16.py`,
-  `day8_finalize_compression.py` and `day8_cost13_score.py` all print and exit, so
+- **No finalize script writes a results file.** `rerank_score.py`,
+  `slice_budget_sweep.py` and `answer_ab_score.py` all print and exit, so
   `RETR-29`/`RETR-31`/`COST-18`/`COST-23` exist only as prose in `DECISIONS.md`. Every
   earlier arm has a `data/*_dev_results.json`. Adding `--out` and re-running off the score
   files already on disk is free.
@@ -181,5 +190,26 @@ worth more than the original claim.
   factors, including the "(in thousands)"/"(in millions)" conventions (5 of 278 verdicts,
   all genuine, ~0.7pt net). And it says 125+34=159 questions were excluded from the strata;
   the code excludes 127, keeping the 32 that have one parseable gold field.
+- **One number owed a row: the 9.4x loop cost multiplier.** Still no `DECISIONS.md` row
+  (grep verified 2026-09-02, and again after the `CLAUDE.md` snapshot was cut to pointers:
+  zero hits anywhere but this line). So this line is now the only place it is written down.
+  Give it a row *with the job that produced it* — unprovenanced, it is exactly the failure
+  mode two bullets down. Until then, don't quote it.
 - **`CLAUDE.md` is gitignored on purpose** (personal working rules). Keep the standing
-  context there short — `DECISIONS.md` is the source of truth for numbers.
+  context there short and number-free — `DECISIONS.md` is the source of truth for numbers,
+  and an unversioned file is a bad last home for one.
+- **The recurring failure mode: reusing a number without checking which job produced it.**
+  `RETR-24` (B/C chunks scored as A), `RETR-30`'s mis-anchored 4.3 GPU-h estimate (that was
+  `RETR-22`'s chunk-level figure), and the near-miss filename clobber are all the same
+  mistake — a value correct in one context, silently wrong in the next. Check provenance
+  before quoting a number, including your own.
+- **Don't run two CPU passes concurrently.** Measured 2026-09-01: contended ~0.5 it/s vs
+  ~3.9 it/s alone — **8x, not 2x**. Each compression pass took ~5 min alone against a
+  projected 40. Run them sequentially.
+- **Interactive `srun` was chosen over `sbatch`** for live visibility; the two `.sbatch`
+  files (`scripts/retrieval/rerank_hpc.sbatch`, `scripts/compression/slice_rerank_hpc.sbatch`) stay as
+  the unattended fallback. Stagger submissions past model load — both pull the same reranker
+  into one HF cache, and two cold downloads to one path risks corruption.
+- **Unverified, from the deleted Day 8 session file:** Batch tier may need only one
+  submission for `COST-13` (1.6M tokens vs a ~3M cap), not chunking. Re-check the cap before
+  relying on it.
