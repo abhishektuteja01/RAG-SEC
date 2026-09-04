@@ -36,11 +36,11 @@ load_dotenv()
 from sentence_transformers import SentenceTransformer  # noqa: E402
 from tqdm import tqdm  # noqa: E402
 
+from rag_sec.candidates import LIVE_VARIANT, bm25, chunk_texts, dense, rrf_fuse  # noqa: E402
 from rag_sec.company import resolve as resolve_companies  # noqa: E402
 from rag_sec.company import strip_entity_framing  # noqa: E402
 from rag_sec.config import EMBED_MODEL_NAME  # noqa: E402
 from rag_sec.eval import load_matched_questions  # noqa: E402
-from rag_sec.retrieve import _retrieve_bm25, _retrieve_dense, _rrf_fuse  # noqa: E402
 from rag_sec.store import get_conn  # noqa: E402
 
 CANDIDATE_K = 50
@@ -75,36 +75,29 @@ def main() -> None:
             tickers = resolve_companies(q)
             n_resolved += bool(tickers)
 
-            unfiltered = _rrf_fuse(
+            unfiltered = rrf_fuse(
                 [
-                    _retrieve_dense(conn, emb, CANDIDATE_K),
-                    _retrieve_bm25(conn, q, CANDIDATE_K),
+                    dense(conn, emb, CANDIDATE_K, LIVE_VARIANT),
+                    bm25(conn, q, CANDIDATE_K, LIVE_VARIANT),
                 ]
             )[:CANDIDATE_K]
             # No ticker resolved -> the filtered pool IS the unfiltered pool, which is the
             # same fallback `retrieve()` uses. Recorded rather than skipped so the filtered
             # arm is scored over all 1235 questions, not just the resolvable ones.
             filtered = (
-                _rrf_fuse(
+                rrf_fuse(
                     [
-                        _retrieve_dense(conn, emb, CANDIDATE_K, tickers),
-                        _retrieve_bm25(conn, q, CANDIDATE_K, tickers),
+                        dense(conn, emb, CANDIDATE_K, LIVE_VARIANT, tickers),
+                        bm25(conn, q, CANDIDATE_K, LIVE_VARIANT, tickers),
                     ]
                 )[:CANDIDATE_K]
                 if tickers
                 else unfiltered
             )
 
-            need = {p for p in unfiltered + filtered if f"{p[0]}|{p[1]}" not in texts}
-            if need:
-                stems = list({p[0] for p in need})
-                rows = conn.execute(
-                    "SELECT filing_stem, chunk_index, text FROM chunks WHERE variant = 'A' AND filing_stem = ANY(%s)",
-                    (stems,),
-                ).fetchall()
-                for stem, idx, text in rows:
-                    if (stem, idx) in need:
-                        texts[f"{stem}|{idx}"] = text
+            need = [p for p in unfiltered + filtered if f"{p[0]}|{p[1]}" not in texts]
+            for (stem, idx), text in chunk_texts(conn, need, LIVE_VARIANT).items():
+                texts[f"{stem}|{idx}"] = text
 
             stripped = strip_entity_framing(q)
             n_stripped += stripped != q

@@ -18,6 +18,7 @@ load_dotenv()
 
 from sentence_transformers import SentenceTransformer
 
+from rag_sec.candidates import LIVE_VARIANT, RRF_K, bm25, dense, rrf_fuse
 from rag_sec.company import resolve as resolve_companies
 from rag_sec.config import EMBED_MODEL_NAME
 from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
@@ -25,46 +26,8 @@ from rag_sec.store import get_conn
 
 TOP_K = 50
 CANDIDATE_K = 50  # how many each of dense/BM25 contributes to the fused pool
-RRF_K = 60  # standard constant from Cormack et al. 2009's original RRF paper
 RESULTS_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day4_arm2_dev_results.json"
 FAILURES_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day4_arm2_dev_failures.md"
-
-
-def retrieve_dense(conn, embedding, k: int, tickers: list[str] | None = None) -> list[tuple[str, int]]:
-    where = "AND split_part(filing_stem, '_', 1) = ANY(%s)" if tickers else ""
-    args = (tickers, embedding, k) if tickers else (embedding, k)
-    rows = conn.execute(
-        f"SELECT filing_stem, chunk_index FROM chunks WHERE variant = 'A' {where} ORDER BY embedding <=> %s LIMIT %s",
-        args,
-    ).fetchall()
-    return [(r[0], r[1]) for r in rows]
-
-
-def retrieve_bm25(conn, query_text: str, k: int, tickers: list[str] | None = None) -> list[tuple[str, int]]:
-    extra = "AND split_part(filing_stem, '_', 1) = ANY(%s)" if tickers else ""
-    args = (query_text, tickers, k) if tickers else (query_text, k)
-    rows = conn.execute(
-        f"""SELECT filing_stem, chunk_index, paradedb.score(id) AS s
-           FROM chunks
-           WHERE id @@@ paradedb.match('text', %s) AND variant = 'A' {extra}
-           ORDER BY s DESC LIMIT %s""",
-        args,
-    ).fetchall()
-    return [(r[0], r[1]) for r in rows]
-
-
-def rrf_fuse(ranked_lists: list[list[tuple[str, int]]], k: int = RRF_K) -> list[tuple[str, int]]:
-    """Reciprocal Rank Fusion: score(d) = sum_over_lists 1/(k + rank_in_list(d)).
-
-    Rank-based, not score-based -- dense cosine similarity and BM25 scores live on
-    unrelated scales, so summing raw scores would let whichever one happens to have
-    bigger numbers dominate. RRF only needs each list's ordering.
-    """
-    scores: dict[tuple[str, int], float] = {}
-    for ranked in ranked_lists:
-        for rank, doc_id in enumerate(ranked, start=1):
-            scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank)
-    return sorted(scores, key=lambda d: scores[d], reverse=True)
 
 
 def main() -> None:
@@ -89,9 +52,9 @@ def main() -> None:
         for _, row in dev.iterrows():
             query_emb = model.encode(row["question"], normalize_embeddings=True)
             tickers = resolve_companies(row["question"]) if opts.company_filter else []
-            dense = retrieve_dense(conn, query_emb, CANDIDATE_K, tickers)
-            bm25 = retrieve_bm25(conn, row["question"], CANDIDATE_K, tickers)
-            retrieved = rrf_fuse([dense, bm25])[:TOP_K]
+            dense_hits = dense(conn, query_emb, CANDIDATE_K, LIVE_VARIANT, tickers)
+            bm25_hits = bm25(conn, row["question"], CANDIDATE_K, LIVE_VARIANT, tickers)
+            retrieved = rrf_fuse([dense_hits, bm25_hits])[:TOP_K]
 
             filing_stem = Path(row["chunk_file"]).stem
             relevant = [(filing_stem, i) for i in gold_relevant_chunk_ids(row)]

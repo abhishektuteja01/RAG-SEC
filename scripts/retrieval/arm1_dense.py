@@ -21,6 +21,7 @@ load_dotenv()
 
 from sentence_transformers import SentenceTransformer
 
+from rag_sec.candidates import LIVE_VARIANT, dense
 from rag_sec.company import resolve as resolve_companies
 from rag_sec.config import EMBED_MODEL_NAME
 from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
@@ -29,16 +30,6 @@ from rag_sec.store import get_conn
 TOP_K = 50
 RESULTS_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day3_arm1_dev_results.json"
 FAILURES_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day3_arm1_dev_failures.md"
-
-
-def retrieve(conn, embedding, k: int, tickers: list[str] | None = None) -> list[tuple[str, int]]:
-    where = "AND split_part(filing_stem, '_', 1) = ANY(%s)" if tickers else ""
-    args = (tickers, embedding, k) if tickers else (embedding, k)
-    rows = conn.execute(
-        f"SELECT filing_stem, chunk_index FROM chunks WHERE variant = 'A' {where} ORDER BY embedding <=> %s LIMIT %s",
-        args,
-    ).fetchall()
-    return [(r[0], r[1]) for r in rows]
 
 
 def main() -> None:
@@ -63,7 +54,7 @@ def main() -> None:
         for _, row in dev.iterrows():
             query_emb = model.encode(row["question"], normalize_embeddings=True)
             tickers = resolve_companies(row["question"]) if opts.company_filter else []
-            retrieved = retrieve(conn, query_emb, TOP_K, tickers)
+            retrieved = dense(conn, query_emb, TOP_K, LIVE_VARIANT, tickers)
             filing_stem = Path(row["chunk_file"]).stem
             relevant = [(filing_stem, i) for i in gold_relevant_chunk_ids(row)]
 

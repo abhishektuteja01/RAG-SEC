@@ -20,6 +20,7 @@ Three things, in order of what they answer:
 
 Usage:
     python scripts/compression/answer_ab_score.py
+    python scripts/compression/answer_ab_score.py --out data/day8_cost13_dev_results.json
 """
 
 import argparse
@@ -61,6 +62,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--payload", type=Path, default=PAYLOAD)
     ap.add_argument("--responses", type=Path, default=RESPONSES)
+    # COST-23 existed only as printed prose; every earlier arm has a results file. Per-question
+    # verdicts go in too, not just the marginals: the McNemar counts cannot be recovered from
+    # per-stratum accuracies alone.
+    ap.add_argument("--out", type=Path, help="write the paired result to JSON as well as printing it")
     args = ap.parse_args()
 
     payload = json.loads(args.payload.read_text())
@@ -138,6 +143,40 @@ def main() -> None:
     ab = sum(population.get(s, 0) for s in deltas)
     est_ab = sum(population.get(s, 0) / ab * d for s, (d, _se, _n) in deltas.items())
     print(f"restricted to the measured strata only (A+B, reweighted): {est_ab:+.2%}")
+
+    if args.out:
+        strata_out = {}
+        for s in sorted(by_stratum):
+            pairs = by_stratum[s]
+            d, se, n10, n01 = paired_delta(pairs)
+            strata_out[s] = {
+                "n": len(pairs),
+                ARMS[0]: sum(a for a, _ in pairs) / len(pairs),
+                ARMS[1]: sum(b for _, b in pairs) / len(pairs),
+                "delta": d, "stderr": se, "n10": n10, "n01": n01,
+                "p_exact_mcnemar": exact_mcnemar(n10, n01),
+            }
+        args.out.write_text(json.dumps({
+            "payload": str(args.payload), "responses": str(args.responses),
+            "arms": list(ARMS), "n_scored": len(complete),
+            "tiers": sorted(tiers),
+            "spend": {"prompt_tokens": usage_in, "billed_output_tokens": usage_out,
+                      "visible_output_tokens": usage_vis,
+                      "usd": (usage_in / 1e6 * 0.75 + usage_out / 1e6 * 3.75) * mult},
+            "unparsed": {f"{arm}/{reason}": k for (arm, reason), k in sorted(unparsed.items())},
+            "population": population,
+            "strata": strata_out,
+            "post_stratified_delta": {"estimate": est, "stderr": math.sqrt(se_sq),
+                                      "population_covered": covered,
+                                      "stratum_c_assumed_zero": True},
+            "measured_strata_only_delta": est_ab,
+            "per_question": [
+                {"id": qid, "stratum": strata[qid],
+                 **{a: correct[(qid, a)] for a in ARMS}}
+                for qid in sorted(complete)
+            ],
+        }, indent=1))
+        print(f"wrote {args.out}")
 
 
 if __name__ == "__main__":
