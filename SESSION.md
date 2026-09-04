@@ -35,14 +35,16 @@ Re-measured 2026-09-04 on the post-`RETR-7` corpus (`RETR-39`). The pre-re-index
 0.604 -> 0.752; every cell moved -0.002 to -0.005, inside stderr, so the headline is
 unchanged in substance.
 
-Both cells re-scored under `RETR-35`'s corrected labels. The pre-correction pair was
-0.581 -> 0.726; the *gain* is unchanged (+0.148 against +0.145), only the levels moved.
-MRR is deliberately absent: it is not comparable across labelings (`RETR-35`).
+Both cells are post-`RETR-7` and on `RETR-35`'s corrected labels. The gain has survived two
+corpus-level changes intact: +0.145 pre-label-correction, +0.148 after it, **+0.140 after the
+re-index** — the levels moved, the effect did not. MRR is deliberately absent: it is not
+comparable across labelings (`RETR-35`).
 
-They are superadditive: filter alone +0.040, strip alone +0.021, together **+0.148** —
-2.4x the additive prediction, with all four cells now scored under `RETR-35`'s corrected
-labels. The gain is *larger* on test than on dev, which is the anti-overfitting
-evidence, since dev informed the resolver's design. **Quote the test number, 0.752.**
+They are superadditive, and it replicated on the re-embedded corpus (`RETR-39`): dev filter
+alone +0.040, strip alone +0.017, together **+0.131**; test +0.037 / +0.025 / **+0.140**.
+Both 2.3x the additive prediction (was 2.4x pre-re-index). The gain is *larger* on test than
+on dev, which is the anti-overfitting evidence, since dev informed the resolver's design.
+**Quote the test number, 0.747.**
 
 **Compression is a real trade, not free money.** slices@1500 cuts ~$13.00/pass to ~$5.27
 (2.5x, not the 4.1x once claimed) and costs roughly 9 points of answer accuracy. The
@@ -80,10 +82,10 @@ provenance question (`COST-25` corrected — quote 67.0%), the failure-triage re
 diagnosis (`RETR-37`; two candidate fixes built and reverted, `RETR-38`). Layer 3's own
 remaining bugs are logged there as known and parked — not on this list. What is left:
 
-- **Re-scoring: done except Arm 1 and Arm 2.** All four Arm 3 ablation cells and Arm 4 A/B/C
-  are now on corrected labels (`rescore_labels.py`, `RETR-35`). **Arm 1 and Arm 2 are blocked**
-  — their results files persist only `top_5_retrieved`, so recall@10/@50 is unrecoverable and
-  they need a retrieval re-run against Postgres. No GPU, but it is a re-run, not a re-grade.
+- **Re-scoring: done, including Arm 1 and Arm 2.** Both were re-run during the `RETR-39`
+  re-index and are finally off the old labels. **But their movement is confounded** — corpus
+  and labels changed at once — so quote their levels, never a delta. The missing cell (old
+  corpus, corrected labels) needs the pre-re-index `pg_dump`; see `data/retr7_ANALYSIS.md`.
 - **A trap, not a lead.** Restricting `COST-27`'s figure guard to the top chunk alone scored
   +1.3 (6 gained / 2 lost, **p=0.29**) and was the best of six swept variants. A hypothesis
   with a test-split price on it. Do not quote it; do not ship it on the dev number.
@@ -105,17 +107,17 @@ remaining bugs are logged there as known and parked — not on this list. What i
 - **`RETR-2` — widen `TOP_K`: DEAD (`RETR-33`).** Recovered 4.3 points on the Day 6 ordering;
   recovers 1.2 on the shipped one, because the whole reranker bucket is now 1.5 points.
 
-### Expensive, and it invalidates everything upstream
+### Done this cycle — nothing expensive is left open
 
-- **`RETR-7`/`RETR-8` — DONE, and the re-index is applied (`RETR-39`).** Both fixes are live:
+- **`RETR-7`/`RETR-8` — the re-index is applied (`RETR-39`).** Both fixes are live:
   47,312 of 99,654 chunks re-embedded, boundaries and chunk count unchanged, gold labels
   unmoved, every arm re-measured. Effect on retrieval: **-0.002 to -0.005 everywhere, inside
   stderr** — the ~0 that `RETR-33` predicted. The flags
   (`RAG_SEC_MULTI_HEADING`, `RAG_SEC_STRIP_TITLE_FURNITURE`) now default **on**, matching the
   stored corpus — left off, `atom_replay.py` matched only 52.52% and `rag_sec.compress` would
   have replayed a different document than the one indexed. Set them to `0` only to reproduce
-  the pre-re-index corpus. Results in `data/retr7_results_0904.md`, caveats in
-  `data/retr7_ANALYSIS.md`, procedure in `RUNBOOK.md`.
+  the pre-re-index corpus. Numbers in `RETR-39`, caveats in `data/retr7_ANALYSIS.md`,
+  procedure in `RUNBOOK.md`, backups (pre and post) in `~/rag-sec-backups/`.
 
 ### Then back to `spec.md`
 
@@ -160,15 +162,16 @@ weights the year token.
 the catastrophic version of that hypothesis, not the subtle one.
 
 **2. The fix was superadditive, and I can say why.**
-Filter alone +0.042, strip alone +0.015, together +0.145. Without the filter the company
+Filter alone +0.040, strip alone +0.017, together +0.131 (dev, post-re-index). Without the filter the company
 name genuinely discriminates among 799 filings, so stripping it destroys real signal; with
 the filter every candidate already matches the company, so the name only rewards corporate
 boilerplate. I ran the strip-alone cell specifically so the interaction would be
 attributable — with three cells the conclusion would have been "stripping helps," which is
 false.
 *Caveat:* dev informed the resolver's design. The generalization rests on the untouched
-test split, which is why the headline is test's **0.752** and not dev's 0.765 (both under
-`RETR-35`'s corrected labels; the pre-correction pair was 0.726 / 0.736).
+test split, which is why the headline is test's **0.747** and not dev's 0.760. Both are
+post-`RETR-7` (`RETR-39`); the pre-re-index pair was 0.752 / 0.765, a -0.005 shift inside
+stderr.
 
 **3. I found a bug that had been silently corrupting my results, and the guard isn't the
 obvious one.**
@@ -223,6 +226,8 @@ worth more than the original claim.
 - **Don't run two CPU passes concurrently.** Measured 2026-09-01: contended ~0.5 it/s vs
   ~3.9 it/s alone — **8x, not 2x**. Each compression pass took ~5 min alone against a
   projected 40. Run them sequentially.
+- **`RUNBOOK.md` now holds the HPC procedure as commands** — hosts, module/venv setup, and the
+  round-robin login-node gotcha (`tmux` is per-host, so a session can look missing).
 - **Interactive `srun` was chosen over `sbatch`** for live visibility; the two `.sbatch`
   files (`scripts/retrieval/rerank_hpc.sbatch`, `scripts/compression/slice_rerank_hpc.sbatch`) stay as
   the unattended fallback. Stagger submissions past model load — both pull the same reranker

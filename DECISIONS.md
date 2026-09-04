@@ -5,7 +5,24 @@ Numbered per phase (`INFRA-1`, `DATA-1`, ...) so a phase can grow without renumb
 everything else. Result numbers live only in the baseline table below — decision rows
 below don't repeat them.
 
-## Current baseline
+## Current baseline (post-`RETR-7` re-index, 2026-09-04 — `RETR-39`)
+
+Dev n=1235, test n=1546, `RETR-35` coverage-based labels, corpus re-indexed under
+`RETR-7`/`RETR-8`. **These supersede every table below.**
+
+| Arm (dev unless stated) | recall@10 | recall@50 | nDCG@10 |
+|---|---|---|---|
+| 1 — dense | 0.337 ± 0.013 | 0.473 | 0.226 |
+| 2 — +BM25/RRF | 0.514 ± 0.014 | 0.708 | 0.345 |
+| 3 — +reranker | 0.629 ± 0.013 | 0.708 | 0.488 |
+| 3 + company filter + query strip | **0.760** | 0.802 | 0.627 |
+| **3 + filter + strip, TEST** | **0.747** ± 0.012 | 0.785 | 0.617 |
+
+Arm 4-B/C were deliberately not re-embedded and stay on pre-`RETR-7` headings, so they are no
+longer text-comparable with variant A. Arm 1/Arm 2 moved corpus *and* labels at once — quote
+their levels, never a delta (`data/retr7_ANALYSIS.md`).
+
+## Superseded baseline (`GOLD-1` labeler, pre-re-index — kept because the rows below cite it)
 
 Corpus: 799 filings, 99,654 chunks (T²-RAGBench FinQA+ConvFinQA, full CIK coverage).
 Dev split: n=1235, seed 42. Gold-relevance labeling: `gold_inds`-based positional
