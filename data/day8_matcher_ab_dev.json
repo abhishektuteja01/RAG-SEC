@@ -1,0 +1,12379 @@
+{
+ "split": "dev",
+ "summary": {
+  "legacy": {
+   "n": 1235,
+   "no_gold": 0,
+   "mean_gold_chunks": 1.688259109311741,
+   "median_gold_chunks": 1,
+   "max_gold_chunks": 6,
+   "recall@10": 0.7358704453441296,
+   "recall@50": 0.7755060728744939,
+   "nDCG@10": 0.6348824246758088,
+   "MRR": 0.6789309363600862
+  },
+  "coverage": {
+   "n": 1235,
+   "no_gold": 0,
+   "mean_gold_chunks": 1.2048582995951418,
+   "median_gold_chunks": 1,
+   "max_gold_chunks": 3,
+   "recall@10": 0.7653171390013496,
+   "recall@50": 0.8062078272604588,
+   "nDCG@10": 0.6296960121828523,
+   "MRR": 0.6154306935065982
+  }
+ },
+ "per_question": {
+  "finqa_dev_0": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_1": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_2": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_3": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_4": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "finqa_dev_5": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_6": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_7": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_8": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_9": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_10": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_11": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_12": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_13": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_14": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_15": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_16": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_17": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_18": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_19": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_20": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_21": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_22": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_23": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_24": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_25": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_26": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_27": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_28": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_29": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_30": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_31": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_32": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_33": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_34": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_35": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_36": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_37": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_38": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_39": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_40": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_41": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_42": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.8
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_43": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_44": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_45": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_46": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_47": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_48": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_49": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_50": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_51": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_52": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_53": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_54": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_55": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_56": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_57": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_58": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_59": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_60": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_61": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_62": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_63": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_64": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_65": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_66": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_67": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_68": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_69": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_70": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_71": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_72": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_73": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_74": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_75": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_76": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_77": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_78": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_79": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_80": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_81": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_82": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_83": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_84": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_85": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_86": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_87": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_88": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_89": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_90": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_91": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_92": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_93": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_94": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_95": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_96": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_97": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_98": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_99": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_100": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_101": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_102": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_103": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_104": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_105": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_106": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_107": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_108": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_109": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_110": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_111": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_112": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_113": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_114": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_115": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_116": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_117": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_118": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_119": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_120": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_121": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_122": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_123": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_124": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_125": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_126": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_127": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_128": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_129": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_130": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_131": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_132": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_133": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_134": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_135": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_136": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_137": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_138": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_139": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_140": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_141": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_142": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_143": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_144": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_145": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_146": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_147": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_148": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_149": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_150": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_151": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_152": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_153": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_154": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_155": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_156": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_157": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_158": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_159": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_160": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_161": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_162": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_163": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_164": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_165": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_166": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_167": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_168": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_169": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_170": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_171": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_172": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_173": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_174": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_175": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_176": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_177": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_178": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_179": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_180": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_181": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_182": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_183": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_184": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_185": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_186": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_187": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_188": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_189": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_190": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_191": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_192": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_193": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_194": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_195": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_196": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "finqa_dev_197": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_198": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_199": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_200": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_201": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_202": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_203": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_204": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_205": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_206": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_207": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_208": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_209": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "finqa_dev_210": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_211": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_212": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_213": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_214": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_215": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_216": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_217": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_218": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_219": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_220": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_221": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_222": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_223": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_224": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_225": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_226": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_227": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_228": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_229": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_230": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_231": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_232": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_233": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_234": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_235": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_236": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_237": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_238": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_239": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_240": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_241": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_242": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_243": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_244": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_245": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_246": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_247": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_248": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_249": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_250": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_251": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_252": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_253": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_254": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_255": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_256": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_257": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_258": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_259": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_260": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_261": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_262": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_263": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_264": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_265": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_266": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_267": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_268": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_269": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_270": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_271": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_272": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_273": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_274": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_275": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_276": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_277": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_278": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_279": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_280": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_281": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_282": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_283": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_284": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_285": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_286": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_287": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_288": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_289": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_290": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_291": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_292": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_293": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_294": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_295": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_296": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_297": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_298": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_299": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_300": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_301": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_302": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_303": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_304": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_305": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_306": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_307": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_308": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_309": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_310": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_311": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_312": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_313": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.8
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_314": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_315": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_316": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_317": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_318": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_319": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_320": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_321": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_322": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_323": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_324": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_325": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_326": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_327": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_328": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_329": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_330": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_331": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_332": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_333": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_334": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_335": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_336": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_337": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_338": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_339": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_340": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_341": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_342": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_343": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_344": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_345": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_346": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_347": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_348": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_349": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_350": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_351": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_352": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_353": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_354": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_355": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_356": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_357": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_358": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_359": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_360": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_361": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_362": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_363": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_364": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_365": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_366": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_367": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_368": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_369": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_370": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_371": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_372": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_373": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_374": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "finqa_dev_375": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_376": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_377": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_378": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_379": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_380": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_381": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_382": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_383": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_384": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_385": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_386": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_387": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_388": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_389": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_390": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_391": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_392": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_393": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_394": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_395": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_396": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_397": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_398": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_399": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_400": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_401": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_402": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_403": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_404": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_405": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_406": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_407": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_408": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_409": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_410": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_411": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_412": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_413": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_414": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_415": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_416": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_417": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_418": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_419": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_420": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_421": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_422": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_423": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_424": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_425": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_426": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_427": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_428": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_429": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_430": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_431": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_432": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_433": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_434": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_435": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_436": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_437": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_438": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_439": {
+   "legacy": {
+    "n_gold": 6,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_440": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_441": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_442": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_443": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_444": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_445": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_446": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_447": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_448": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_449": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_450": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_451": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_452": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_453": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_454": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_455": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_456": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_457": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_458": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_459": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_460": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_461": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_462": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_463": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_464": {
+   "legacy": {
+    "n_gold": 6,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_465": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_466": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_467": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_468": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_469": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_470": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_471": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_472": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_473": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_474": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_475": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_476": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_477": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_478": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_479": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_480": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_481": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_482": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_483": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_484": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_485": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_486": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_487": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_488": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_489": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_490": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_491": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_492": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_493": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_494": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_495": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_496": {
+   "legacy": {
+    "n_gold": 6,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_497": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_498": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_499": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_500": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_501": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_502": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_503": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_504": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_505": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_506": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_507": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_508": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_509": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_510": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_511": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_512": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_513": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_514": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_515": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_516": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_517": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_518": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_519": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_520": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_521": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_522": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_523": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_524": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_525": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_526": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_527": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_528": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_529": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_530": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_531": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_532": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_533": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_534": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_535": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_536": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_537": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_538": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_539": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_540": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_541": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_542": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_543": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_544": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_545": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_546": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_547": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_548": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_549": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_550": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_551": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_552": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_553": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_554": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_555": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_556": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_557": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_558": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_559": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_560": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_561": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_562": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_563": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_564": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_565": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_566": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_567": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_568": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_569": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_570": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_571": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_572": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_573": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_574": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_575": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_576": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_577": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_578": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_579": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_580": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_581": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_582": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_583": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_584": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_585": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_586": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_587": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_588": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_589": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_590": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_591": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_592": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_593": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_594": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_595": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_596": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_597": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_598": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_599": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_600": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_601": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_602": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_603": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_604": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_605": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_606": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_607": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_608": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_609": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_610": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_611": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_612": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_613": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_614": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_615": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_616": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "finqa_dev_617": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_618": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_619": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_620": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_621": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_622": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_623": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_624": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_625": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_626": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_627": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_628": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_629": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_630": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_631": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_632": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_633": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_634": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_635": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_636": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_637": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_638": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_639": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_640": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_641": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_642": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_643": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_644": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_645": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_646": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_647": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_648": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_649": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_650": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_651": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_652": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_653": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_654": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_655": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "finqa_dev_656": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_657": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_658": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_659": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_660": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_661": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_662": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_663": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_664": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_665": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_666": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_667": {
+   "legacy": {
+    "n_gold": 6,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_668": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_669": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_670": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_671": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_672": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_673": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_674": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_675": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_676": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_677": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_678": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_679": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_680": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_681": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_682": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_683": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_684": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_685": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_686": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_687": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_688": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_689": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_690": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_691": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_692": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_693": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_694": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_695": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_696": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_697": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_698": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_699": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "finqa_dev_700": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_701": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_702": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_703": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_704": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_705": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_706": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_707": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_708": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_709": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_710": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_711": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_712": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_713": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_714": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_715": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_716": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_717": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_718": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_719": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_720": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_721": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_722": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_723": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_724": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_725": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_726": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_727": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_728": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_729": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_730": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_731": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_732": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_733": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_734": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_735": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_736": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_737": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_738": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_739": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_740": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_741": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_742": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_743": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_744": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_745": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_746": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_747": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_748": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_749": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_750": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_751": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_752": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_753": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_754": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_755": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_756": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_757": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_758": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_759": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_760": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_761": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_762": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_763": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_764": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_765": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_766": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_767": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_768": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_769": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_770": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.2
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_771": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_772": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_773": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_774": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_775": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_776": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_777": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_778": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_779": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_780": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_781": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_782": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_783": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_784": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_785": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_786": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_787": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_788": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_789": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_790": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_791": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_792": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_793": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_794": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_795": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_796": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_797": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_798": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_799": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_800": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_801": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_802": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_803": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_804": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_805": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_806": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_807": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_808": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_809": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_810": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_811": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_812": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_813": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_814": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_815": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_816": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_817": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_818": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_819": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_820": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_821": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_822": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_823": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_824": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_825": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_826": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_827": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_828": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_829": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_830": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_831": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_832": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_833": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_834": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_835": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_836": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_837": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_838": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_839": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_840": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_841": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_842": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_843": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_844": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_845": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_846": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_847": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_848": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_849": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_850": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_851": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_852": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_853": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_854": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_855": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_856": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_857": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_858": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_859": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.6
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_860": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_861": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_862": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_863": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_864": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_865": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_866": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_867": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_868": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_869": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_870": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_871": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_872": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_873": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_874": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_875": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_876": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_877": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_878": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_879": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "finqa_dev_880": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "finqa_dev_881": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "finqa_dev_882": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_11": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_18": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_28": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_30": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_57": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_62": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_67": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_74": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_97": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_98": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_99": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_105": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_109": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_113": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_114": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_138": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_148": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_156": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_162": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_189": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_201": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_203": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "convfinqa_205": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_220": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_235": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_238": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_244": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_287": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_294": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_298": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_303": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_309": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_312": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_314": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "convfinqa_324": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_333": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_352": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_357": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_375": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_380": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_384": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_388": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_391": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_410": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_412": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_417": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_425": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_429": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_442": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_447": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_452": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_468": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_476": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "convfinqa_490": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_499": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_506": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_509": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_511": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_515": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_531": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_542": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_569": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_578": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_590": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_604": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_620": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_622": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_625": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_640": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "convfinqa_662": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_665": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_667": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_669": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_690": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_704": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_723": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_725": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_727": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_733": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_740": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_748": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_751": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_752": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_776": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_780": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_782": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_787": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_792": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_796": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_807": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_819": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_853": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_861": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_865": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_873": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_886": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_892": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_896": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_917": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_919": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "convfinqa_952": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_964": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_965": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_966": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_969": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_980": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_999": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1004": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1009": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1031": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1069": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1071": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1073": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1077": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1078": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1090": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1094": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1115": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1121": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1124": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1127": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1160": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1174": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1215": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1218": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1219": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1222": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1224": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1230": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1238": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1240": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1241": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1274": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1288": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1300": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1301": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1307": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1310": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1316": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1317": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1318": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1320": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1322": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1345": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.75
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1347": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1351": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1373": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1385": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1413": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1419": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1422": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1431": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1451": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1455": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1464": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1511": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1518": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1525": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1544": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1551": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1558": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1571": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1575": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1619": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1667": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1685": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1696": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1703": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "convfinqa_1722": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1732": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1754": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1759": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1765": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1791": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1801": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1809": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1821": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1832": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1837": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1844": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_1855": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1874": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1890": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1899": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1915": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1923": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1928": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1929": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1931": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1935": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1937": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1939": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1964": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.4
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1965": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1973": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_1976": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_1981": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2000": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2016": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2025": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.6
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2026": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2027": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2037": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2040": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2049": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2068": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2093": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2107": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2115": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2116": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2118": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2119": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2120": {
+   "legacy": {
+    "n_gold": 5,
+    "recall10": 0.6
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2125": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2130": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2131": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2141": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2145": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2150": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2158": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2164": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2167": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2174": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2175": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2183": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2201": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2221": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2246": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2261": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2262": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2279": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2288": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2300": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2306": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2330": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2337": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2343": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2366": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2369": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2376": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2383": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2388": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2399": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2402": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "convfinqa_2416": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2428": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2433": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2449": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2481": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2492": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2494": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2495": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2497": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2504": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2530": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2531": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "convfinqa_2532": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2555": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2556": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2596": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2601": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2604": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "convfinqa_2606": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2625": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2626": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2641": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2646": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2666": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2686": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   }
+  },
+  "convfinqa_2688": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2690": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   }
+  },
+  "convfinqa_2691": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2708": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2733": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2737": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2750": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2754": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2774": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2781": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2782": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2790": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2808": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2814": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2818": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2820": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2821": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_2825": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2829": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2830": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2833": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2837": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2854": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2869": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2891": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2907": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2910": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2915": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2935": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_2971": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_2980": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3009": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3012": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3013": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3021": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3024": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3030": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3039": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3041": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3055": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3060": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3062": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3095": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3106": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3117": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3139": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3142": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3179": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3184": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3185": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3199": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3211": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3215": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3226": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3233": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3259": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3275": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.6666666666666666
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3280": {
+   "legacy": {
+    "n_gold": 4,
+    "recall10": 0.25
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3293": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3294": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3295": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3297": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3316": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3319": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3349": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3363": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3367": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3375": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 0.3333333333333333
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 0.5
+   }
+  },
+  "convfinqa_3384": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3387": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3393": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3401": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3403": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3412": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3413": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3414": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3423": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 0.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 0.0
+   }
+  },
+  "convfinqa_3428": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3431": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3446": {
+   "legacy": {
+    "n_gold": 2,
+    "recall10": 0.5
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3447": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3448": {
+   "legacy": {
+    "n_gold": 1,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 1,
+    "recall10": 1.0
+   }
+  },
+  "convfinqa_3455": {
+   "legacy": {
+    "n_gold": 3,
+    "recall10": 1.0
+   },
+   "coverage": {
+    "n_gold": 2,
+    "recall10": 1.0
+   }
+  }
+ }
+}
