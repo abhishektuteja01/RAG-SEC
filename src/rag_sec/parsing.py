@@ -1,16 +1,15 @@
-"""Parses 10-K HTML into structured text/table blocks using sec-parser.
-
-sec-parser ships only Edgar10QParser (no native 10-K support as of 0.58.1), so
-this strips its 10-Q-specific top-section classification step and derives
-Item boundaries ourselves via regex. See DECISIONS.md CHUNK-1 for why, and the
-fallback (Docling + normalization) if a sec-parser version bump breaks the
-internal classes this relies on.
+"""Parses 10-K HTML into text/table blocks with sec-parser, whose only parser is
+Edgar10QParser (pinned 0.58.1) -- so the 10-Q top-section step is stripped and Item
+boundaries are derived here by regex. DECISIONS.md CHUNK-1 has the Docling fallback if a
+version bump breaks the internal classes imported below.
 """
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
+from pathlib import Path
 
 import bs4
 import sec_parser as sp
@@ -143,16 +142,11 @@ def parse_filing(html: str) -> list[Block]:
 
 
 def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
-    """Finds (block_index, item_number, item_title) for each 'Item N. ...' heading.
+    """Finds (block_index, item_number, item_title) for each 'Item N. ...' title block.
 
-    sec-parser doesn't classify 10-K item sections natively (only 10-Q), so
-    we detect them ourselves from title blocks. Known gap: some filers (e.g.
-    JPM_2007) never restate "Item N" as a body heading -- they use
-    business-narrative headings (e.g. "EXECUTIVE OVERVIEW") instead, and
-    "Item N" appears only once in the front-matter index. This returns an
-    empty list for those filings rather than guessing; accepted as a known
-    limitation for now (see DECISIONS.md CHUNK-1), not fixed via TOC
-    cross-referencing.
+    Known gap (CHUNK-1, accepted): some filers (e.g. JPM_2007) never restate "Item N" as a
+    body heading, using business-narrative headings instead, so this returns an empty list
+    for them rather than guessing from the TOC.
     """
     boundaries = []
     for i, block in enumerate(blocks):
@@ -163,15 +157,13 @@ def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
             boundaries.append((i, match.group(1).upper(), match.group(2).strip()))
     return boundaries
 
-def load_parsed_blocks(path) -> list[Block]:
-    """Inverse of what day2_ingest wrote to data/parsed/. Shared by the chunker and by
-    rag_sec.compress so the two can never disagree about how a stored block is rebuilt --
-    a divergent copy of this (bool vs string `is_title`) silently reshuffles every chunk
-    boundary while still looking like it worked."""
-    import json as _json
-    from pathlib import Path as _Path
 
-    data = _json.loads(_Path(path).read_text())
+def load_parsed_blocks(path) -> list[Block]:
+    """Inverse of what scripts/corpus/build_corpus.py writes to data/parsed/. Shared by the
+    chunker and by rag_sec.compress so the two can never disagree about how a stored block
+    is rebuilt -- a divergent copy of this (bool vs string `is_title`) silently reshuffles
+    every chunk boundary while still looking like it worked."""
+    data = json.loads(Path(path).read_text())
     return [
         TableBlock(rows=d["rows"]) if "rows" in d else TextBlock(text=d["text"], is_title=d["is_title"])
         for d in data

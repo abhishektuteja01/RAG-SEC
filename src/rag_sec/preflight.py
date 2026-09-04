@@ -1,13 +1,6 @@
-"""Startup guards against DECISIONS.md RETR-24, run before any measurement pass.
-
-RETR-24 cost a day of measurement because two things were true at once and neither was
-checked: the corpus had grown 6,373 non-'A' rows, and the queries reading it had no
-`variant` predicate. Either check alone leaves a hole -- pinned counts miss a newly
-written bad query against a stable corpus; the source scan misses nothing but only if
-something actually runs it. So both run automatically, on the first get_conn().
-
-The source scan lives here rather than in the diagnostics script so it is importable at
-runtime; scripts/diagnostics/check_variant_predicates.py is a thin CLI over it.
+"""AST scan that fails any read of `chunks` whose WHERE clause omits `variant`
+(DECISIONS.md RETR-24). Lives here, not in the diagnostics script, so it is importable and
+runs automatically on the first `get_conn()`; variant_predicates.py is a CLI over it.
 """
 
 import ast
