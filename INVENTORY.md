@@ -148,8 +148,7 @@ Note: it leans on internal pieces of an outside library pinned to one version; u
 
 **`chunking.py`** — Packs the parsed pieces into ~900-word chunks without ever cutting
 a table row in half. **Keep** — this defines the corpus.
-Note: the **heading bug is now fixed** (`RETR-7`/`RETR-8`), but shipped **switched off** behind
-two environment flags. 45.9% of atoms used to be labelled with a *different* section's heading.
+Note: the **heading bug is now fixed** (`RETR-7`/`RETR-8`), behind two environment flags that now default **on**, matching the re-indexed corpus. 45.9% of atoms used to be labelled with a *different* section's heading.
 The fix deliberately does not move a single chunk boundary, so gold labels and chunk numbering
 survive it; only chunk *text* changes, on 47.5% of chunks. Flip the flags on as part of a
 re-index — until then the file behaves exactly as it always did, verified byte-for-byte on all

@@ -111,9 +111,10 @@ remaining bugs are logged there as known and parked — not on this list. What i
   47,312 of 99,654 chunks re-embedded, boundaries and chunk count unchanged, gold labels
   unmoved, every arm re-measured. Effect on retrieval: **-0.002 to -0.005 everywhere, inside
   stderr** — the ~0 that `RETR-33` predicted. The flags
-  (`RAG_SEC_MULTI_HEADING`, `RAG_SEC_STRIP_TITLE_FURNITURE`) still default **off** in code;
-  `data/chunks/` and Postgres were both built with them **on**, so anything re-chunking from
-  scratch must export them. Results in `data/retr7_results_0904.md`, caveats in
+  (`RAG_SEC_MULTI_HEADING`, `RAG_SEC_STRIP_TITLE_FURNITURE`) now default **on**, matching the
+  stored corpus — left off, `atom_replay.py` matched only 52.52% and `rag_sec.compress` would
+  have replayed a different document than the one indexed. Set them to `0` only to reproduce
+  the pre-re-index corpus. Results in `data/retr7_results_0904.md`, caveats in
   `data/retr7_ANALYSIS.md`, procedure in `RUNBOOK.md`.
 
 ### Then back to `spec.md`
