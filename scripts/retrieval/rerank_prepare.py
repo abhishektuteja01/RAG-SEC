@@ -54,6 +54,12 @@ def main() -> None:
     # so it only needs the three new cells. test has no baseline at all, so it needs the
     # full 2x2 -- see DECISIONS.md RETR-16/RETR-18.
     ap.add_argument("--splits", default="dev,test")
+    # After a re-index the cached dev baseline is stale -- day6_arm4_A_rerank_scores.jsonl
+    # was scored against chunk text that RETR-7/RETR-8 changed, so reusing it would mix two
+    # corpora in one 2x2 and silently mis-attribute the ablation. --all-cells forces the
+    # full 2x2 on every split. Default is unchanged so earlier arms stay reproducible.
+    ap.add_argument("--all-cells", action="store_true",
+                    help="score the full 2x2 on every split, ignoring any cached baseline")
     ap.add_argument("--out", type=Path, default=OUT_PATH)
     args = ap.parse_args()
 
@@ -107,7 +113,7 @@ def main() -> None:
                     "split": row["split"],
                     "cells": (
                         ["filtered_raw", "filtered_stripped", "unfiltered_stripped"]
-                        if row["split"] == "dev"
+                        if row["split"] == "dev" and not args.all_cells
                         else ["unfiltered_raw", "filtered_raw", "unfiltered_stripped", "filtered_stripped"]
                     ),
                     "question": q,
