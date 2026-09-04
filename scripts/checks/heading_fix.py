@@ -47,8 +47,12 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=60, help="filings to check")
     ap.add_argument("--labels", type=int, default=0,
                     help="dev questions to re-label under both settings (0 = skip)")
-    ap.add_argument("--baseline", default="HEAD~1:src/rag_sec/chunking.py",
-                    help="git revision:path of the pre-fix packer for the reversibility check")
+    # Pinned to the last commit BEFORE RETR-7, not HEAD~1. HEAD~1 drifts as commits land, and
+    # once it points at a chunking.py that already has the flags, the baseline module reads
+    # the same env vars this script is toggling and the comparison becomes circular --
+    # it reported a spurious FAIL exactly that way on 2026-09-04.
+    ap.add_argument("--baseline", default="ac2d758:src/rag_sec/chunking.py",
+                    help="git revision:path of the pre-RETR-7 packer for the reversibility check")
     args = ap.parse_args()
 
     files = sorted(PARSED.glob("*.json"))[: args.n]
