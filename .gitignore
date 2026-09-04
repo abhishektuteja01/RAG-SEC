@@ -68,3 +68,15 @@ data/day8_cost13_smoke.jsonl
 # RETR-35 cross-check are all written up in DECISIONS.md RETR-34/RETR-35. Re-running is
 # an API cost, not a lost record. Score with label_audit_score.py before deleting on disk.
 data/label_audit/*
+
+# Batch API request payloads (COST-32). One JSONL per submitted job, regenerated
+# deterministically from data/day8_cost13_payload.json + --thinking, so the file is a
+# transport artifact rather than a record. What matters is kept: the *responses* land in
+# the tracked day8_cost13_responses.jsonl, each row carrying its own tier and thinking
+# level, and the job name is printed at submit time for --resume.
+data/batch_jobs/
+
+# RETR-7/RETR-8 re-index working files (INFRA-12)
+data/chunks_pre_retr7/
+data/retr7_embed_payload.json
+data/retr7_embed_results.jsonl
