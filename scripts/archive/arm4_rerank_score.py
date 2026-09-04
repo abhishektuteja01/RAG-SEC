@@ -1,16 +1,44 @@
-"""Day 6, Arm 4, stage 3 (laptop): combine the HPC's reranked orderings for one variant
+"""ARCHIVED as a script, but **it computes the live variant-A baseline, not a historical
+Day 6 number** -- Day 6, Arm 4, stage 3 of the split job (old filename in `git log --follow`).
+
+What it did: stage 3 of Arm 4 on the laptop, once per variant -- joined the cluster's
+reranked orderings with database-backed, variant-aware gold labels and wrote recall@10/50,
+nDCG@10 and MRR.
+
+Why the variant-A output still matters: it is the 0.609 recall@10 / 0.687 recall@50 row in
+DECISIONS.md's baseline table, and it is the `unfiltered_raw` control that every Day 8
+retrieval gain is measured against (`RETR-22`, `RETR-29`, `RETR-31`). "Day 6" in the old
+filename recorded when it was written, not what it computes.
+
+Provenance: DECISIONS.md `ARM4-5` (variant-aware relevance labeling), `ARM4-10` (A beat B
+and C), `GOLD-5` (rescored offline under the new labeler from the saved orderings). Outputs:
+`data/day6_arm4_{A,B,C}_dev_results.json` / `_failures.md`, plus `.bak_old_labeler` copies
+of the pre-`GOLD-1` versions.
+
+Replaced by: `scripts/retrieval/rerank_score.py` for the current filter x strip 2x2.
+Nothing replaces it for the A/B/C comparison -- this is still the only script that can score
+variants B and C at all.
+
+Safe to run today? Yes, and this is the one file in this folder you might genuinely want to
+re-run. It needs Postgres, because `ARM4-5` labeling reads the variant-filtered candidate
+pool from the `chunks` table rather than `data/chunks/*.json`. It overwrites the published
+`data/day6_arm4_{variant}_dev_results.json`.
+
+--- original header, kept verbatim ---
+
+Day 6, Arm 4, stage 3 (laptop): combine the HPC's reranked orderings for one variant
 with DB-backed gold-relevance labels to compute recall@10/50, nDCG@10, MRR -- same shape
 as Arm 3's results files for direct comparability.
 
-Unlike Arm 3's day5_finalize_arm3.py, this DOES need Postgres: relevance labeling for B/C
+Unlike Arm 3's arm3_rerank_score.py, this DOES need Postgres: relevance labeling for B/C
 comes from `eval.gold_relevant_chunk_evidence_db`, which reads the variant-filtered
 candidate pool straight from the `chunks` table (DECISIONS.md ARM4-5), not from the old
 `data/chunks/*.json` files (those only ever held Strategy A).
 
 Usage:
-    python day6_finalize_arm4.py --variant A [rerank_scores.jsonl]
-    python day6_finalize_arm4.py --variant B [rerank_scores.jsonl]
-    python day6_finalize_arm4.py --variant C [rerank_scores.jsonl]
+    python arm4_rerank_score.py --variant A [rerank_scores.jsonl]
+    python arm4_rerank_score.py --variant B [rerank_scores.jsonl]
+    python arm4_rerank_score.py --variant C [rerank_scores.jsonl]
 """
 
 import argparse
@@ -23,7 +51,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from rag_sec.config import RERANK_MODEL_NAME
-from rag_sec.eval import gold_relevant_chunk_ids_db, load_matched_questions, mrr, ndcg_at_k, recall_at_k
+from rag_sec.eval import gold_relevant_chunk_ids_db, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
 from rag_sec.store import get_conn
 
 DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
@@ -38,15 +66,6 @@ def load_scores(path: Path) -> dict[str, dict]:
                 row = json.loads(line)
                 scores[row["id"]] = row
     return scores
-
-
-def mean_and_stderr(values: list[float]) -> tuple[float, float]:
-    values = [v for v in values if not math.isnan(v)]
-    n = len(values)
-    mean = sum(values) / n
-    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
 
 
 def main() -> None:

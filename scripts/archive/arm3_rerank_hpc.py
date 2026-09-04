@@ -1,4 +1,22 @@
-"""Day 5, Arm 3, stage 2 (HPC GPU node): score every question's candidates with a local
+"""ARCHIVED -- Day 5, Arm 3, stage 2 of the split job (old filename in `git log --follow`).
+
+What it did: stage 2 of Arm 3 on a cluster GPU node -- scored every question's 50
+candidates with `bge-reranker-v2-m3` and wrote the reranked orderings back out.
+
+Provenance: DECISIONS.md `ARM3-2` (the split-job pattern), `ARM3-3` (cross-question
+batching, ~12% faster), `INFRA-6` (device selection inlined rather than imported). Output:
+`data/rerank_scores.jsonl` (1.6 MB, still on disk) -- a real GPU pass, and the Arm 3 row in
+the baseline table was rescored offline from it under `GOLD-5` with no re-run.
+
+Replaced by: `scripts/retrieval/rerank_hpc.py`.
+
+Safe to run today? Yes on a GPU box. Self-contained by design (`ARM3-2`/`INFRA-6`): no
+database, no `rag_sec` import -- do not add one, the cluster has no such package. Little
+point though: it only re-scores the superseded unfiltered / raw-query cell.
+
+--- original header, kept verbatim ---
+
+Day 5, Arm 3, stage 2 (HPC GPU node): score every question's candidates with a local
 cross-encoder reranker. Deliberately self-contained -- no `rag_sec` package import, no
 DB connection -- so it only needs `torch`, `sentence-transformers`, `tqdm` on the HPC
 side and can't be broken by a dropped connection back to the laptop's Postgres.
@@ -18,10 +36,10 @@ padding+attention-mask means each pair's score is computed identically regardles
 what else is in its batch), just fewer round-trips.
 
 Usage:
-    python day5_hpc_rerank.py rerank_payload.json rerank_scores.jsonl
+    python arm3_rerank_hpc.py rerank_payload.json rerank_scores.jsonl
 
 Input: JSON list of {id, question, chunk_file, candidates: [[filing_stem, chunk_index, text], ...]}
-    (produced by day5_prepare_rerank_payload.py on the laptop side).
+    (produced by arm3_rerank_prepare.py on the laptop side).
 Output: JSONL, one line per question: {id, reranked: [[filing_stem, chunk_index], ...], latency_s}
     (latency_s is the chunk's total wall time divided evenly across its questions --
     an average, not a true per-question measurement, since they're scored together)
@@ -55,7 +73,7 @@ def load_done_ids(output_path: Path) -> set[str]:
 
 def main() -> None:
     if len(sys.argv) != 3:
-        print("Usage: python day5_hpc_rerank.py <payload.json> <output.jsonl>")
+        print("Usage: python arm3_rerank_hpc.py <payload.json> <output.jsonl>")
         sys.exit(1)
 
     payload_path = Path(sys.argv[1])
@@ -72,7 +90,15 @@ def main() -> None:
 
     import torch
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    # cuda > mps > cpu, duplicated from rag_sec.config.pick_device() -- this script runs
+    # on the HPC node with no rag_sec package, by design. mps matters only when it is
+    # run locally on Apple Silicon (INFRA-6).
+    if torch.cuda.is_available():
+        device = "cuda"
+    elif torch.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cpu"
     print(f"Using device: {device}")
     cross_encoder = CrossEncoder(RERANK_MODEL_NAME, device=device)
 

@@ -1,4 +1,27 @@
-"""Day 6, Arm 4: identifies which of a filing's raw tables (data/parsed/*.json) is the
+"""ARCHIVED -- Day 6's gold-table identifier for Arm 4 (old filename in `git log --follow`).
+
+What it did: worked out which specific raw table in `data/parsed/` answers each dev
+question, by IDF-weighted shingle + numeric overlap applied table-vs-table, so the B and C
+layouts only had to be built for the ~498 tables that actually matter instead of all 38,959.
+
+Provenance: DECISIONS.md `ARM4-3` (the scoping decision) and `DATA-7`/`DATA-8`/`DATA-9` (the
+matching method). Output: `data/day6_gold_tables.json` (208 KB) -- **still read by live
+code**: `src/rag_sec/eval.py` and `scripts/corpus/build_table_variants.py`.
+
+**This file holds the last surviving copy of the old gold-labelling method.** Chunk-level
+relevance moved to `gold_inds` positional matching under `GOLD-1`; the IDF-weighted
+shingle/numeric approach survives only in this script's inlined helpers, which were kept
+deliberately (see the comment above `SHINGLE_N`) because table-vs-table matching is a much
+lower-noise problem than question-vs-chunk. Deleting this script would erase that approach
+from the project.
+
+Safe to run today? Yes -- no database, no GPU, no money; it reads the dataset and
+`data/parsed/`. It overwrites `data/day6_gold_tables.json`, which two live consumers read,
+so re-run it deliberately rather than casually.
+
+--- original header, kept verbatim ---
+
+Day 6, Arm 4: identifies which of a filing's raw tables (data/parsed/*.json) is the
 gold table for each dev question, using the same IDF-weighted shingle+numeric overlap
 approach eval.py already uses at chunk granularity (DECISIONS.md DATA-7/DATA-8/DATA-9),
 applied table-vs-table instead of question-vs-chunk. Reused rather than a verbatim/substring
@@ -6,7 +29,7 @@ match because our own table serialization differs from the dataset's markdown-pi
 field (different cell splits/spacing) -- same problem DATA-8 already solved once at chunk
 level.
 
-Scopes Strategy B/C (day6_build_table_variants.py) to only these gold tables instead of all
+Scopes Strategy B/C (build_table_variants.py) to only these gold tables instead of all
 38,959 tables across the 324 dev-relevant filings -- see DECISIONS.md ARM4-3.
 """
 

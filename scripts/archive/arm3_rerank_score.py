@@ -1,10 +1,30 @@
-"""Day 5, Arm 3, stage 3 (laptop): combine the HPC's reranked orderings with local
+"""ARCHIVED -- Day 5, Arm 3, stage 3 of the split job (old filename in `git log --follow`).
+
+What it did: stage 3 of Arm 3 on the laptop -- joined the cluster's reranked orderings with
+local gold-relevance labels and computed recall@10/50, nDCG@10, MRR and rerank latency in
+the same shape as Arms 1/2.
+
+Provenance: DECISIONS.md `ARM3-1`-`ARM3-4`, and `GOLD-5` (the current Arm 3 row,
+0.609/0.685, was produced by rescoring `data/rerank_scores.jsonl` under the new labeler --
+no GPU re-run). Outputs: `data/day5_arm3_dev_results.json` and
+`data/day5_arm3_dev_failures.md`, alongside `.bak_old_labeler` copies of their pre-`GOLD-1`
+versions.
+
+Replaced by: `scripts/retrieval/rerank_score.py`.
+
+Safe to run today? Yes -- no database, no GPU, no money; it reads `data/chunks/*.json` and a
+scores file. One caution: it overwrites `data/day5_arm3_dev_results.json`, the published
+Arm 3 results file, so run it only when you mean to regenerate that.
+
+--- original header, kept verbatim ---
+
+Day 5, Arm 3, stage 3 (laptop): combine the HPC's reranked orderings with local
 gold-relevance labels to compute recall@10/50, nDCG@10, MRR, and rerank latency --
 same shape as Arm 1/2's results files for direct comparability. No DB, no GPU needed:
 gold labels come from `data/chunks/*.json` (see `rag_sec.eval`), not Postgres.
 
 Usage:
-    python day5_finalize_arm3.py [rerank_scores.jsonl]
+    python arm3_rerank_score.py [rerank_scores.jsonl]
 """
 
 import json
@@ -13,7 +33,7 @@ import sys
 from pathlib import Path
 
 from rag_sec.config import RERANK_MODEL_NAME
-from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mrr, ndcg_at_k, recall_at_k
+from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
 
 RESULTS_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day5_arm3_dev_results.json"
 FAILURES_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "day5_arm3_dev_failures.md"
@@ -28,15 +48,6 @@ def load_scores(path: Path) -> dict[str, dict]:
                 row = json.loads(line)
                 scores[row["id"]] = row
     return scores
-
-
-def mean_and_stderr(values: list[float]) -> tuple[float, float]:
-    values = [v for v in values if not math.isnan(v)]
-    n = len(values)
-    mean = sum(values) / n
-    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
 
 
 def main() -> None:

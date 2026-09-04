@@ -1,5 +1,25 @@
-"""Day 5, Arm 3 -- single-machine reference pipeline: Arm 2's hybrid retrieval (dense +
-BM25 + RRF, same as day4_run_arm2.py), reranked in-process with a local cross-encoder.
+"""ARCHIVED -- Day 5's single-process Arm 3 reference run (old filename in `git log --follow`).
+
+What it did: ran the whole of Arm 3 in one laptop process -- dense + BM25/RRF fusion over
+the dev split, then re-ordered the fused top-50 with the `bge-reranker-v2-m3` cross-encoder.
+
+Provenance: DECISIONS.md `ARM3-1` (why this reranker) and `ARM3-2` (why this route was
+abandoned). It produced no published number. Its outputs
+`data/day5_arm3_cpu_dev_results.json` / `_failures.md` are not on disk, because a full CPU
+run was never finished.
+
+Replaced by: the split-job trio, now `scripts/retrieval/rerank_prepare.py` ->
+`rerank_hpc.py` -> `rerank_score.py`. The recorded Arm 3 numbers came from this file's
+Day 5 siblings (`arm3_rerank_*.py`, also archived here), not from here.
+
+Safe to run today? Yes with a small `-n`, and only then. Needs Postgres and downloads both
+models. A full dev run on CPU is not viable (`ARM3-2`: ~110 s/question plateau, ~25 h). It
+writes only its own `*_cpu_dev_*` files, so it cannot clobber a published result.
+
+--- original header, kept verbatim ---
+
+Day 5, Arm 3 -- single-machine reference pipeline: Arm 2's hybrid retrieval (dense +
+BM25 + RRF, same as arm2_hybrid.py), reranked in-process with a local cross-encoder.
 Same dev split, same metrics as Arms 1/2, one change per spec.md 2.2 (rerank the fused
 top-50).
 
@@ -7,7 +27,7 @@ This is a REFERENCE implementation, not the one used to produce the recorded Arm
 baseline. A CPU run of the full dev split (n=1235) is not viable -- DECISIONS.md
 ARM3-2 measured per-question latency climbing to a ~110s plateau under normal laptop
 load, i.e. ~1 day of wall clock. The actual baseline was produced by the split-job
-pipeline (day5_prepare_rerank_payload.py -> day5_hpc_rerank.py -> day5_finalize_arm3.py)
+pipeline (arm3_rerank_prepare.py -> arm3_rerank_hpc.py -> arm3_rerank_score.py)
 on an HPC GPU node instead. Use this script for a quick local sanity check (small `-n`)
 or if you do have a CUDA GPU on the machine running it; use the split-job pipeline for
 a full run.
@@ -27,8 +47,8 @@ load_dotenv()
 
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
-from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME
-from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mrr, ndcg_at_k, recall_at_k
+from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device
+from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
 from rag_sec.store import get_conn
 
 TOP_K = 50
@@ -77,15 +97,6 @@ def fetch_texts(conn, pairs: list[tuple[str, int]]) -> dict[tuple[str, int], str
     return {p: lookup[p] for p in pairs if p in lookup}
 
 
-def mean_and_stderr(values: list[float]) -> tuple[float, float]:
-    values = [v for v in values if not math.isnan(v)]
-    n = len(values)
-    mean = sum(values) / n
-    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("-n", type=int, default=None, help="limit to the first N dev questions (sanity check)")
@@ -97,9 +108,7 @@ def main() -> None:
         dev = dev.head(args.n)
     print(f"Running Arm 3 (CPU reference) on {len(dev)} dev-split questions")
 
-    import torch
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
     print(f"Using device: {device}")
     if device == "cpu" and len(dev) > 50:
         print("WARNING: CPU reranking is slow (DECISIONS.md ARM3-2) -- consider -n for a quick check")

@@ -1,12 +1,33 @@
-"""Day 6, Arm 4 -- single-machine reference pipeline: same dense + BM25/RRF + reranker
-pipeline as Arm 3 (day5_run_arm3.py), run separately per table-indexing variant (A/B/C)
+"""ARCHIVED -- Day 6's single-process Arm 4 reference run (old filename in `git log --follow`).
+
+What it did: Arm 3's pipeline run once per table-indexing variant (A/B/C) in a single
+process, keying every chunk by `(filing_stem, chunk_index, variant)` because A and B/C each
+number a filing's chunks from zero.
+
+Provenance: DECISIONS.md `ARM4-1`/`ARM4-2` (what B and C are), `ARM4-3` (scoped to gold
+tables), `ARM4-4` (the chunk-boundary drift bug), `ARM4-10` (A beat both). Outputs:
+`data/day6_arm4_{A,B,C}_cpu_dev_results.json` / `_failures.md` -- 5-question CPU warm-ups
+only. These are **not** the published Arm 4 numbers and read as ~0.9 scores; do not quote
+them.
+
+Replaced by: `arm4_rerank_{prepare,hpc,score}.py` in this folder for Arm 4 itself. The live
+pipeline is `scripts/retrieval/rerank_*.py`, which queries `variant = 'A'` only.
+
+Safe to run today? Only with a small `-n`, and it needs Postgres plus both models. It reads
+B/C rows on purpose -- that is legitimate here and nowhere else, since those rows are what
+`RETR-24` showed contaminating Arms 1-3 when a query forgets its `variant` predicate.
+
+--- original header, kept verbatim ---
+
+Day 6, Arm 4 -- single-machine reference pipeline: same dense + BM25/RRF + reranker
+pipeline as Arm 3 (arm3_singleprocess.py), run separately per table-indexing variant (A/B/C)
 via `--variant`. Same dev split, same metrics, same reranker -- the only thing that
 changes between runs is which chunk represents each gold table.
 
 REFERENCE implementation, not the one used to produce the recorded numbers -- full-dev-set
 CPU reranking isn't viable (DECISIONS.md ARM3-2). Use `-n` for a quick local check; the
-real runs go through the HPC split-job pipeline (day6_prepare_rerank_payload.py ->
-day6_hpc_rerank.py -> day6_finalize_arm4.py), once per variant.
+real runs go through the HPC split-job pipeline (arm4_rerank_prepare.py ->
+arm4_rerank_hpc.py -> arm4_rerank_score.py), once per variant.
 
 Chunk identity here is (filing_stem, chunk_index, variant), not (filing_stem, chunk_index)
 like Arms 1-3 -- Strategy A and B/C each number a filing's chunks from 0 independently, so
@@ -28,8 +49,8 @@ load_dotenv()
 
 from sentence_transformers import CrossEncoder, SentenceTransformer
 
-from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME
-from rag_sec.eval import gold_relevant_chunk_ids_db, load_matched_questions, mrr, ndcg_at_k, recall_at_k
+from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device
+from rag_sec.eval import gold_relevant_chunk_ids_db, load_matched_questions, mean_and_stderr, mrr, ndcg_at_k, recall_at_k
 from rag_sec.store import get_conn
 
 TOP_K = 50
@@ -82,15 +103,6 @@ def fetch_texts(conn, triples: list[ChunkId]) -> dict[ChunkId, str]:
     return {t: lookup[t] for t in triples if t in lookup}
 
 
-def mean_and_stderr(values: list[float]) -> tuple[float, float]:
-    values = [v for v in values if not math.isnan(v)]
-    n = len(values)
-    mean = sum(values) / n
-    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--variant", required=True, choices=["A", "B", "C"])
@@ -110,9 +122,7 @@ def main() -> None:
         dev = dev.head(args.n)
     print(f"Running Arm 4 variant={variant} (CPU reference) on {len(dev)} dev-split questions")
 
-    import torch
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
     print(f"Using device: {device}")
     if device == "cpu" and len(dev) > 50:
         print("WARNING: CPU reranking is slow (DECISIONS.md ARM3-2) -- consider -n for a quick check")
