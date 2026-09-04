@@ -21,6 +21,28 @@ Arm 1 specifically, so that subtraction is not sound either.
 there is no directly comparable prior number.** This is exactly the failure mode
 `SESSION.md` §4 names — "reusing a number without checking which job produced it."
 
+## Arm 2, same caveat
+
+Arm 2, post-RETR-7, corrected labels: **recall@10 0.514, recall@50 0.708**.
+Arm 2 as published:                    recall@10 0.495, recall@50 0.687.
+
+Same confound, same refusal to quote a delta. But the two arms together are mildly
+informative. Applying `SESSION.md`'s rough +0.025 old-label correction as a *prediction*:
+
+| arm | published (old labels) | naive corrected prediction | observed (new corpus) |
+|---|---|---|---|
+| Arm 1 | 0.329 | ~0.354 | **0.337** (-0.017) |
+| Arm 2 | 0.495 | ~0.520 | **0.514** (-0.006) |
+
+Both land slightly *below* the label-correction-only prediction, Arm 2 well inside its own
++/- 0.014 confidence interval. That is consistent with RETR-7/RETR-8 being **neutral to
+very slightly negative** for first-stage retrieval — which is what `RETR-33` predicted
+(`no_gold_chunk` = 0% twice; the heading is ~0.91% of a chunk's tokens).
+
+It is *not* proof: the 0.025 is a project-wide estimate, never measured per arm, so this
+table is a sanity check, not an attribution. The scratch-database run below is what would
+settle it.
+
 ## How to get a clean attribution, if you want it
 
 Restore `~/rag-sec-backups/chunks_pre_retr7_20260904.dump` into a *scratch* database and
