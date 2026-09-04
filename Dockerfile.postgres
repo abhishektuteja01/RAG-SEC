@@ -3,7 +3,9 @@
 FROM pgvector/pgvector:0.8.6-pg18-trixie
 
 ARG PARADEDB_VERSION=0.25.1
-ARG TARGETARCH=arm64
+# No default: TARGETARCH is a BuildKit predefined arg, and a default here does not act as a
+# fallback -- it wins outright, so `=arm64` fetched the arm64 .deb even on an amd64 build.
+ARG TARGETARCH
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl ca-certificates \

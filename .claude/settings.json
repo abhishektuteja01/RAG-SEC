@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(docker compose *)",
+      "Bash(docker exec rag-sec-postgres-1 *)"
+    ]
+  }
+}

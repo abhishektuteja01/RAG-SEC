@@ -9,22 +9,28 @@ authors = [
 requires-python = ">=3.12"
 dependencies = [
     "anthropic>=1.2.0",
-    "docling>=2.122.0",
-    "fsspec>=2026.7.0",
+    "beautifulsoup4>=4.15.0",
+    "google-genai>=2.21.0",
     "httpx>=0.28.1",
-    "huggingface-hub>=1.28.0",
+    "huggingface-hub==1.28.0",
+    "langchain-core>=1.6.1",
     "langchain-google-genai==4.3.7",
     "langgraph==1.2.11",
     "langgraph-checkpoint-postgres==3.1.2",
+    "numpy>=2.0.0,<3.0.0",
     "pandas>=2.2.2,<3.0.0",
     "pgvector>=0.5.0",
     "psycopg[binary]>=3.3.4",
-    "psycopg-pool>=3.2.0",
     "python-dotenv>=1.2.3",
     "sec-parser==0.58.1",
-    "sentence-transformers>=6.0.0",
-    "transformers>=5.8.1",
-    "google-genai>=2.21.0",
+    # The three that decide what the search models actually compute: pinned exactly so a
+    # routine `uv lock --upgrade` cannot silently move every number in DECISIONS.md.
+    "sentence-transformers==6.0.0",
+    # torch is imported directly in 8 files (device selection); declared so a
+    # sentence-transformers change can never drop it out of the lock silently.
+    "torch>=2.13.0",
+    "tqdm>=4.70.0",
+    "transformers==5.8.1",
 ]
 
 [build-system]
