@@ -56,6 +56,13 @@ The front door: what this is, how to set it up, and the commands to rebuild the 
 thing "done" requires), the chart it shows was made before several corrections and shows numbers
 you've since withdrawn, and its list of documents leaves out `SESSION.md`.
 
+**`RUNBOOK.md`** — in git.
+The step-by-step for running a GPU job on Northeastern's Explorer cluster: transfer
+through the `xfer` host, allocate with `srun` inside tmux, run, copy back, verify. Includes the
+full `RETR-7`/`RETR-8` re-index procedure with its backup step.
+**Status: Keep.** It is the only place the cluster hostnames and module/venv setup are written
+as commands rather than buried in a decision row — and `ARM3-2`'s copy is stale (Discovery, not Explorer).
+
 **`INVENTORY.md`** — this file.
 What every folder and file is, where it came from, and whether it's still needed.
 **Status: Keep.** Written by reading the files, so it goes stale as they change — the file
@@ -335,13 +342,27 @@ in. The file admits this in its own comments. Adding it as a second column is th
 **`answer_ab_prepare.py`** — builds both versions of each prompt and picks which questions to
 test. Free and offline on purpose, so prompts can be eyeballed before any spending. **Keep.**
 
-**`answer_ab_run.py`** — **the one script that deliberately spends money.**
-Sends prompts to Gemini. About **$1.53** for a full run, **$0.06** for a small wiring check.
-It prints a price estimate first and has a dry-run mode.
+**`answer_ab_run.py`** — **one of the two scripts that deliberately spend money.**
+Sends prompts to Gemini one at a time, synchronously. About **$2.02** for a full run at
+`standard` (corrected from $1.53, which priced thinking tokens wrong — `COST-23`/`COST-31`).
+It prints a price estimate first and has a dry-run mode. Sends at `standard`, **not** `flex`:
+flex 503'd ~9 of 10 requests (`COST-29`).
 **Keep — and know this:** it resumes by reading `data/day8_cost13_responses.jsonl`. While that
-144 KB file exists, re-running is **free**. **Delete or move that file and a re-run costs money again.**
+file exists, re-running is **free**. **Delete or move that file and a re-run costs money again.**
+`--limit` is a wiring check, **not a sample** — the payload is stratum-sorted, so any limit
+under 89 is 100% `A_gold_lost` (`COST-33`).
 
-**`answer_ab_score.py`** — scores the responses already paid for. Free, safe to re-run. **Keep.**
+**`answer_batch_run.py`** — **the other money-spending script, and the cheap one.** Same
+payload in, same row shape out, via the Batch API at **50% of standard** — a full run is
+~**$1.01** against `answer_ab_run.py`'s ~$2.02. Asynchronous: it splits the work into jobs
+under Tier 1's 3M enqueued-token cap, uploads JSONL, submits, polls, then joins results back
+by an explicit `id|arm|thinking` key rather than by position. Shares the same resume file, so
+the two runners are interchangeable and neither re-pays for the other's rows. Proven on a real
+10-request job (`COST-32`). **Keep.** Use this one for anything large; use `answer_ab_run.py`
+when you want results in seconds rather than minutes.
+
+**`answer_ab_score.py`** — scores the responses already paid for. Free, safe to re-run.
+Prices `flex` and `batch` rows at 50% and everything else at full. **Keep.**
 
 ### What could be tidied in `scripts/compression/`
 
