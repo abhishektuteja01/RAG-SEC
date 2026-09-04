@@ -1,4 +1,4 @@
-"""Day 8 pre-check: can a gold chunk be interpreted on its own?
+"""Pre-check: can a gold chunk be interpreted on its own?
 
 Before building a context compressor (which can only ever keep or drop text that is
 already in the chunk), measure how much of the gold evidence is *already* uninterpretable

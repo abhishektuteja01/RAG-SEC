@@ -1,4 +1,4 @@
-"""Day 8: does scoping candidate generation to the question's company recover the gold?
+"""Does scoping candidate generation to the question's company recover the gold?
 
 The failure triage found 19.6% of dev questions never get the gold chunk into the 50
 RRF candidates, and a 100-case qualitative pass found ~74% of retrieved chunks come from
@@ -14,7 +14,7 @@ the inflation DATA-4 explicitly refused. Questions where no company name is foun
 back to unfiltered search rather than being dropped.
 
 Usage:
-    python scripts/diagnostics/day8_company_filter_ab.py [--n N]
+    python scripts/analysis/company_filter_ab.py [--n N]
 """
 
 import argparse

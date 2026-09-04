@@ -1,15 +1,15 @@
-"""Day 8: why does retrieval miss? Splits every dev question into one of four buckets so
+"""Why does retrieval miss? Splits every dev question into one of four buckets so
 the next chunking change is made on evidence instead of a guess.
 
 The reranker only reorders the 50 candidates it is handed, so its ceiling is recall@50
-(0.685) against its actual recall@10 (0.609) -- 7.6 points of headroom. The other 31.5%
-never had the gold in the pool at all, and that is decided upstream by chunking and
-indexing. This script measures which.
+against its actual recall@10 -- on the shipped ordering, 0.776 vs 0.736, 4.0 points of
+headroom. Everything else never had the gold in the pool at all, and that is decided
+upstream by chunking and indexing. This script measures which.
 
 Buckets, in the order a question is tested:
   hit@10         gold chunk reached the final top 10. Success, no action.
   rerank_miss    gold was among the 50 but not promoted into the top 10. Reranker's fault;
-                 bounded by the 7.6 points above.
+                 bounded by the recall@50-minus-recall@10 headroom above.
   candidate_miss gold chunk exists in the filing, but dense+BM25/RRF never surfaced it.
                  Retrieval/indexing's fault. Widening the pool may fix it -- the gold's
                  rank is unknown here, which is exactly what a DB re-run would answer.
@@ -25,8 +25,13 @@ have nothing to do with retrieval.
 Read-only: no DB, no API, no writes to the corpus. Emits a JSON of failure cases for
 qualitative follow-up.
 
+Defaults to the shipped ordering (company filter + query strip, `RETR-16v2`). The Day 6
+ordering the original triage used is still reachable via --scores for comparison.
+
 Usage:
-    python scripts/diagnostics/day8_retrieval_failure_triage.py [--n N]
+    python scripts/analysis/failure_triage.py [--n N]
+    python scripts/analysis/failure_triage.py --scores data/day6_arm4_A_rerank_scores.jsonl \
+        --out data/day8_failure_cases_day6.json
 """
 
 import argparse
@@ -48,17 +53,29 @@ from rag_sec.eval import (  # noqa: E402
     load_matched_questions,
 )
 
-RERANK_SCORES = Path("data/day6_arm4_A_rerank_scores.jsonl")
-OUT_CASES = Path("data/day8_failure_cases.json")
+SCORES = Path("data/day8_retr16v2_dev_scores.jsonl")   # shipped ordering (RETR-16v2)
+LEGACY_SCORES = Path("data/day6_arm4_A_rerank_scores.jsonl")  # pre-RETR-24, variant-contaminated
+CELL = "filtered_stripped"
+OUT_CASES = Path("data/day8_failure_cases_retr16v2.json")
 TOP_K = 10
 
 
-def _load_rerank_order() -> dict[str, list[tuple[str, int]]]:
+def _load_rerank_order(path: Path, cell: str) -> dict[str, list[tuple[str, int]]]:
+    """Two on-disk shapes. The RETR-16v2 file holds several ablation cells per question as
+    unordered [stem, idx, score]; the Day 6 file holds one already-ranked list whose third
+    field is the variant tag, not a score, so it must not be re-sorted."""
     order = {}
-    with open(RERANK_SCORES) as f:
+    with open(path) as f:
         for line in f:
-            if line.strip():
-                rec = json.loads(line)
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            if "cells" in rec:
+                if cell in rec["cells"]:
+                    order[rec["id"]] = [
+                        (s, i) for s, i, _ in sorted(rec["cells"][cell], key=lambda x: -x[2])
+                    ]
+            else:
                 order[rec["id"]] = [(s, i) for s, i, _v in rec["reranked"]]
     return order
 
@@ -66,9 +83,12 @@ def _load_rerank_order() -> dict[str, list[tuple[str, int]]]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int)
+    ap.add_argument("--scores", type=Path, default=SCORES)
+    ap.add_argument("--cell", default=CELL, help="ablation cell, multi-cell score files only")
+    ap.add_argument("--out", type=Path, default=OUT_CASES)
     args = ap.parse_args()
 
-    order = _load_rerank_order()
+    order = _load_rerank_order(args.scores, args.cell)
     df = load_matched_questions()
     dev = df[df["split"] == "dev"].reset_index(drop=True)
     if args.n:
@@ -160,8 +180,8 @@ def main() -> None:
             print(f"  would be recovered by taking top-{cut} instead of top-10: {n}"
                   f" ({100*n/total:.1f}pt of overall recall)")
 
-    OUT_CASES.write_text(json.dumps(cases, indent=1))
-    print(f"\nwrote {len(cases)} failure cases -> {OUT_CASES} ({OUT_CASES.stat().st_size/1e6:.1f} MB)")
+    args.out.write_text(json.dumps(cases, indent=1))
+    print(f"\nwrote {len(cases)} failure cases -> {args.out} ({args.out.stat().st_size/1e6:.1f} MB)")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Day 8: the achievable floor for evidence compression.
+"""The achievable floor for evidence compression.
 
 The gold_inds text averages 38 tokens, but compression selects whole atoms -- so the
 smallest prompt a perfect scorer could produce is the size of the atom(s) the gold text
