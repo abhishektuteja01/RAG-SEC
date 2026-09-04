@@ -28,8 +28,12 @@ and strip the company/filing framing from the query *before reranking only*.
 
 | test split (untouched until the end) | before | after |
 |---|---|---|
-| recall@10 | 0.604 | **0.752** |
-| nDCG@10 | 0.464 | 0.621 |
+| recall@10 | 0.607 | **0.747** |
+| nDCG@10 | 0.468 | 0.617 |
+
+Re-measured 2026-09-04 on the post-`RETR-7` corpus (`RETR-39`). The pre-re-index pair was
+0.604 -> 0.752; every cell moved -0.002 to -0.005, inside stderr, so the headline is
+unchanged in substance.
 
 Both cells re-scored under `RETR-35`'s corrected labels. The pre-correction pair was
 0.581 -> 0.726; the *gain* is unchanged (+0.148 against +0.145), only the levels moved.
@@ -49,18 +53,19 @@ failure mode is safe — the model refuses rather than fabricates.
 
 | arm (dev unless stated) | recall@10 | recall@50 |
 |---|---|---|
-| Arm 1, dense only | 0.329 | 0.466 |
-| Arm 2, + BM25/RRF | 0.495 | 0.687 |
-| Arm 3, + reranker (= Arm4-A) | 0.634 | 0.713 |
-| Arm 3 + filter + strip | **0.765** | 0.806 |
-| Arm 4-B / 4-C | 0.237 / 0.236 | 0.268 / 0.270 |
-| **Arm 3 + filter + strip, TEST** | **0.752** | 0.787 |
+| Arm 1, dense only | 0.337 | 0.473 |
+| Arm 2, + BM25/RRF | 0.514 | 0.708 |
+| Arm 3, + reranker (= Arm4-A) | 0.629 | 0.708 |
+| Arm 3 + filter + strip | **0.760** | 0.802 |
+| Arm 4-B / 4-C (NOT re-indexed) | 0.237 / 0.236 | 0.268 / 0.270 |
+| **Arm 3 + filter + strip, TEST** | **0.747** | 0.785 |
 
-**Arm 1 and Arm 2 are the two rows still on OLD labels** and understate by roughly 0.025;
-they cannot be re-scored from disk because their results files persist only
-`top_5_retrieved`, so they need a retrieval re-run against Postgres (no GPU). Every other row
-is corrected. The correction is not a constant: Arm 4-B/C barely moved (-0.002/-0.004)
-because their chunks are single rows and summaries, so there was no over-collection to remove.
+**All rows above are post-`RETR-7` and on corrected labels except Arm 4-B/C**, which were
+deliberately not re-embedded and stay on pre-`RETR-7` headings — they are no longer
+text-comparable with variant A. Arm 1 and Arm 2 were finally re-run (`RETR-39`), clearing the
+standing blocker, but **their movement against the old published 0.329/0.495 is confounded**:
+corpus and labels changed at once, so quote the level, never a delta. `data/retr7_ANALYSIS.md`
+records how to get the missing cell from the pre-re-index `pg_dump`.
 
 ---
 
