@@ -1,9 +1,9 @@
-"""Day 5, corpus-growth embedding, stage 3 (laptop): join the HPC's embeddings back
-with local chunk text/metadata and insert into Postgres. Mirrors day3_index_chunks.py's
+"""Corpus-growth embedding, stage 3 (laptop): join the HPC's embeddings back
+with local chunk text/metadata and insert into Postgres. Mirrors embed_local.py's
 insert shape exactly, just fed from a file instead of computing embeddings locally.
 
 Usage:
-    python day5_load_embeddings.py embed_results.jsonl
+    python embed_load.py embed_results.jsonl
 """
 
 import json
@@ -21,7 +21,7 @@ CHUNKS_DIR = Path(__file__).resolve().parent.parent.parent / "data" / "chunks"
 
 def main() -> None:
     if len(sys.argv) != 2:
-        print("Usage: python day5_load_embeddings.py <embed_results.jsonl>")
+        print("Usage: python embed_load.py <embed_results.jsonl>")
         sys.exit(1)
 
     results_path = Path(sys.argv[1])

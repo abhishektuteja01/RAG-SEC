@@ -1,4 +1,4 @@
-"""Day 8, stage 3 (laptop): score the RETR-16 2x2 and fill in the Arm 3 row.
+"""Stage 3 (laptop): score the RETR-16 2x2 and fill in the Arm 3 row.
 
 Cells (DECISIONS.md RETR-16):
     unfiltered_raw       existing Arm 3 baseline, read from day6_arm4_A_rerank_scores.jsonl
@@ -11,12 +11,11 @@ the baseline table. recall@50 is reported but is a property of the candidate poo
 reranker -- it can only differ between filtered and unfiltered cells.
 
 Usage:
-    python scripts/arms/day8_finalize_retr16.py
+    python scripts/retrieval/rerank_score.py
 """
 
 import argparse
 import json
-import math
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -29,6 +28,7 @@ from rag_sec.eval import (  # noqa: E402
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
+    mean_and_stderr,
     mrr,
     ndcg_at_k,
     recall_at_k,
@@ -41,18 +41,12 @@ BASELINE = Path("data/day6_arm4_A_rerank_scores.jsonl")
 CELLS = ("unfiltered_raw", "filtered_raw", "unfiltered_stripped", "filtered_stripped")
 
 
-def mean_stderr(v: list[float]) -> tuple[float, float]:
-    v = [x for x in v if not math.isnan(x)]
-    n = len(v)
-    m = sum(v) / n
-    var = sum((x - m) ** 2 for x in v) / (n - 1) if n > 1 else 0.0
-    return m, math.sqrt(var / n)
-
-
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--scores", type=Path, default=SCORES)
     ap.add_argument("--split", default="dev")
+    ap.add_argument("--out", type=Path, default=None,
+                    help="write the scored table to JSON as well as printing it")
     ap.add_argument(
         "--baseline",
         type=Path,
@@ -112,11 +106,12 @@ def main() -> None:
     hdr = f"{'cell':<22}" + "".join(f"{k:>18}" for k in ("recall@10", "recall@50", "nDCG@10", "MRR"))
     print(hdr)
     print("-" * len(hdr))
-    base = {}
+    base, table = {}, {}
     for c in CELLS:
         cells = []
         for k in ("recall_10", "recall_50", "ndcg_10", "mrr"):
-            m, se = mean_stderr(per[c][k])
+            m, se = mean_and_stderr(per[c][k])
+            table.setdefault(c, {})[k] = {"mean": m, "stderr": se}
             if c == "unfiltered_raw":
                 base[k] = m
                 cells.append(f"{m:.3f} ± {se:.3f}".rjust(18))
@@ -124,6 +119,16 @@ def main() -> None:
                 cells.append(f"{m:.3f} ({m - base[k]:+.3f})".rjust(18))
         print(f"{c:<22}" + "".join(cells))
     print("\n(baseline row shows ± stderr; other rows show the delta against it)")
+
+    # Stderr is stored for every cell, not just the baseline the table prints it for: the
+    # deltas are what get quoted, and a delta needs both cells' spread to be defensible.
+    if args.out:
+        args.out.write_text(json.dumps({
+            "split": args.split, "scores": str(args.scores), "n_scored": n,
+            "skipped_missing_cell": skipped_cells, "skipped_no_gold": skipped_gold,
+            "cells": table,
+        }, indent=1))
+        print(f"wrote {args.out}")
 
 
 if __name__ == "__main__":

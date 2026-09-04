@@ -1,5 +1,5 @@
-"""Day 6, Arm 4: builds Strategy B (per-row) and C (raw + LLM summary) chunk variants for
-the gold tables identified by day6_identify_gold_tables.py, embeds them, and loads them
+"""Arm 4: builds Strategy B (per-row) and C (raw + LLM summary) chunk variants for
+the gold tables identified by arm4_identify_gold_tables.py, embeds them, and loads them
 into `chunks` tagged variant='B'/'C'. Every non-target table in the same filing stays
 Strategy A (identical text to the existing variant='A' rows) -- see DECISIONS.md ARM4-3.
 

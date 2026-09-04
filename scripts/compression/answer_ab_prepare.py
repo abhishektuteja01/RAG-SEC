@@ -13,13 +13,14 @@ from all 1235 survival flags rather than estimated. Questions whose two gold ans
 irreconcilable are dropped first (`answer_eval.gold_is_scoreable`): they would score wrong
 in both arms, land in the concordant cell, and consume budget while informing nothing.
 
-Both prompts reuse `agent._ANSWER_PROMPT` plus one output-format line, and the compressed
-arm reuses `compress.pack_by_score`, so the prompt whose survival was measured is the
-prompt actually sent. Writing a payload rather than calling the API keeps this stage free
+Both prompts reuse `agent._ANSWER_PROMPT` plus one output-format line. The compressed arm
+now packs with `compress.pack_grouped` (COST-27): labelled, chunk-grouped, document-ordered,
+so it differs from its control in *how much text* and nothing else. `--legacy-packing`
+restores the score-ordered unlabelled prompt COST-13 actually sent. Writing a payload rather than calling the API keeps this stage free
 and inspectable -- `--show` prints a full pair for eyeballing before any spend.
 
 Usage:
-    python scripts/agent/day8_cost13_prepare.py --show 1
+    python scripts/compression/answer_ab_prepare.py --show 1
 """
 
 import argparse
@@ -36,7 +37,7 @@ from tqdm import tqdm  # noqa: E402
 from rag_sec.agent import _ANSWER_PROMPT  # noqa: E402
 from rag_sec.answer_eval import gold_is_scoreable, gold_values  # noqa: E402
 from rag_sec.chunking import count_tokens  # noqa: E402
-from rag_sec.compress import chunk_atoms, pack_by_score, slice_atom  # noqa: E402
+from rag_sec.compress import Slice, chunk_atoms, pack_by_score, pack_grouped, slice_atom  # noqa: E402
 from rag_sec.eval import load_matched_questions  # noqa: E402
 
 FLAGS = Path("data/day8_survival_flags.json")
@@ -94,6 +95,11 @@ def main() -> None:
     ap.add_argument("--n-kept", type=int, default=N_KEPT)
     ap.add_argument("--out", type=Path, default=OUT)
     ap.add_argument("--show", type=int, default=0, help="print this many full prompt pairs")
+    ap.add_argument(
+        "--legacy-packing",
+        action="store_true",
+        help="score-ordered, unlabelled slices -- reproduces COST-13's payload byte-for-byte",
+    )
     args = ap.parse_args()
 
     flags = json.load(open(FLAGS))
@@ -136,6 +142,7 @@ def main() -> None:
             }
 
         top_set = set(top)
+        rank_of = {c: i for i, c in enumerate(top)}
         slice_units = []
         for stem, idx, atom_i, piece_i, _score in sorted(slice_scores[qid], key=lambda s: s[4], reverse=True):
             if (stem, idx) not in top_set:
@@ -143,10 +150,14 @@ def main() -> None:
             piece = texts.get((stem, idx), {}).get((atom_i, piece_i))
             if piece is None:
                 continue
-            slice_units.append((piece, count_tokens(piece)))
+            slice_units.append(Slice(piece, count_tokens(piece), stem, idx, atom_i, piece_i, rank_of[(stem, idx)]))
 
         uncompressed = "\n\n".join(t for t, _ in chunk_units)
-        compressed = "\n\n".join(pack_by_score(slice_units, BUDGET))
+        compressed = (
+            "\n\n".join(pack_by_score([(u.text, u.tokens) for u in slice_units], BUDGET))
+            if args.legacy_packing
+            else pack_grouped(slice_units, BUDGET)
+        )
         arms = {
             "uncompressed": _ANSWER_PROMPT.format(question=question, evidence=uncompressed) + FORMAT_LINE,
             f"slices_{BUDGET}": _ANSWER_PROMPT.format(question=question, evidence=compressed) + FORMAT_LINE,

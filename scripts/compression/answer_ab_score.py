@@ -19,7 +19,7 @@ Three things, in order of what they answer:
    an assumption rather than hidden, and it is reported both ways.
 
 Usage:
-    python scripts/agent/day8_cost13_score.py
+    python scripts/compression/answer_ab_score.py
 """
 
 import argparse

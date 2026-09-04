@@ -1,4 +1,4 @@
-"""Day 8: verify the atom replay is exact, and measure how much choice it actually gives.
+"""Verify the atom replay is exact, and measure how much choice it actually gives.
 
 Two things must hold before compression is worth building on atoms:
   1. Replaying the packer from data/parsed/ reproduces data/chunks/ byte-for-byte -- if it

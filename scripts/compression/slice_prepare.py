@@ -1,4 +1,4 @@
-"""Day 8, stage 1 (laptop): slice every candidate chunk into token-target pieces and dump a
+"""Stage 1 (laptop): slice every candidate chunk into token-target pieces and dump a
 self-contained payload for the HPC reranker. See DECISIONS.md COST-7/COST-8.
 
 Reuses an existing rerank payload rather than re-running retrieval, so the slice arms and
@@ -18,7 +18,7 @@ data/parsed/ and the stored corpus fails loudly here instead of silently produci
 of a document that was never retrieved.
 
 Usage:
-    python scripts/agent/day8_prepare_slice_payload.py --target 150
+    python scripts/compression/slice_prepare.py --target 150
 """
 
 import argparse

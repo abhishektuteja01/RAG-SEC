@@ -1,8 +1,8 @@
-"""Day 5, corpus-growth embedding, stage 1 (laptop): find every filing in data/chunks/
-not yet in Postgres (the 195 new filings from day4_ingest_next200.py's completion run)
+"""Corpus-growth embedding, stage 1 (laptop): find every filing in data/chunks/
+not yet in Postgres (the 195 new filings from the corpus's final growth run, now scripts/corpus/build_corpus.py)
 and dump their chunk texts to a payload file for GPU embedding on HPC.
 
-Same split-job reasoning as day5_prepare_rerank_payload.py: embedding needs no DB
+Same split-job reasoning as arm3_rerank_prepare.py: embedding needs no DB
 access on the GPU side, so a dropped HPC connection can't corrupt anything.
 """
 

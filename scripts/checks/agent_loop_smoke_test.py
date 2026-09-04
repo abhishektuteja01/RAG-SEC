@@ -1,4 +1,14 @@
-"""Manual smoke test for Day 8's agentic loop (src/rag_sec/agent.py) -- runs a handful
+"""!! NOT FREE, NOT DRY. Despite the name "smoke test", every run of this file makes live,
+paid Gemini calls (about $0.04 a run) and writes LangGraph checkpoint rows into the
+Postgres database. There is no dry-run flag and no confirmation prompt -- importing and
+calling it does the spending. Read the numbers below before you run it.
+
+Filed here, not with the compression scripts, because it exercises the deferred agentic
+loop (`src/rag_sec/agent.py`, `AGENT-*`), not the cost/compression work everything in
+`scripts/compression/` is about. It was previously filed with the compression scripts,
+next to seven unrelated files.
+
+Manual smoke test for Day 8's agentic loop (src/rag_sec/agent.py) -- runs a handful
 of dev-split questions through the compiled graph, one thread_id each, and prints the
 trajectory (each iteration's search query, top retrieved chunk stems, judge verdict) so
 a human can eyeball whether the loop is doing something sensible before Day 9's full run.

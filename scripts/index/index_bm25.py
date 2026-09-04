@@ -1,6 +1,6 @@
-"""Day 4, Arm 2: build the BM25 index (pg_search) over the existing `chunks.text`
+"""Arm 2: build the BM25 index (pg_search) over the existing `chunks.text`
 column. No re-embedding needed -- this indexes text already loaded by
-day3_index_chunks.py.
+embed_local.py.
 """
 
 from dotenv import load_dotenv
