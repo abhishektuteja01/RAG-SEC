@@ -15,17 +15,19 @@ wheels/
 # Personal working rules, not project source of truth (spec.md/DECISIONS.md are)
 CLAUDE.md
 
+# Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
+# ignored -- it is the shared, committable half.
+.claude/settings.local.json
+
 # Regeneratable data (raw filings, parsed/chunked output) -- large,
-# reproducible from scripts/day2_ingest.py and scripts/day2_chunk.py.
-# Keep: logs (*.jsonl) except day2_chunk_log (raw per-chunk dump,
-# no findings), day2_findings.md.
+# reproducible from scripts/corpus/build_corpus.py.
+# Keep: logs (*.jsonl) and day2_findings.md.
 data/filings/
 data/parsed/
 data/chunks/
-data/day2_chunk_log.jsonl
 
 # Regeneratable HPC split-job payloads/outputs (embeddings, rerank scores) --
-# large, reproducible via the split-job scripts in scripts/index and scripts/arms.
+# large, reproducible via the split-job scripts in scripts/index and scripts/retrieval.
 # Keep the small aggregated *_dev_results.json/*_dev_failures.md instead.
 data/*_embed_payload.json
 data/*_rerank_payload.json
@@ -44,8 +46,9 @@ data/*_cpu_dev_failures.md
 data/day8_*payload*.json
 
 # Day 8 diagnostic dumps -- regeneratable free (no GPU, no API) from
-# scripts/diagnostics/day8_retrieval_failure_triage.py; 15MB of raw failure text.
+# scripts/analysis/failure_triage.py; 15MB of raw failure text.
 data/day8_failure_cases.json
+data/day8_failure_cases_retr16v2.json
 data/day8_failure_slices/
 
 # Superseded Day 8 outputs, kept ignored until deleted from disk:
@@ -58,5 +61,10 @@ data/day8_retr16_scores.jsonl
 data/day8_slice_scores_t150.jsonl
 data/day8_cost13_smoke.jsonl
 
-# Superseded by SESSION.md; delete once you have skimmed it.
-SESSION-2026-09-01-day8.md
+# Label audit (RETR-9/RETR-34) -- 38MB, all of it, deliberately including the verdicts.
+# cases/ and blind/ replay from scripts/analysis/label_audit_prepare.py (SEED=17; case_id
+# hashes the question id, not the labels, so ids survive matcher changes). verdicts/ are
+# model-generated, not human, and the audit is closed: its rates, mechanism and the
+# RETR-35 cross-check are all written up in DECISIONS.md RETR-34/RETR-35. Re-running is
+# an API cost, not a lost record. Score with label_audit_score.py before deleting on disk.
+data/label_audit/*
