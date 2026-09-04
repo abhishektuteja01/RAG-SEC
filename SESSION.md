@@ -85,26 +85,36 @@ remaining bugs are logged there as known and parked — not on this list. What i
 
 ### Cheap
 
-- **`COST-12` — merge `judge` into `answer`.** One send instead of two, ~-22% cost, and it
-  keeps a sufficiency signal rather than deleting one. Independent of everything else. ~1h.
-  *`COST-12` has no row of its own in `DECISIONS.md` — it is proposed inside `COST-11`/`COST-19`.
-  Same for `COST-13`, whose design and result live in `COST-20`/`COST-23`. Give each a row when
-  acted on.*
-- **Cap the thinking budget.** `gemini-3.7-flash` bills ~662 internal reasoning tokens per
-  call against ~110 visible, near-constant across arms — a floor of about $3.9/pass that
-  compression cannot touch. For a task whose answer is one number, capping it attacks the
-  floor directly. Parameter name and 3.7-flash support not yet verified.
+- **`thinking_level` medium -> low: wired, unmeasured.** `answer_ab_run.py --thinking` ships
+  (`COST-31`). The API default for `gemini-3.7-flash` is **medium**, and the script passed no
+  thinking config, so every cost number to date was billed at medium. `thinking` is part of the
+  checkpoint key, which makes the 278 stored rows the `medium` arm for free — only the `low`
+  arm needs paying for (~$2.02 standard, ~$1.01 batch). Google publishes no per-level token
+  counts, so the saving can only be measured, not estimated. Caveat before spending: the medium
+  rows are from 2026-09-02, so reusing them puts any API drift entirely in one arm — either
+  re-run both interleaved (~$4) or re-run ~60 medium rows as a drift check.
+- **`COST-12` is closed, decided against (`COST-30`).** Do not merge `judge` into `answer`.
+  The measured insufficiency rate is 15.1% against a ~15-25% break-even, so it was a coin flip
+  rather than the claimed 22%; and CRAG's loop loses to hybrid+rerank on T²-RAGBench itself.
+  `COST-13` still has no row of its own — its design and result live in `COST-20`/`COST-23`.
 - **`RETR-2` — widen `TOP_K`: DEAD (`RETR-33`).** Recovered 4.3 points on the Day 6 ordering;
   recovers 1.2 on the shipped one, because the whole reranker bucket is now 1.5 points.
 
 ### Expensive, and it invalidates everything upstream
 
-- **`RETR-7`/`RETR-8` — the heading bug.** 46.7% of chunks carry a heading set *after* some
-  of their own body text: a title atom below `TARGET_CHUNK_TOKENS` overwrites
-  `current_heading` instead of flushing. Observed: a balance sheet headed `# CREDIT RISK`.
-  `RETR-8` batches in stripping page furniture (`# F-58`, `# /s/ KPMG LLP`). **This is the
-  only open item that changes chunk text**, so it invalidates every embedding, the BM25
-  index and Arms 1-4. Do it last, in one re-index cycle, as has been the plan.
+- **`RETR-7`/`RETR-8` — the heading bug: BUILT, and shipped dark. Only the re-index is
+  left.** Both fixes are in `chunking.py` behind `RAG_SEC_MULTI_HEADING` /
+  `RAG_SEC_STRIP_TITLE_FURNITURE`, **defaulting off** because `rag_sec.compress` replays the
+  packer against the already-built `data/chunks/` (`INFRA-11`). Off is byte-identical to the
+  old packer — 99,654/99,654 chunks verified by `atom_replay.py`. The design constraint that
+  drove everything: **chunk boundaries do not move**, so gold labels keep pointing at the
+  same body text and the new numbers stay comparable to the published ones. Misattribution
+  51.7% -> 0.0% of atoms; 300/300 dev gold label sets unchanged. Verify with
+  `scripts/checks/heading_fix.py --labels 300`.
+  **Do not attach a recall claim to this.** `RETR-33` measured `no_gold_chunk` = 0% twice and
+  the heading is a median 0.91% of a chunk's tokens, so the expectation is ~0. It is a
+  correctness fix. The re-index still invalidates every embedding, the BM25 index and
+  Arms 1-4 — flip both flags on, re-chunk, re-embed, then re-score.
 
 ### Then back to `spec.md`
 
@@ -112,7 +122,12 @@ remaining bugs are logged there as known and parked — not on this list. What i
   across ≥2 table cells, does any of the A/B/C table-indexing strategies surface all the
   needed evidence — or is it a retrieval-vs-computation gap? The data dependency is
   satisfied (`GOLD-1`); the analysis has never been started.
-- **Days 9-14.** 9: Arm 6 vs the best static arm on multi-document questions. 10:
+- **Days 9-14.** 9: Arm 6 vs the best static arm on multi-document questions — and
+  `COST-30` sharpens the hypothesis: iteration's published wins are multi-hop *composition
+  across* documents, while on single-document table QA the corrective loop **loses** to
+  hybrid+rerank (CRAG recall@5 0.658 vs 0.816, arXiv:2604.01733). So Day 9 is not "does the
+  loop work" but "does it earn its cost on the multi-document minority, given it demonstrably
+  does not on the majority". Run it on the untouched split. 10:
   observability, then diagnose the ten worst failures from traces. 11: CI quality gate,
   citation grounding, unanswerable set, first interview drill. 12-13: AWS, MCP server,
   latency pass with a stated p95. 14: README, writeup, final drill.
@@ -123,7 +138,8 @@ remaining bugs are logged there as known and parked — not on this list. What i
   against Arm 1's 389MB, plus MaxSim needs an index pgvector doesn't have. Reported rather
   than built, per `spec.md`'s own framing.
 - **Loop on/off ablation.** ~$15, and Arm 3 already *is* the loop-off arm. Published work
-  says iterative retrieval doesn't pay on single-document financial table QA.
+  says iterative retrieval doesn't pay on single-document financial table QA — that assertion
+  now has a number and a citation on our own benchmark (`COST-30`).
 - **`slices50`.** Lost at all five budgets on the clean pool. Dead on replicated evidence.
 
 ---
@@ -198,6 +214,11 @@ worth more than the original claim.
   `RETR-22`'s chunk-level figure), and the near-miss filename clobber are all the same
   mistake — a value correct in one context, silently wrong in the next. Check provenance
   before quoting a number, including your own.
+- **A documented GA feature can still be unusable.** `service_tier="flex"` 503'd ~9 of 10
+  requests and `COST-13` actually ran at `standard` — the stored rows carry no `tier` field, so
+  this was recovered from latency (p50 2.74s vs flex's 1-15 min target) and from billing ($2.22
+  standard vs the $2.23 dashboard). **Batch, not flex, is the 50% route**, and the two do not
+  stack. `COST-29`. Check the key's tier in AI Studio before designing a batch runner.
 - **Don't run two CPU passes concurrently.** Measured 2026-09-01: contended ~0.5 it/s vs
   ~3.9 it/s alone — **8x, not 2x**. Each compression pass took ~5 min alone against a
   projected 40. Run them sequentially.

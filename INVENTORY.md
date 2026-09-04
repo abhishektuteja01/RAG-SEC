@@ -391,6 +391,12 @@ not a one-off. It belongs in a `tests/` folder.
 chunks byte for byte. **Keep — this is an integrity check, not a one-off.** It must be re-run after
 any change to chunking or parsing.
 
+**`heading_fix.py`** — the acceptance check for `RETR-7`/`RETR-8`. Asserts four things: with the
+flags off the packer is byte-identical to the pre-fix one, with them on every chunk boundary is
+unchanged, heading misattribution goes 51.7% -> 0.0%, and (with `--labels 300`) no dev gold label
+moves. **Keep — this is what makes the fix safe to ship dark**, and it must pass before the
+re-index cycle flips the flags on. Read-only, no GPU, no API calls.
+
 **`agent_loop_smoke_test.py`** — **the dangerous one.** It looks like a test, but every run makes live
 paid model calls (about $0.04) and writes rows into your database. There is **no dry-run and no
 confirmation prompt.** **Keep, but give it a guard.** It lives here rather than with the compression
