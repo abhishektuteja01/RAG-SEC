@@ -85,3 +85,43 @@ squeue -u tuteja.a          # same from either node
 Job 9950592 (Arm 3 dev) went in **PENDING (Priority)** — waiting for a free V100, which is
 the queue risk flagged before launch. Cluster-side logs are `~/rr-dev.log` and `~/rr-test.log`
 on shared home, readable from either login node.
+
+## Wall-clock margin on the test job — check this first if Arm 3 test is missing
+
+Both rerank jobs were submitted with `--time=08:00:00`.
+
+| job | started | 8h wall expires | projected finish | margin |
+|---|---|---|---|---|
+| 9950592 Arm 3 dev  | ~03:50 | ~11:50 | ~09:22 | comfortable |
+| 9950641 Arm 3 test | ~04:00 | ~12:00 | **~11:16** | **~45 min** |
+
+Measured rates as of 06:53: dev 4.0 q/min (640/1235), test 3.6 q/min (600/1546). Test is the
+larger split (1,546 vs 1,235 questions) *and* the slower rate, so it has little headroom. A
+15% slowdown puts it into the wall.
+
+**If it hits the wall, nothing is lost — but the pipeline will not resubmit for you.**
+`rerank_hpc.py` checkpoints per question id and skips what is already in the output file, so
+resuming is re-running the identical command:
+
+```bash
+ssh tuteja.a@login.explorer.northeastern.edu
+tmux new -s rr-test2
+srun --partition=gpu --gres=gpu:v100-sxm2:1 --cpus-per-task=4 --mem=48G --time=08:00:00 --pty /bin/bash
+module load python/3.13.5 && source ~/rerank-env/bin/activate
+cd ~ && python -u rerank_hpc.py retr7_rr_test_payload.json retr7_rr_test_scores.jsonl
+```
+
+Then, on this machine:
+
+```bash
+scp tuteja.a@xfer.discovery.neu.edu:~/retr7_rr_test_scores.jsonl data/
+uv run scripts/retrieval/rerank_score.py --scores data/retr7_rr_test_scores.jsonl \
+    --split test --out data/retr7_arm3_test_results.json
+```
+
+Do **not** pass `--baseline` — the scores file already carries `unfiltered_raw`, and the
+cached `day6_arm4_A` baseline is pre-RETR-7 and would mix two corpora. `rerank_score.py` now
+detects this and skips the merge automatically.
+
+The pipeline writes `## Arm 3 TEST -- DID NOT COMPLETE` into the results file in this case,
+so its absence will be explicit rather than silent.
