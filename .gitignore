@@ -77,6 +77,10 @@ data/label_audit/*
 data/batch_jobs/
 
 # RETR-7/RETR-8 re-index working files (INFRA-12)
+data/retr7_rr_*_payload.json
+data/retr7_rr_*_scores.jsonl
 data/chunks_pre_retr7/
 data/retr7_embed_payload.json
 data/retr7_embed_results.jsonl
+data/ingest_log.jsonl
+.DS_Store
