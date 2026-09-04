@@ -12,8 +12,8 @@ say `discovery.neu.edu` — that was the previous cluster name and those referen
 
 | | |
 |---|---|
-| login | `ssh tuteja.a@login.explorer.northeastern.edu` |
-| file transfer | the `xfer` host — **never** scp through the login node, it throttles and kills large transfers. **Exact hostname unconfirmed for Explorer**: `ARM3-2` recorded `xfer.discovery.neu.edu` under the old cluster name. Fill it in below the first time you use it. |
+| login | `ssh tuteja.a@login.explorer.northeastern.edu` (lands on `explorer-01`; key-based, no MFA prompt) |
+| file transfer | `xfer.discovery.neu.edu` (lands on `xfer-00`) — **never** scp through the login node, it throttles and kills large transfers. Confirmed working 2026-09-04: the login host moved to Explorer but the transfer host kept the old `discovery` name. |
 | environment | `module load python/3.13.5` then `source ~/rerank-env/bin/activate` |
 | what the venv has | `sentence-transformers`, `torch` 2.5.1+cu121, `tqdm`. No `rag_sec`, no DB driver, by design |
 | allocation | `srun --partition=gpu --gres=gpu:v100-sxm2:1 --cpus-per-task=4 --mem=48G --time=08:00:00 --pty /bin/bash` |
@@ -44,8 +44,8 @@ scripts are standalone files copied to `~`, depending only on `sentence-transfor
 NEU=tuteja.a
 
 # 1. laptop: build the payload, ship it through xfer
-scp <payload>.json  $NEU@<xfer-host>:~/
-scp <gpu-script>.py $NEU@<xfer-host>:~/
+scp <payload>.json  $NEU@xfer.discovery.neu.edu:~/
+scp <gpu-script>.py $NEU@xfer.discovery.neu.edu:~/
 
 # 2. cluster: allocate, then run inside tmux
 ssh $NEU@login.explorer.northeastern.edu
@@ -57,7 +57,7 @@ source ~/rerank-env/bin/activate
 cd ~ && python -u <gpu-script>.py <payload>.json <results>.jsonl
 
 # 3. laptop: bring results back and load
-scp $NEU@<xfer-host>:~/<results>.jsonl data/
+scp $NEU@xfer.discovery.neu.edu:~/<results>.jsonl data/
 ```
 
 Detach `Ctrl-b d`, reattach `tmux attach -t <job>`. Every GPU script here checkpoints per
@@ -96,8 +96,8 @@ tar -xzf ~/rag-sec-backups/chunks_json_*.tgz -C data/chunks_pre_retr7 --strip-co
 uv run scripts/index/reembed_changed.py --prepare data/retr7_embed_payload.json
 
 # 2. ship up (payload is 164 MB -- xfer host, not login)
-scp data/retr7_embed_payload.json $NEU@<xfer-host>:~/
-scp scripts/index/embed_hpc.py    $NEU@<xfer-host>:~/
+scp data/retr7_embed_payload.json $NEU@xfer.discovery.neu.edu:~/
+scp scripts/index/embed_hpc.py    $NEU@xfer.discovery.neu.edu:~/
 
 # 3. cluster
 ssh $NEU@login.explorer.northeastern.edu
@@ -109,7 +109,7 @@ source ~/rerank-env/bin/activate
 cd ~ && python -u embed_hpc.py retr7_embed_payload.json retr7_embed_results.jsonl
 
 # 4. laptop: apply (~1.03 GB comes back)
-scp $NEU@<xfer-host>:~/retr7_embed_results.jsonl data/
+scp $NEU@xfer.discovery.neu.edu:~/retr7_embed_results.jsonl data/
 uv run scripts/index/reembed_changed.py --load data/retr7_embed_results.jsonl
 
 # 5. verify
