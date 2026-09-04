@@ -1,25 +1,7 @@
-"""Eval harness: gold relevance labeling + retrieval metrics.
-
-T2-RAGBench gives each question a single annotated source page (`context`), not a chunk ID
-into our independently-parsed, independently-chunked corpus (DECISIONS.md DATA-3/DATA-4).
-
-Relevance labeling is a layered design (DECISIONS.md GOLD-1), tried in order per question:
-  1. `table_N` gold_inds (a specific table row, from the original FinQA/ConvFinQA datasets
-     upstream of T2-RAGBench -- 95.1% of the corpus, `data/day7_gold_evidence_resolved.json`):
-     exact numeric match against that row's own numbers -- a specific row's numeric
-     combination is a near-unique fingerprint, no overlap-ratio tuning needed.
-  2. `text_N` gold_inds (a specific sentence): word-position alignment against just that
-     sentence.
-  3. Fallback, whenever gold_inds didn't resolve (~4.9%): word-position alignment against
-     the whole `context` page.
-This replaced an IDF-weighted shingle+numeric-overlap labeler scored against the whole
-`context` page for every chunk (DATA-7/DATA-8/DATA-9). That approach is not reused here:
-auditing it found real, confirmed failure modes baked into whole-page matching --
-Table-of-Contents entries and repeated financial-statement headers scoring as relevant
-purely from page boilerplate, whole-integer tables invisible to a decimal-only numeric
-regex, and paragraphs split across our chunk boundaries systematically under-scoring the
-smaller half. Matching against a specific row or sentence instead of a whole page removes
-the ambiguity those failures came from, rather than patching each one individually.
+"""Gold relevance labeling + retrieval metrics. T2-RAGBench annotates a source page, not a
+chunk id into our own corpus, so relevance is inferred in three layers -- gold table row,
+then gold sentence, then whole page. `_relevance_evidence` documents them; DECISIONS.md
+GOLD-1 records why per-page matching was replaced (DATA-3/DATA-4/DATA-7..9).
 """
 
 import difflib
@@ -28,6 +10,7 @@ import math
 import os
 import re
 from collections import Counter
+from collections.abc import Hashable, Sequence
 from functools import lru_cache
 
 import pandas as pd
@@ -45,46 +28,32 @@ _WORD_RE = re.compile(r"\d+\.\d+|[a-z0-9]+")  # decimal alternative tried first,
 # real figure into two weaker signals and silently create a generic, noisy `3` token
 _NUMERIC_TOKEN_RE = re.compile(r"^\d+(\.\d+)?$")
 _YEAR_TOKEN_RE = re.compile(r"^(19|20)\d{2}$")
-MIN_ROW_NUMBER_DIGITS = 3  # calibrated: a bare 1-2 digit number (a footnote marker
-# `(4)`, a list position) recurs constantly across unrelated chunks and produces false
-# Layer-1 matches -- confirmed on a real case (finqa_dev_17/MSI matched an unrelated
-# debt-rating paragraph purely because it happened to contain a `(4)` footnote marker
-# matching the gold row's `$4` cell). 3+ digit figures are specific enough to trust.
-# Years (1900-2099) are excluded separately, not just by digit count: a filing's own
-# fiscal year recurs in nearly every one of its chunks (dates, headers), so it's exactly
-# as unreliable as a footnote marker despite being 4 digits -- confirmed on a real case
-# (finqa_dev_321/AES: a row's only "distinctive" numbers were `2003` + a $ amount;
-# without excluding the year, `2003` alone matched 130 of the filing's chunks).
+# A 1-2 digit number (a `(4)` footnote marker, a list position) recurs across unrelated
+# chunks and produced false Layer-1 matches (finqa_dev_17/MSI). Years are excluded
+# separately despite being 4 digits, because a filing's own fiscal year recurs in nearly
+# every chunk of it (finqa_dev_321/AES: `2003` alone matched 130 chunks).
+MIN_ROW_NUMBER_DIGITS = 3
 
-# Calibrated on a 200-row hand-checked sample spanning all three layers (DECISIONS.md
-# GOLD-1): min block sizes separate a genuine verbatim match from short coincidental
-# phrase overlap (page headers, boilerplate); MAX_CLUSTER_GAP stops a single stray
-# long-enough match (e.g. a Table-of-Contents entry echoing a section title many chunks
-# before the real section) from bridging into everything in between being marked
-# relevant; CLUSTER_SHARE_THRESHOLD still lets a second genuine occurrence of the same
-# content elsewhere in the filing register as relevant, while rejecting an isolated
-# short coincidence.
+# Calibrated on a 200-row hand-checked sample spanning all three layers (GOLD-1): the min
+# block sizes separate a verbatim match from coincidental phrase overlap, MAX_CLUSTER_GAP
+# stops one stray long match from bridging everything between it and the real content, and
+# CLUSTER_SHARE_THRESHOLD keeps a second genuine occurrence while rejecting a short one.
 MIN_BLOCK_PAGE = 10
 MIN_BLOCK_SENTENCE = 6
 MAX_CLUSTER_GAP = 3
 CLUSTER_SHARE_THRESHOLD = 0.15
-ROW_NUMBER_MATCH_THRESHOLD = 0.6  # requires *most*, not all, of a gold row's own numbers
-# to reappear in a chunk -- lets one number through that our table parser rounded/scaled
-# differently without opening the door to coincidental partial overlap (DECISIONS.md GOLD-1)
-ROW_NUMBER_MAX_DOC_FREQ = 5  # a number recurring in more than this many of the *same
-# filing's* own chunks isn't a distinctive fingerprint even if it's 3+ digits and not a
-# year -- confirmed on a real case (finqa_dev_126: a row's only qualifying number was a
-# `100%` column total, which recurs across dozens of unrelated percentage tables in the
-# same filing, matching 21 chunks). A genuinely evidence-specific number, or even a
-# legitimately duplicated disclosure, should recur in only a handful of chunks at most.
+# *Most*, not all, of a gold row's numbers -- tolerates one our table parser rounded or
+# scaled differently, without admitting coincidental partial overlap (GOLD-1).
+ROW_NUMBER_MATCH_THRESHOLD = 0.6
+# A number recurring in more of the same filing's own chunks than this is not a fingerprint
+# even at 3+ digits (finqa_dev_126: a `100%` column total matched 21 chunks).
+ROW_NUMBER_MAX_DOC_FREQ = 5
 
 
 def _normalize_words(text: str) -> list[str]:
-    """Lowercase + strip punctuation, collapsing comma thousands-separators inside a
-    number into one token first (`6,951` -> `6951`). Without this, our own chunk
-    serialization (`$6,951`) and the dataset's (`6951`) tokenize to a different word
-    count for the exact same figure, silently breaking any match on that number
-    (DECISIONS.md GOLD-1)."""
+    """Lowercase + strip punctuation, collapsing comma thousands-separators first
+    (`6,951` -> `6951`) -- our serialization and the dataset's otherwise tokenize the same
+    figure to a different word count, breaking every match on it (GOLD-1)."""
     text = _COMMA_IN_NUMBER_RE.sub("", text.lower())
     return _WORD_RE.findall(text)
 
@@ -99,11 +68,40 @@ def _numeric_tokens(words: list[str]) -> set[str]:
     }
 
 
+def _row_label_words(cells: list[str]) -> set[str]:
+    """The gold row's own label -- its first cell. A table row is a label/value pair and the
+    benchmark hands us both; matching only the values throws away half the evidence we were
+    given, which is how a `shares outstanding` row matched a `weighted-average diluted
+    shares` row carrying near-identical figures (RETR-34)."""
+    if not cells:
+        return set()
+    return {w for w in _normalize_words(str(cells[0])) if not _NUMERIC_TOKEN_RE.match(w)}
+
+
 def _table_row_relevant_chunks(cells: list[str], candidates: list[tuple]) -> set:
-    """Layer 1: chunk ids whose own text contains most of this gold row's numbers.
-    Position-independent (unlike Layers 2/3) -- a specific row's own numeric combination
-    is distinctive enough that no word-alignment is needed to place it, provided the
-    numbers themselves are actually distinctive within this filing (ROW_NUMBER_MAX_DOC_FREQ)."""
+    """Layer 1: the smallest set of chunks that COVERS this gold row's distinctive numbers.
+
+    Selection, not filtering (RETR-34). The benchmark names one row, and a row exists at one
+    place in the filing, so the quantity to recover is a location. The previous rule admitted
+    every chunk over a similarity bar, which is a different question and answered it badly:
+    labels averaged 2.88 chunks where they were wrong (max 7), each extra chunk inflating the
+    denominator of a recall score it had no business being in.
+
+    Coverage generalises over how many chunks the evidence really occupies, without capping
+    the count -- the document decides, not us:
+      * row wholly inside one chunk -> the best chunk covers everything, nothing else can add
+        anything, gold set is exactly 1
+      * row split across n chunks    -> each holds figures the others lack, all n admitted
+      * coincidental match           -> contributes only figures already covered, rejected,
+                                        however well it scores
+
+    Two guards, both the same "a single figure is not a fingerprint" reasoning that already
+    justifies MIN_ROW_NUMBER_DIGITS. A chunk carrying exactly one of the row's numbers is
+    admitted only if the row's *label* corroborates it -- otherwise one shared `500` makes a
+    stranger chunk gold. And if the union still fails to recover most of the row, we have
+    located nothing, so return empty rather than a pile of partial matches; that is
+    ROW_NUMBER_MATCH_THRESHOLD applied to the union instead of to each chunk alone.
+    """
     gold_nums = _numeric_tokens(_normalize_words(" ".join(str(c) for c in cells)))
     if not gold_nums:
         return set()
@@ -116,36 +114,45 @@ def _table_row_relevant_chunks(cells: list[str], candidates: list[tuple]) -> set
     if not distinctive:
         return set()
 
+    label = _row_label_words(cells)
+    scored = []
+    for (cid, text), chunk_nums in zip(candidates, chunk_nums_list):
+        got = distinctive & chunk_nums
+        if not got:
+            continue
+        # Same "most, not all" rule the numbers use, reused rather than a second constant.
+        words = set(_normalize_words(text))
+        label_ok = bool(label) and len(label & words) / len(label) >= ROW_NUMBER_MATCH_THRESHOLD
+        if len(got) < 2 and not label_ok:
+            continue
+        scored.append((len(got), label_ok, cid, got))
+
+    covered: set[str] = set()
     hits = set()
-    for (cid, _), chunk_nums in zip(candidates, chunk_nums_list):
-        if len(distinctive & chunk_nums) / len(distinctive) >= ROW_NUMBER_MATCH_THRESHOLD:
+    for _n, _lab, cid, got in sorted(scored, key=lambda x: (-x[0], not x[1], x[2])):
+        if got - covered:                      # earns its place only by adding evidence
             hits.add(cid)
+            covered |= got
+        if covered == distinctive:
+            break
+    if len(covered) / len(distinctive) < ROW_NUMBER_MATCH_THRESHOLD:
+        return set()
     return hits
 
 
 def _clustered_align_relevant_chunks(gold_words: list[str], candidates: list[tuple], min_block: int) -> set:
-    """Layers 2/3: chunks overlapping the gold text's real position in the document,
-    found by word-position alignment instead of independent per-chunk overlap scoring.
-    `candidates` must be given in document order -- natural chunk order for the
-    JSON-file path; `chunk_index` order within variant='A' for Arm 4's DB path
-    (ARM4-4: 'A' numbers a filing's chunks continuously from 0 -- the closest available
-    approximation for B/C's own standalone rows/summaries, which don't have a document
-    position of their own).
+    """Layers 2/3: chunks overlapping the gold text's real position in the document, found
+    by word-position alignment rather than per-chunk overlap scoring. `candidates` must be
+    in document order (chunk order for the JSON path, `chunk_index` within variant='A' for
+    the DB path -- ARM4-4).
 
-    Uses `difflib.SequenceMatcher` rather than fixed-width shingle windows: it tolerates
-    insertions/deletions, so one duplicated number token in the gold text (a known
-    dataset quirk, DECISIONS.md DATA-8) doesn't misalign every window after it the way a
-    fixed 5-gram window did. Matching blocks below `min_block` words are dropped (filters
-    short boilerplate/title coincidences -- confirmed on a real case: a Table-of-Contents
-    entry echoing a section header verbatim for 10-20+ words). Surviving blocks are
-    grouped into clusters by candidate-index proximity (`MAX_CLUSTER_GAP`) rather than
-    spanning from the first match to the last -- confirmed necessary: ~10% of a sampled
-    set of filings had a strong match more than 5 chunks from the real content (the same
-    TOC/boilerplate effect, just long enough to clear a naive floor); bridging
-    first-to-last would mark everything in between as relevant. A cluster only counts if
-    it accounts for at least `CLUSTER_SHARE_THRESHOLD` of the gold text's own words, so a
-    second genuine occurrence of the same content elsewhere in the filing still
-    registers, while an isolated short coincidence doesn't.
+    `difflib.SequenceMatcher`, not fixed-width shingles: it tolerates insertions, so one
+    duplicated gold number token (DATA-8) doesn't misalign every window after it. Blocks
+    under `min_block` words are dropped as boilerplate coincidence, and survivors are
+    clustered by candidate-index proximity instead of spanning first-match-to-last --
+    ~10% of sampled filings had a strong match 5+ chunks from the real content, which
+    first-to-last would bridge. A cluster counts only if it covers
+    `CLUSTER_SHARE_THRESHOLD` of the gold words.
     """
     if not gold_words:
         return set()
@@ -189,6 +196,8 @@ def _chunk_file_index(chunks_dir: str = CHUNKS_DIR) -> dict[tuple[int, int], str
     """Maps (cik, report_year) -> chunk filename, parsed from TICKER_YEAR_CIK.json."""
     index = {}
     for fname in os.listdir(chunks_dir):
+        if not fname.endswith(".json"):  # .DS_Store and friends would crash the unpack
+            continue
         ticker, year, cik = fname[:-5].rsplit("_", 2)
         index[(int(cik), int(year))] = fname
     return index
@@ -196,8 +205,6 @@ def _chunk_file_index(chunks_dir: str = CHUNKS_DIR) -> dict[tuple[int, int], str
 
 @lru_cache(maxsize=None)
 def _load_chunks(fname: str, chunks_dir: str = CHUNKS_DIR) -> tuple[dict, ...]:
-    import json
-
     with open(os.path.join(chunks_dir, fname)) as f:
         return tuple(json.load(f))
 
@@ -222,7 +229,7 @@ def load_matched_questions(chunks_dir: str = CHUNKS_DIR) -> pd.DataFrame:
 def _gold_evidence_resolved() -> dict:
     """question id -> {"table_rows": [[cell, ...], ...], "sentences": [str, ...]},
     resolved from the original FinQA/ConvFinQA `gold_inds` by `scripts/eval/
-    day7_resolve_gold_evidence.py` (DECISIONS.md GOLD-1). Empty dict (not an error) if
+    resolve_gold_evidence.py` (DECISIONS.md GOLD-1). Empty dict (not an error) if
     the file hasn't been built yet -- every question then falls through to Layer 3."""
     if not os.path.exists(GOLD_EVIDENCE_RESOLVED_PATH):
         return {}
@@ -231,7 +238,7 @@ def _gold_evidence_resolved() -> dict:
 
 @lru_cache(maxsize=None)
 def _gold_table_indices_by_question() -> dict:
-    """question_id -> set of gold table_index values, from day6_identify_gold_tables.py's
+    """question_id -> set of gold table_index values, from arm4_identify_gold_tables.py's
     own table-vs-table shingle match (independent of this module's chunk-vs-question one)."""
     if not os.path.exists(DAY6_GOLD_TABLES_PATH):
         return {}
@@ -270,23 +277,18 @@ def _relevance_evidence(
     candidates: list[tuple],
     gold_summaries: list[str],
 ) -> dict:
-    """Shared scoring core behind both `gold_relevant_chunk_evidence` (JSON-file corpus,
-    Arms 1-3) and `gold_relevant_chunk_evidence_db` (DB, per-variant, Arm 4) so the two
-    never drift apart. `candidates` is a list of (id, text) pairs, in document order (see
-    `_clustered_align_relevant_chunks`) -- `id` is whatever the caller wants back (a bare
-    index for the JSON path, a (chunk_index, variant) pair for the DB path, since
-    chunk_index alone collides across variants -- DECISIONS.md ARM4-*).
+    """Shared scoring core behind both public entry points, so the JSON-file path (Arms
+    1-3) and the per-variant DB path (Arm 4) can never drift apart. `candidates` is
+    (id, text) in document order; `id` is whatever the caller wants back -- a bare index
+    for JSON, a (chunk_index, variant) pair for the DB, where the index alone collides.
 
-    Three layers, tried in order (DECISIONS.md GOLD-1), falling through only if the
-    current one finds nothing:
-      1. `resolved["table_rows"]` -- exact numeric match against a specific gold table row.
-      2. `resolved["sentences"]` -- word-position alignment against a specific sentence.
-      3. `gold_context` -- word-position alignment against the whole page, used only when
-         `resolved` is empty/None (gold_inds didn't resolve for this question, ~4.9% of
-         the corpus) or produced no hits.
-    The gold-table-summary check (ARM4-5) is independent of all three -- an LLM paraphrase
-    routinely fails wording-based matching by design, so it's matched by direct
-    provenance instead, same as before.
+    Three layers (GOLD-1), each tried only if the previous found nothing:
+      1. `resolved["table_rows"]` -- numeric match against a specific gold table row.
+      2. `resolved["sentences"]` -- word alignment against a specific gold sentence.
+      3. `gold_context` -- word alignment against the whole page, for the ~4.9% whose
+         gold_inds never resolved.
+    The gold-table-summary check (ARM4-5) is independent of all three: an LLM paraphrase
+    fails wording-based matching by design, so it is matched by provenance instead.
 
     Returns {chunk_id: {"layer": ...}} -- callers only use `.keys()`.
     """
@@ -333,14 +335,11 @@ def gold_relevant_chunk_ids(row: pd.Series, chunks_dir: str = CHUNKS_DIR) -> lis
 
 
 def gold_relevant_chunk_evidence_db(row: pd.Series, conn, variant: str) -> dict[tuple[int, str], dict]:
-    """Per-chunk relevance evidence for a question, over the DB's per-variant candidate
-    pool for Arm 4: `variant='A'` rows not superseded for `variant`, plus `variant`'s own
-    rows (mirrors the WHERE clause the Arm 4 retrieval script itself uses, so scoring and
-    retrieval always see the same candidate set). Keyed by (chunk_index, variant) pairs,
-    not bare chunk_index, since A and B/C independently number chunks from 0 per filing
-    (DECISIONS.md ARM4-*) -- a bare index would silently collide two unrelated chunks.
-    `ORDER BY chunk_index` matters here (it didn't for the old per-chunk-independent
-    scoring): Layers 2/3 need candidates in document order to detect clusters correctly.
+    """Per-chunk relevance evidence over Arm 4's per-variant pool: `variant='A'` rows not
+    superseded for `variant`, plus `variant`'s own rows -- the same WHERE clause the Arm 4
+    retrieval script uses, so scoring and retrieval see one candidate set. Keyed by
+    (chunk_index, variant) because A and B/C each number chunks from 0 (ARM4-*).
+    `ORDER BY chunk_index` is load-bearing: Layers 2/3 need document order.
     """
     stem = _filing_stem(row)
     rows = conn.execute(
@@ -362,14 +361,16 @@ def gold_relevant_chunk_ids_db(row: pd.Series, conn, variant: str) -> list[tuple
     return sorted(gold_relevant_chunk_evidence_db(row, conn, variant).keys())
 
 
-def recall_at_k(retrieved_ids: list[int], relevant_ids: list[int], k: int) -> float:
+# Chunk ids are opaque to the metrics -- callers pass a bare index, a (stem, index) pair or
+# a (stem, index, variant) triple depending on the arm; only hashing and equality matter.
+def recall_at_k(retrieved_ids: Sequence[Hashable], relevant_ids: Sequence[Hashable], k: int) -> float:
     if not relevant_ids:
         return float("nan")
     hit = len(set(retrieved_ids[:k]) & set(relevant_ids))
     return hit / len(relevant_ids)
 
 
-def mrr(retrieved_ids: list[int], relevant_ids: list[int]) -> float:
+def mrr(retrieved_ids: Sequence[Hashable], relevant_ids: Sequence[Hashable]) -> float:
     relevant_set = set(relevant_ids)
     for rank, cid in enumerate(retrieved_ids, start=1):
         if cid in relevant_set:
@@ -377,7 +378,7 @@ def mrr(retrieved_ids: list[int], relevant_ids: list[int]) -> float:
     return 0.0
 
 
-def ndcg_at_k(retrieved_ids: list[int], relevant_ids: list[int], k: int) -> float:
+def ndcg_at_k(retrieved_ids: Sequence[Hashable], relevant_ids: Sequence[Hashable], k: int) -> float:
     relevant_set = set(relevant_ids)
     if not relevant_set:
         return float("nan")
@@ -389,3 +390,14 @@ def ndcg_at_k(retrieved_ids: list[int], relevant_ids: list[int], k: int) -> floa
     ideal_hits = min(len(relevant_set), k)
     idcg = sum(1.0 / math.log2(rank + 1) for rank in range(1, ideal_hits + 1))
     return dcg / idcg if idcg > 0 else float("nan")
+
+
+def mean_and_stderr(values: list[float]) -> tuple[float, float]:
+    """Sample mean and its standard error, ignoring NaN (ndcg is NaN when a question has no
+    gold chunk). ddof=1 because these are a sample of questions, not the population."""
+    values = [v for v in values if not math.isnan(v)]
+    n = len(values)
+    mean = sum(values) / n
+    variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
+    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
+    return mean, stderr

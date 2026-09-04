@@ -1,32 +1,37 @@
-"""Resolve which company a question is about, from the question text alone.
+"""Which company a question is about, read from the question string ALONE -- never from
+which filing it came from, which is the inflation `DATA-4` refused. RETR-3/RETR-4/RETR-5.
 
-`DECISIONS.md` RETR-3/RETR-4/RETR-5: three quarters of retrieved chunks come from the
-wrong document, half of them the right company's wrong year, because 10-Ks reprint
-themselves near-verbatim each year and neither BM25 nor a dense vector weights the year
-token. The question almost always names the company; the pipeline just never used it.
-
-The resolver reads ONLY the question string. It never looks at which filing the question
-came from -- hard-filtering to the gold filing would be the inflation `DATA-4` refused.
-
-Design rule throughout: **precision over recall.** A wrong filter deletes the gold
-outright, while failing to resolve only costs the speed-up -- callers fall back to
-unfiltered search. Every guard below resolves ties toward "don't filter".
+Design rule throughout: **precision over recall.** A wrong filter deletes the gold, while
+failing to resolve only costs the speed-up (callers fall back to unfiltered search), so
+every guard below resolves ties toward "don't filter".
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
+import warnings
 from functools import lru_cache
 from pathlib import Path
 
-LEXICON_PATH = Path("data/company_lexicon.json")
-WORDLIST_PATH = Path("/usr/share/dict/words")
+# Anchored to the repo, not the cwd: retrieval is imported from scripts, notebooks and the
+# HPC nodes, and a lexicon "missing" only because of where you were standing means every
+# question silently falls back to unfiltered search.
+_ROOT = Path(__file__).resolve().parents[2]
+LEXICON_PATH = _ROOT / "data" / "company_lexicon.json"
 
-MIN_ALIAS_LEN = 3  # 3-char names (Aon, AES) are real and were previously unreachable:
-# too short for the name path, and the ticker path needs an uppercase run that "Aon's"
-# doesn't have. They are admitted here but flagged risky, so they need the capitalization
-# test below -- see is_risky.
+# First existing candidate wins. `words` is macOS/BSD; the *-english files are what Debian's
+# `wordlist` package installs, and the HPC nodes have neither -- hence the env override.
+WORDLIST_CANDIDATES = (
+    Path(os.environ["COMPANY_WORDLIST"]) if os.environ.get("COMPANY_WORDLIST") else None,
+    Path("/usr/share/dict/words"),
+    Path("/usr/share/dict/american-english"),
+    Path("/usr/dict/words"),
+)
+
+MIN_ALIAS_LEN = 3  # 3-char names (Aon, AES) are real, so they are admitted -- but flagged
+# risky, so they still have to pass the capitalization test in is_risky
 MIN_TICKER_LEN = 2  # 5 of our 137 tickers are single characters (A, C, F, T, V) --
 # matching those as words would fire on ordinary English constantly
 MAX_TICKERS = 3  # a question naming more companies than this is being matched on
@@ -61,19 +66,30 @@ def _strip_suffix(name: str) -> str:
 
 @lru_cache(maxsize=1)
 def _english_words() -> frozenset[str]:
-    """System wordlist, used only to reject aliases that are ordinary English.
+    """System wordlist, used only to reject aliases that are ordinary English -- without it
+    GAP/CAT/KEY/ALL and names like Target or Visa fire on unrelated prose and filter to the
+    wrong company, the one failure mode that deletes gold. A missing wordlist degrades to no
+    guard, which is why the ticker path also demands an uppercase match in the original.
 
-    Without it, tickers like GAP/CAT/KEY/ALL/ON/SO and one-word names like Target or Visa
-    fire on unrelated prose and filter to the wrong company -- the one failure mode that
-    can actually delete gold. Absent wordlist degrades to no guard, which is why the
-    ticker path also requires an uppercase match in the original text.
-    """
-    if not WORDLIST_PATH.exists():
-        return frozenset()
-    return frozenset(w.strip().lower() for w in WORDLIST_PATH.read_text(errors="ignore").splitlines())
+    That degradation warns rather than passing silently: it is invisible in the results
+    (recall just drops on the questions whose alias is an English word), so a run on a
+    machine without a wordlist has to be attributable after the fact."""
+    for path in WORDLIST_CANDIDATES:
+        if path is not None and path.exists():
+            return frozenset(w.strip().lower() for w in path.read_text(errors="ignore").splitlines())
+    warnings.warn(
+        "No system wordlist found at any of "
+        + ", ".join(str(p) for p in WORDLIST_CANDIDATES if p is not None)
+        + " -- the English-word guard on risky aliases is OFF, so a question saying "
+        "'visa applications' can filter to Visa Inc. Set COMPANY_WORDLIST to a wordlist "
+        "file (DECISIONS.md RETR-11).",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+    return frozenset()
 
 
-def _aliases_for(name: str, ticker: str) -> set[str]:
+def _aliases_for(name: str) -> set[str]:
     """Every surface form of one company we're willing to match on.
 
     Covers: the full legal name, the name minus legal suffixes ("Analog Devices Inc" ->
@@ -144,7 +160,7 @@ def build_lexicon(path: Path = LEXICON_PATH) -> dict:
     tickers = set()
     for name, sym in df[["company_name", "company_symbol"]].drop_duplicates().itertuples(index=False):
         tickers.add(sym)
-        for alias in _aliases_for(str(name), str(sym)):
+        for alias in _aliases_for(str(name)):
             aliases.setdefault(alias, set()).add(sym)
     payload = {"aliases": {a: sorted(t) for a, t in aliases.items()}, "tickers": sorted(tickers)}
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -190,12 +206,10 @@ def _tickers_from_symbols(question: str) -> set[str]:
 def _capitalized_in(token: str, original: str) -> bool:
     """Does `token` appear capitalized somewhere other than the start of a sentence?
 
-    The only cheap, generic way to tell "Visa Inc." from "visa applications" without a
-    hand-maintained list of which company names happen to be English words. Sentence-initial
-    occurrences are excluded because every word is capitalized there -- "Apple prices rose
-    12%" would otherwise resolve to AAPL. Deliberately conservative: an all-lowercase or
-    ALL-CAPS question loses its risky aliases and falls back to unfiltered search, which
-    costs speed, not correctness.
+    The cheap generic way to tell "Visa Inc." from "visa applications" without hand-listing
+    which company names are English words. Sentence-initial matches don't count, since every
+    word is capitalized there ("Apple prices rose 12%" would resolve to AAPL). An
+    all-lowercase or ALL-CAPS question therefore falls back to unfiltered search.
     """
     for m in re.finditer(rf"\b{re.escape(token.capitalize())}\b", original):
         before = original[: m.start()].rstrip()
@@ -207,10 +221,9 @@ def _capitalized_in(token: str, original: str) -> bool:
 def matched_aliases(question: str) -> list[tuple[str, tuple[str, ...]]]:
     """(alias, tickers) for every alias that legitimately names a company in `question`.
 
-    The single acceptance test, shared by `resolve` and `strip_entity_framing`. They had
-    separate copies and drifted: the stripper lacked the multi-ticker guard below, so
-    "American Express" lost "American" and was reranked as "... transaction Express in
-    2007", a worse query than the untouched original.
+    The single acceptance test, shared by `resolve` and `strip_entity_framing` -- two copies
+    of these guards drift, and a stripper that drops "American" from "American Express"
+    produces a worse query than not stripping at all.
 
     Longest alias first, and a match is consumed, so "american" cannot re-fire after
     "american airlines group" has already claimed that span.
