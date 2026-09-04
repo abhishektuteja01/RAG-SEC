@@ -125,3 +125,50 @@ detects this and skips the merge automatically.
 
 The pipeline writes `## Arm 3 TEST -- DID NOT COMPLETE` into the results file in this case,
 so its absence will be explicit rather than silent.
+
+## Arm 3 dev — the clean before/after, and the answer to "did RETR-7 move retrieval?"
+
+Unlike Arm 1/Arm 2, this comparison is **not confounded**: all four Arm 3 cells were already
+re-scored under `RETR-35`'s corrected labels, and this run uses the same labeller. Only the
+corpus changed.
+
+| cell (dev) | published, pre-RETR-7 | post-RETR-7 | delta |
+|---|---|---|---|
+| Arm 3 = unfiltered_raw, recall@10 | 0.634 | **0.629** | -0.005 |
+| Arm 3 recall@50 | 0.713 | **0.708** | -0.005 |
+| filter+strip, recall@10 | 0.765 | **0.760** | -0.005 |
+| filter+strip, recall@50 | 0.806 | **0.802** | -0.004 |
+
+**RETR-7/RETR-8 changed retrieval by -0.005, well inside the +/-0.013 stderr. No measurable
+effect.** That is exactly what was predicted before building it: `RETR-33` measured
+`no_gold_chunk` = 0% twice, and the heading is a median 0.91% of a chunk's tokens. The fix
+shipped as a correctness fix with a stated expectation of ~0, and the expectation held.
+
+This also retro-explains Arm 1/Arm 2: their apparent -0.017 / -0.006 against the naive
+label-corrected prediction was the +0.025 estimate being imprecise, not RETR-7 doing harm.
+
+### The superadditivity result replicates on the new corpus
+
+| | pre-RETR-7 | post-RETR-7 |
+|---|---|---|
+| filter alone | +0.040 | **+0.040** |
+| strip alone | +0.021 | **+0.017** |
+| both together | +0.148 | **+0.131** |
+| additive prediction | 0.061 | 0.057 |
+| ratio | 2.4x | **2.3x** |
+
+The interaction is reproduced on an independently re-embedded corpus. `RETR-6`'s explanation
+survives: without the filter the company name genuinely discriminates among 799 filings, so
+stripping it destroys signal; with the filter every candidate is already the right company,
+so the name only rewards boilerplate.
+
+Note `unfiltered_stripped` moves recall@50 by exactly +0.000 while moving recall@10 by
++0.017 — stripping reorders the top of the list without changing what is in the pool at all,
+which is what a rerank-only change should do.
+
+### The stale-baseline guard fired
+
+`rerank_score.py` printed: *"scores file already has unfiltered_raw for all 1235 questions
+-- NOT merging the cached baseline day6_arm4_A_rerank_scores.jsonl"*. Without the fix made
+before this run, the pre-RETR-7 cached cell would have been merged into a post-RETR-7 2x2
+and the whole ablation would have been silently mis-attributed.
