@@ -25,6 +25,19 @@ The two `.sbatch` files are an unattended fallback, not the normal path.
 If two jobs are queued, stagger the second past the first's model load: both read the same
 model from one `~/.cache/huggingface`, and two cold downloads to one path risk corrupting it.
 
+## Two environments, two invocations
+
+Don't mix these up — it is the easiest mistake here.
+
+| where | how to run |
+|---|---|
+| **laptop** | `uv run scripts/...` — the project is a uv workspace (`uv sync` to set up) |
+| **HPC node** | `module load python/3.13.5`, `source ~/rerank-env/bin/activate`, then plain `python -u ...` |
+
+There is no `uv` and no `rag_sec` package on the cluster, deliberately (`ARM3-2`): the GPU
+scripts are standalone files copied to `~`, depending only on `sentence-transformers`,
+`torch` and `tqdm`. That is what lets a GPU run survive with no DB and no repo checkout.
+
 ## General shape
 
 ```bash
@@ -75,12 +88,12 @@ tar -czf ~/rag-sec-backups/chunks_json_$(date +%Y%m%d).tgz data/chunks
 ```bash
 # 1. laptop: re-chunk with both flags on, then build the payload
 RAG_SEC_MULTI_HEADING=1 RAG_SEC_STRIP_TITLE_FURNITURE=1 \
-  .venv/bin/python scripts/corpus/build_corpus.py --rechunk
+  uv run scripts/corpus/build_corpus.py --rechunk
 
 mkdir -p data/chunks_pre_retr7
 tar -xzf ~/rag-sec-backups/chunks_json_*.tgz -C data/chunks_pre_retr7 --strip-components=2
 
-.venv/bin/python scripts/index/reembed_changed.py --prepare data/retr7_embed_payload.json
+uv run scripts/index/reembed_changed.py --prepare data/retr7_embed_payload.json
 
 # 2. ship up (payload is 164 MB -- xfer host, not login)
 scp data/retr7_embed_payload.json $NEU@<xfer-host>:~/
@@ -97,12 +110,12 @@ cd ~ && python -u embed_hpc.py retr7_embed_payload.json retr7_embed_results.json
 
 # 4. laptop: apply (~1.03 GB comes back)
 scp $NEU@<xfer-host>:~/retr7_embed_results.jsonl data/
-.venv/bin/python scripts/index/reembed_changed.py --load data/retr7_embed_results.jsonl
+uv run scripts/index/reembed_changed.py --load data/retr7_embed_results.jsonl
 
 # 5. verify
-.venv/bin/python scripts/checks/candidate_sql.py
-.venv/bin/python scripts/checks/variant_predicates.py
-.venv/bin/python scripts/checks/atom_replay.py       # expect 99,654/99,654
+uv run scripts/checks/candidate_sql.py
+uv run scripts/checks/variant_predicates.py
+uv run scripts/checks/atom_replay.py       # expect 99,654/99,654
 ```
 
 `embed_hpc.py` is **unchanged** from the day-5 corpus-growth run: its payload format is
