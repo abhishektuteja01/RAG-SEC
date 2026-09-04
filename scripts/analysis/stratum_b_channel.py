@@ -19,9 +19,9 @@ Modes:
   --survival N N dev questions: matcher survival vs figure survival, and B's mislabel rate
 
 Usage:
-    python scripts/diagnostics/day8_stratum_b_channel.py --pairs
-    python scripts/diagnostics/day8_stratum_b_channel.py --trace finqa_dev_447
-    python scripts/diagnostics/day8_stratum_b_channel.py --survival 300
+    python scripts/analysis/stratum_b_channel.py --pairs
+    python scripts/analysis/stratum_b_channel.py --trace finqa_dev_447
+    python scripts/analysis/stratum_b_channel.py --survival 300
 """
 
 import argparse
@@ -83,14 +83,14 @@ def slice_scores(keep: set[str] | None = None) -> dict[str, list]:
         try:
             r = json.loads(line)
         except json.JSONDecodeError:
-            continue  # tolerated only for a partial tail, as in day8_finalize_compression
+            continue  # tolerated only for a partial tail, as in slice_budget_sweep
         if keep is None or r["id"] in keep:
             out[r["id"]] = r["scores"]
     return out
 
 
 def slice_units(qid: str, top: list[tuple[str, int]], scores: list) -> list[dict]:
-    """The exact units `day8_cost13_prepare.py` packs, in score order, with provenance."""
+    """The exact units `answer_ab_prepare.py` packs, in score order, with provenance."""
     texts, full = {}, []
     for stem, idx in top:
         try:

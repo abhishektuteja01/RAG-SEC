@@ -1,4 +1,4 @@
-"""Day 8: does slicing atoms finer make budget-limited evidence viable?
+"""Does slicing atoms finer make budget-limited evidence viable?
 
 Selecting whole atoms fails because a gold-bearing atom averages 684 tokens (76% of its
 chunk), so a 2k budget holds ~3 of them -- effectively recall@2, which Arm 3 measures at
