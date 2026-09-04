@@ -1,11 +1,6 @@
-"""Day 8 -- LangGraph agentic loop: plan -> retrieve -> judge -> (loop back to plan, or
-answer). See spec.md Day 8, DECISIONS.md AGENT-1/AGENT-2 for the model choices this
-builds on (plan: Gemini 3.7 Flash at thinking_level="low" -- it rejects "minimal" with a
-400; judge: Gemini 3.1 Flash-Lite at "minimal").
-
-Unlike Arms 1-4 (one-shot retrieval), this issues a fresh sub-query each iteration and
-lets a separate cheap model (`judge`) decide when enough evidence has been gathered --
-targets the multi-hop questions Fin-RATE flags as breaking one-shot retrieval.
+"""LangGraph agentic loop: plan -> retrieve -> judge -> (loop, or answer). Unlike Arms 1-4's
+one-shot retrieval it issues a fresh sub-query per iteration and lets a cheap `judge` model
+decide when the evidence is enough. spec.md Day 8, DECISIONS.md AGENT-1/AGENT-2.
 """
 
 import json
@@ -20,14 +15,17 @@ from langgraph.graph.message import add_messages
 
 from rag_sec.retrieve import retrieve as _retrieve
 
-MAX_ITERATIONS = 4  # hard stop regardless of judge verdict -- bounds cost per spec.md's
-# Day 9 budget; DECISIONS.md AGENT-1 sizes cost for a *fixed* number of calls per question
+# Hard stop regardless of judge verdict: AGENT-1 sizes cost for a fixed number of calls.
+MAX_ITERATIONS = 4
 
 
+# Bound to `plan` for its schema only -- `plan` emits the tool call and `retrieve_node`
+# executes it, so this body never runs inside the graph. k stays at retrieve()'s own
+# default (AGENT-7 checked recall@3/5/10 before keeping 10).
 @tool
 def retrieve_tool(query: str) -> list[dict]:
     """Search SEC filing chunks (dense + BM25 + reranked) for text relevant to `query`."""
-    return _retrieve(query, k=10)
+    return _retrieve(query)
 
 
 class AgentState(TypedDict):
@@ -35,13 +33,11 @@ class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
     retrieved_chunks: Annotated[list[dict], operator.add]
     iteration: int
-    judge_verdicts: Annotated[list[str], operator.add]  # one per iteration, not just the latest --
-    # a smoke-test trajectory printout needs to see judge's call at every loop, not just
-    # the one that ended it
+    # one verdict per iteration, not just the last: a trajectory printout wants every call
+    judge_verdicts: Annotated[list[str], operator.add]
     final_answer: str
-    usage: Annotated[list[dict], operator.add]  # one entry per LLM call: {node, model, input_tokens,
-    # output_tokens, total_tokens} -- per-call, not aggregated, so cost/latency can be broken
-    # down by node (spec.md Day 9 wants full trajectory metrics, not just a final total)
+    # one entry per LLM call, unaggregated, so cost/latency break down by node (spec.md Day 9)
+    usage: Annotated[list[dict], operator.add]
 
 
 def _evidence_text(chunks: list[dict]) -> str:
@@ -60,13 +56,10 @@ def _evidence_text(chunks: list[dict]) -> str:
 
 def _record_usage(node: str, model: str, response) -> dict:
     meta = getattr(response, "usage_metadata", None) or {}
-    # cache_read tracks Gemini's automatic prefix caching (no opt-in needed, confirmed
-    # active for both gemini-3.1-flash-lite and gemini-3.7-flash) -- plan's growing
-    # message history and judge's growing evidence block are each a literal shared
-    # prefix across loop iterations, so cache hits should appear from iteration 2+ on
-    # any question that loops, confirming it's actually firing and not just documented.
-    # Min threshold is 4096 tokens for 3.7 Flash -- iteration 1 calls (~150-300 tokens
-    # measured) are too small to ever hit; only loop iterations can benefit.
+    # Gemini's prefix caching is automatic, and both plan's message history and judge's
+    # evidence block are literal shared prefixes across iterations -- so recording
+    # cache_read is how we tell it actually fires rather than merely being documented.
+    # 3.7 Flash's 4096-token minimum means only loop iterations can ever hit.
     cache_read = (meta.get("input_token_details") or {}).get("cache_read", 0)
     return {
         "node": node,
@@ -131,7 +124,7 @@ def retrieve_node(state: AgentState) -> dict:
     last = state["messages"][-1]
     assert isinstance(last, AIMessage) and last.tool_calls, "plan_node must always emit a tool call"
     call = last.tool_calls[0]
-    results = _retrieve(call["args"]["query"], k=10)
+    results = _retrieve(call["args"]["query"])
     tool_message = ToolMessage(content=json.dumps(results), tool_call_id=call["id"])
     return {"messages": [tool_message], "retrieved_chunks": results}
 

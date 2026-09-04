@@ -1,10 +1,6 @@
-"""Postgres + pgvector(+pg_search) connection and schema for Arms 1-2.
-
-DECISIONS.md INFRA-1: pgvector chosen over a dedicated vector DB. Embedding dim (1024) is
-BGE-M3's dense output size, not chosen independently — see DECISIONS.md ARM1-1.
-DECISIONS.md INFRA-4: pg_search (ParadeDB) adds a real BM25 index alongside pgvector, in
-the same table, for Arm 2 hybrid search — not Postgres's tsvector/ts_rank, which lacks
-BM25's document-length normalization and term saturation (spec.md's explicit trap).
+"""Postgres connection and chunk schema: pgvector for dense search, pg_search (ParadeDB)
+for real BM25 in the same table -- not tsvector/ts_rank, which has neither length
+normalization nor term saturation. DECISIONS.md INFRA-1/INFRA-4.
 """
 
 import os
@@ -15,7 +11,7 @@ from pgvector.psycopg import register_vector
 
 from rag_sec.preflight import assert_variant_predicates
 
-EMBEDDING_DIM = 1024
+EMBEDDING_DIM = 1024  # BGE-M3's dense output size, not an independent choice (ARM1-1)
 
 SCHEMA_SQL = f"""
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -54,14 +50,10 @@ WITH (key_field='id');
 """
 
 
-# DECISIONS.md RETR-24: Arm 4 added 6,373 B/C rows alongside A, and every retrieval
-# query outside day6_* still said `FROM chunks` with no variant predicate -- so B/C rows
-# entered A's candidate pools and, because B/C number chunk_index from 0 independently,
-# were scored as if they were different A chunks. The DB said 106,027 and the docs said
-# 99,654 for hours and nothing compared them. DATA-6 says trust the DB; this makes the DB
-# say so out loud. Pinned per-variant, so the next corpus change cannot land silently --
-# updating these numbers is the moment to re-audit every read for a variant predicate
-# (scripts/diagnostics/check_variant_predicates.py does that mechanically).
+# Pinned per-variant, not as a total: RETR-24's contamination (Arm 4's B/C rows entering
+# A's candidate pools) moved only the total, which nothing was comparing. Updating these
+# numbers is the moment to re-audit every read for a `variant` predicate
+# (scripts/checks/variant_predicates.py does that mechanically).
 EXPECTED_CHUNK_COUNTS = {"A": 99654, "B": 4708, "C": 1665}
 
 _preflight_done = False
@@ -70,12 +62,8 @@ _preflight_done = False
 def preflight(conn) -> None:
     """Fail if the corpus isn't the one every published number was measured on.
 
-    The other half of RETR-24 (a read that forgot its `variant` predicate) is checked in
-    get_conn before connecting -- neither subsumes the other, since pinned counts miss a
-    newly written bad query against a stable corpus.
-
-    Once per process (retrieve.py opens a connection per search, so this cannot be
-    per-connection). ~10ms: one grouped count.
+    Once per process, not per connection -- retrieve.py opens one per search. ~10ms.
+    RETR-24's other half (a read missing its `variant` predicate) is checked in get_conn.
     """
     global _preflight_done
     if _preflight_done:
@@ -99,7 +87,7 @@ def preflight(conn) -> None:
             "chunks table does not match EXPECTED_CHUNK_COUNTS (DECISIONS.md RETR-24):\n"
             + "\n".join(problems)
             + "\n\nIf this change was intentional, update EXPECTED_CHUNK_COUNTS in store.py"
-            "\nAND re-run scripts/diagnostics/check_variant_predicates.py -- new non-A rows"
+            "\nAND re-run scripts/checks/variant_predicates.py -- new non-A rows"
             "\nare only safe if every read constrains `variant`. Writers that legitimately"
             "\nmove these counts should call get_conn(check=False)."
         )

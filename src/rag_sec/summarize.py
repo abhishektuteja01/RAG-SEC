@@ -1,12 +1,5 @@
-"""Claude-backed table summarizer for Arm 4 Strategy C -- DECISIONS.md ARM4-2/ARM4-5.
-
-Switched from Groq's openai/gpt-oss-120b after a 50-table spot-check found real
-comprehension errors (22% error rate: wrong direction of change, mismatched
-column/year labels, unit confusion) -- not just the reasoning-token-budget bug that
-model also had. Pinned to claude-haiku-4-5-20251001: cheap enough that cost is a
-non-issue at ~500 calls, and -- unlike gpt-oss-120b -- doesn't spend its token budget
-on hidden reasoning by default (extended thinking is opt-in, not automatic), so
-there's no repeat of the empty/truncated-output failure mode either.
+"""Claude-backed table summarizer for Arm 4 Strategy C. The only file here that costs money
+to run, and it should not run again -- Strategy C lost. DECISIONS.md ARM4-2/ARM4-5/ARM4-6.
 """
 
 import os
@@ -15,32 +8,27 @@ import time
 
 from anthropic import Anthropic
 
-# SEC filings use a bare dash/em-dash as the convention for "zero" in a value cell (not
-# "no data") -- e.g. a rollforward's opening balance shown as "$-". Tested prompting the
-# model to interpret this correctly (explicit rule + a worked "first row = start, dash =
-# 0" instruction); it still misread it as "skip to the next number" on a real example
-# even with the rule spelled out twice. Normalizing at the source removes the ambiguity
-# instead of relying on the model to resolve it -- see DECISIONS.md ARM4-6.
+# A bare dash in a value cell is a filing's convention for zero, not "no data" (a
+# rollforward's opening balance shown as "$-"). Prompting the model to read it that way
+# failed even with the rule spelled out twice, so it is normalized at the source (ARM4-6).
 _DASH_CELL_RE = re.compile(r"^(\$?)\s*[-–—―\x97]+\s*$")
 
-
-def _normalize_dash_cells(rows: list[list[str]]) -> list[list[str]]:
-    return [
-        [_DASH_CELL_RE.sub(lambda m: f"{m.group(1)}0", cell) for cell in row]
-        for row in rows
-    ]
-
+# Pinned: cheap at ~500 calls, and its extended thinking is opt-in, so a fixed max_tokens
+# is actually spendable on output. ARM4-2 has the models this beat and on what.
 MODEL_NAME = "claude-haiku-4-5-20251001"
 MIN_CALL_INTERVAL_S = 0.3
 MAX_RETRIES = 4
 MAX_TOKENS = 1200  # room for the structural pre-analysis plus the final summary
 
-# Forces a structure-first read before the model commits to any number, targeting the
-# actual failure CLASSES a 50-table spot-check found (not one-off patches per table):
-# multi-row/split headers, rollforward tables where the true starting balance is a
-# dash/em-dash placeholder for zero (mistaken for "no data" or skipped for the next
-# number), column/period misalignment, unstated units, and ungrounded trend direction.
-# The analysis is discarded after parsing -- only the SUMMARY: line gets indexed.
+
+def _normalize_dash_cells(rows: list[list[str]]) -> list[list[str]]:
+    return [[_DASH_CELL_RE.sub(lambda m: f"{m.group(1)}0", cell) for cell in row] for row in rows]
+
+
+# Forces a structure-first read before the model commits to a number, aimed at the failure
+# CLASSES the spot-check found rather than one patch per table: split headers, rollforward
+# start/end rows, column misalignment, unstated units, ungrounded trend direction. The
+# analysis is discarded after parsing -- only the SUMMARY: line gets indexed.
 _PROMPT_TEMPLATE = """\
 You are reading a financial table extracted from an SEC 10-K filing, to produce a short \
 summary that will be indexed for semantic retrieval. Work through the table's structure \

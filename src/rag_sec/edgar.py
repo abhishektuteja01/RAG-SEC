@@ -1,7 +1,5 @@
-"""Fetches real 10-K filings from SEC EDGAR by CIK + fiscal year.
-
-Used to reconstruct full filings (not just the single annotated page T2-RAGBench
-ships), so parsing and retrieval are exercised at production scale, not toy snippets.
+"""Fetches real 10-K filings from SEC EDGAR by CIK + fiscal year, so the corpus is whole
+filings rather than the single annotated page T2-RAGBench ships (DECISIONS.md DATA-3).
 """
 
 import os
@@ -49,17 +47,12 @@ def _search_filings_block(block: dict, cik: int, fiscal_year: int) -> dict | Non
 def find_10k_accession(cik: int, fiscal_year: int) -> dict | None:
     """Finds the 10-K filed for a given fiscal year.
 
-    Matches on the filing's `reportDate` (period of report) year, not `filingDate`.
-    A prior version matched filingDate in {fiscal_year, fiscal_year+1} to account for
-    the filing lag after fiscal year-end — but for non-calendar-fiscal-year filers
-    (e.g. Sysco, Apple, Nike), consecutive fiscal years' 10-Ks can both have filingDate
-    in that window, and since EDGAR lists filings most-recent-first, the wrong
-    (later) fiscal year's 10-K would be returned. Confirmed on the 100-filing corpus:
-    26/100 had the wrong fiscal year under the old logic (DECISIONS.md DATA-5).
+    Matches `reportDate` (period of report), not `filingDate`: for non-calendar-fiscal-year
+    filers two fiscal years' 10-Ks can share a filingDate window, and EDGAR lists
+    most-recent-first, so date matching returned the later year -- 26/100 wrong (DATA-5).
 
-    The submissions API's "recent" block only covers roughly the company's last
-    ~1,000 filings; older filings live in separate paginated JSON files listed
-    under filings.files, so we fall back to those for older fiscal years.
+    The "recent" block covers only ~1,000 filings, so older years fall back to the
+    paginated files listed under `filings.files`.
     """
     url = f"https://data.sec.gov/submissions/CIK{cik:010d}.json"
     data = _get(url).json()

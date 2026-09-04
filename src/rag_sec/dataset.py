@@ -1,5 +1,5 @@
-"""Loads T2-RAGBench (FinQA/ConvFinQA/TAT-DQA) from Hugging Face into a DataFrame,
-assigning a train/dev/test split to ConvFinQA (the only subset that ships without one).
+"""Loads T2-RAGBench (FinQA/ConvFinQA/TAT-DQA) from Hugging Face, assigning a
+train/dev/test split to ConvFinQA -- the only subset that ships without one.
 """
 
 from typing import Literal
@@ -30,10 +30,9 @@ SubsetName = Literal["ConvFinQA", "FinQA", "TAT-DQA", "all"]
 def assign_convfinqa_splits(df: pd.DataFrame) -> pd.DataFrame:
     """Assigns train/dev/test to ConvFinQA rows (originally all `split == "all"`).
 
-    ConvFinQA ships with no split, unlike FinQA (~80/10/10 by row count) and TAT-DQA
-    (~80/10/10 by row count), so this mirrors that ratio. Splits by `context_id`
-    (the source document), not by row, so a document's questions can't leak across
-    train/dev/test. Deterministic (fixed seed) so re-running produces the same split.
+    Mirrors FinQA's and TAT-DQA's ~80/10/10 row ratio. Splits by `context_id` (the source
+    document), not by row, so a document's questions can't leak across splits; fixed seed,
+    so re-running reproduces it.
     """
     doc_counts = df.groupby("context_id").size()
     doc_ids = doc_counts.index.to_numpy()

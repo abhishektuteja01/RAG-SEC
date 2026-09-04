@@ -1,22 +1,15 @@
-"""Chunking v1: packs parsed blocks into token-budgeted, structure-aware chunks.
-
-Bounds derived from T2-RAGBench's own evidence spans (median 630 words / ~800
-tokens, p90 990 words / ~1300 tokens) -- see DECISIONS.md. Tables are never
-split mid-row; oversized tables are split by row-group with the header row
-repeated in each group instead. `chunk_blocks_with_variant`'s `table_variant_map`
-lets specific tables opt into Arm 4's "B" (one chunk per row) or "C" (raw table +
-LLM summary chunk) via a post-packing splice, leaving every other chunk in the
-filing byte-identical to plain `chunk_blocks` -- see DECISIONS.md ARM4-*.
+"""Packs parsed blocks into token-budgeted chunks that never split a table mid-row.
+Budgets come from T2-RAGBench's own evidence spans (median ~800 tokens, p90 ~1300); Arm 4's
+per-table B/C variants are a post-packing splice -- DECISIONS.md CHUNK-2/ARM4-*.
 """
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Callable, Literal
 
 from transformers import AutoTokenizer
-
-import re
 
 from rag_sec.config import EMBED_MODEL_NAME
 from rag_sec.parsing import Block, TableBlock
@@ -26,13 +19,10 @@ TableStrategy = Literal["A", "B", "C"]
 MIN_CHUNK_TOKENS = 200
 TARGET_CHUNK_TOKENS = 900
 MAX_CHUNK_TOKENS = 1500
-# sec-parser sometimes misclassifies a long bold-formatted paragraph (e.g. an
-# Item 15 exhibit-index entry, boilerplate cross-reference, or signature
-# block) as a TitleElement. Checked every title >100 tokens across all 100
-# sampled filings (16 total): none are genuine headings. Not a logical
-# guarantee for filings outside this sample -- but the failure mode is soft
-# either way (a real long heading would just lose its grouping role and
-# become ordinary body text, not corrupted data).
+# sec-parser types a long bold paragraph (exhibit-index entry, signature block) as a
+# TitleElement. All 16 titles >100 tokens in the 100-filing sample were checked by hand and
+# none was a real heading (CHUNK-3). Empirical, but the failure mode is soft: a genuine long
+# heading would only lose its grouping role, not corrupt anything.
 MAX_TITLE_TOKENS = 100
 
 _TOKENIZER = None
@@ -83,11 +73,9 @@ _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 def _split_text(text: str) -> list[str]:
     """Splits an oversized text block into sentence-packed groups under MAX_CHUNK_TOKENS.
 
-    Some filers (e.g. JPM_2007) don't restate "Item N" as body headings, so
-    sec-parser -- lacking any internal structural break -- merges whole
-    swaths of body text (Item 1 through Item 4, in that case) into a single
-    18k-token TextElement. Without this, that one atom would become one
-    unembeddable oversized chunk (BGE-M3's max context is 8192 tokens).
+    Filers that never restate "Item N" as a body heading leave sec-parser no structural
+    break, so it merges whole Items into one 18k-token element (JPM_2007) -- which without
+    this would be a single unembeddable chunk, past BGE-M3's 8192 limit (CHUNK-3).
     """
     normalized = " ".join(text.split())
     sentences = _SENTENCE_SPLIT.split(normalized)
@@ -125,10 +113,8 @@ class Atom:
     is_table: bool
     # forces its own chunk, bypassing the token-packer -- see DECISIONS.md ARM4-1/ARM4-2
     is_standalone: bool = False
-    # 0-based position among TableBlocks only, set on every atom derived from a table
-    # (None for atoms from ordinary text blocks) -- lets chunk_blocks_with_variant find
-    # and splice out a specific table's atoms after packing, without re-running the
-    # packer -- see DECISIONS.md ARM4-4
+    # 0-based position among TableBlocks only (None for text atoms) -- lets
+    # chunk_blocks_with_variant splice one table's atoms out after packing (ARM4-4)
     table_idx: int | None = None
 
 
@@ -197,10 +183,9 @@ class Chunk:
 
 
 def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
-    """The token-budget packer. Returns each Chunk paired with the atoms that made it up,
-    so chunk_blocks_with_variant can splice out one table's atoms after the fact without
-    re-running this function (re-running it with different atoms is what caused the
-    boundary-drift bug -- DECISIONS.md ARM4-4)."""
+    """The token-budget packer. Returns each Chunk paired with the atoms that made it up, so
+    chunk_blocks_with_variant can splice one table's atoms out afterwards rather than
+    re-running this with different-sized atoms, which moves every later boundary (ARM4-4)."""
     packed: list[tuple[Chunk, list[Atom]]] = []
     current: list[Atom] = []
     current_tokens = 0
@@ -298,10 +283,11 @@ def chunk_blocks_with_variant(
     """Builds Strategy-A chunk boundaries first (`_pack_atoms`, identical to `chunk_blocks`),
     then splices each targeted table's atoms out of whichever chunk(s) they landed in and
     replaces them with its B/C atoms -- surrounding chunks, and any leading/trailing
-    narrative sharing a chunk with the table, are left byte-identical to Strategy A.
-    Fixes the boundary-drift bug from re-running the packer with different-sized table
-    atoms (DECISIONS.md ARM4-4): the packer here only ever runs once, on plain atoms.
+    narrative sharing a chunk with the table, are left byte-identical to Strategy A because
+    the packer runs exactly once, on plain atoms (DECISIONS.md ARM4-4).
     """
+    if summarize_table is None and "C" in table_variant_map.values():
+        raise ValueError("Strategy C needs a summarize_table callable (see rag_sec.summarize)")
     table_rows_by_idx = {i: b.rows for i, b in enumerate(blk for blk in blocks if isinstance(blk, TableBlock))}
     packed = _pack_atoms(_blocks_to_atoms(blocks))
 

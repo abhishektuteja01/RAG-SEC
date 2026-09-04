@@ -1,27 +1,12 @@
-"""Answer-accuracy scoring for COST-13. Retrieval metrics live in `eval.py`; this is the
-only place that scores a *generated answer* against the dataset's gold.
+"""The only place a *generated answer* is scored against the dataset's gold (retrieval
+metrics live in `eval.py`). DECISIONS.md COST-13/COST-21/COST-23.
 
-Number Match, not string equality: the model is asked for a number and the dataset stores
-two references that routinely disagree in form and sometimes in value. Measured on dev
-(1235 questions, `COST-21`): 688 agree within 1%, 380 differ by exactly x100 (percentage
-written as `0.935` vs `93.5%`), 8 differ only in sign, **125 (10.1%) are irreconcilable**
-and 34 unparseable.
-
-So a prediction counts as correct if it matches **either** gold field under any factor in
-`SCALES` within tolerance. Accepting either field is what handles the sign cases without
-making the scorer sign-blind: one field carries each sign, so a wrong-direction answer
-still has to match *some* stated reference.
-
-`SCALES` is seven factors, not the three (`identity, x100, /100`) that `COST-21` records
--- it also accepts the "(in thousands)"/"(in millions)" table conventions. Measured over
-COST-23's 278 responses: the four extra factors flip 5 verdicts, all of them genuine unit
-cases (model answers 18.3 million, gold is the raw table figure 18300000), none a chance
-collision. 3 land in the uncompressed arm and 2 in the compressed one, so the effect on
-COST-23's arm delta is ~0.7pt.
-
-Tolerance is relative (1%) with an absolute floor, because the two fields differ mainly by
-rounding (24.691358 vs 24.69, 1041.531 vs 1041.5) and an exact-match rule would score those
-as wrong for a reason that has nothing to do with the model.
+Number match, not string equality: the two gold fields routinely disagree in form and
+sometimes in value (dev, n=1235: 688 agree within 1%, 380 differ by exactly x100, 8 by sign
+only, 125 irreconcilable, 34 unparseable). A prediction is correct if it matches EITHER
+field under any factor in `SCALES`, within a relative tolerance -- accepting either field
+handles the sign cases without making the scorer sign-blind, since one field carries each
+sign, and the tolerance absorbs rounding (24.691358 vs 24.69) rather than model error.
 """
 
 import re
@@ -56,11 +41,6 @@ def _to_float(token: str) -> float | None:
         return float(t)
     except ValueError:
         return None
-
-
-def parse_prediction(text: str) -> float | None:
-    """Number the model committed to on its ANSWER line, or None."""
-    return parse_reason(text)[0]
 
 
 def parse_reason(text: str) -> tuple[float | None, str]:
