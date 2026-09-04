@@ -139,11 +139,14 @@ that filing software splits across cells (rejoining `$` and `6,635`).
 **Keep** — one of its functions is still used live during compression.
 Note: it leans on internal pieces of an outside library pinned to one version; upgrading breaks it.
 
-**`chunking.py`** — 325 lines. Packs the parsed pieces into ~900-word chunks without ever cutting
+**`chunking.py`** — Packs the parsed pieces into ~900-word chunks without ever cutting
 a table row in half. **Keep** — this defines the corpus.
-Note: it carries a **known bug** where 46.7% of chunks are labelled with the *next* section's
-heading. Left unfixed on purpose, because fixing it invalidates every embedding and every
-measurement taken so far.
+Note: the **heading bug is now fixed** (`RETR-7`/`RETR-8`), but shipped **switched off** behind
+two environment flags. 45.9% of atoms used to be labelled with a *different* section's heading.
+The fix deliberately does not move a single chunk boundary, so gold labels and chunk numbering
+survive it; only chunk *text* changes, on 47.5% of chunks. Flip the flags on as part of a
+re-index — until then the file behaves exactly as it always did, verified byte-for-byte on all
+99,654 chunks.
 
 **`summarize.py`** — asks a model to summarize a table, used only for the losing table experiment.
 **Keep as history.** It's the only file here that costs money to run, and it should not run again.
@@ -393,7 +396,7 @@ any change to chunking or parsing.
 
 **`heading_fix.py`** — the acceptance check for `RETR-7`/`RETR-8`. Asserts four things: with the
 flags off the packer is byte-identical to the pre-fix one, with them on every chunk boundary is
-unchanged, heading misattribution goes 51.7% -> 0.0%, and (with `--labels 300`) no dev gold label
+unchanged, heading misattribution goes 45.9% -> 0.0%, and (with `--labels 300`) no dev gold label
 moves. **Keep — this is what makes the fix safe to ship dark**, and it must pass before the
 re-index cycle flips the flags on. Read-only, no GPU, no API calls.
 
