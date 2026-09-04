@@ -107,19 +107,14 @@ remaining bugs are logged there as known and parked — not on this list. What i
 
 ### Expensive, and it invalidates everything upstream
 
-- **`RETR-7`/`RETR-8` — the heading bug: BUILT, and shipped dark. Only the re-index is
-  left.** Both fixes are in `chunking.py` behind `RAG_SEC_MULTI_HEADING` /
-  `RAG_SEC_STRIP_TITLE_FURNITURE`, **defaulting off** because `rag_sec.compress` replays the
-  packer against the already-built `data/chunks/` (`INFRA-11`). Off is byte-identical to the
-  old packer — 99,654/99,654 chunks verified by `atom_replay.py`. The design constraint that
-  drove everything: **chunk boundaries do not move**, so gold labels keep pointing at the
-  same body text and the new numbers stay comparable to the published ones. Misattribution
-  45.9% -> 0.0% of atoms (all 799 filings); 300/300 dev gold label sets unchanged. Verify with
-  `scripts/checks/heading_fix.py --labels 300`.
-  **Do not attach a recall claim to this.** `RETR-33` measured `no_gold_chunk` = 0% twice and
-  the heading is a median 0.91% of a chunk's tokens, so the expectation is ~0. It is a
-  correctness fix. The re-index still invalidates every embedding, the BM25 index and
-  Arms 1-4 — flip both flags on, re-chunk, re-embed, then re-score.
+- **`RETR-7`/`RETR-8` — DONE, and the re-index is applied (`RETR-39`).** Both fixes are live:
+  47,312 of 99,654 chunks re-embedded, boundaries and chunk count unchanged, gold labels
+  unmoved, every arm re-measured. Effect on retrieval: **-0.002 to -0.005 everywhere, inside
+  stderr** — the ~0 that `RETR-33` predicted. The flags
+  (`RAG_SEC_MULTI_HEADING`, `RAG_SEC_STRIP_TITLE_FURNITURE`) still default **off** in code;
+  `data/chunks/` and Postgres were both built with them **on**, so anything re-chunking from
+  scratch must export them. Results in `data/retr7_results_0904.md`, caveats in
+  `data/retr7_ANALYSIS.md`, procedure in `RUNBOOK.md`.
 
 ### Then back to `spec.md`
 
