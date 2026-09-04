@@ -28,13 +28,15 @@ def _flag(name: str, default: bool) -> bool:
 # learn whether they helped is a re-index, and the comparison run has to be byte-identical
 # to the old packer, not "close".
 #
-# They default OFF, which is not timidity: `rag_sec.compress` replays this packer from
-# data/parsed/ and requires it to reproduce the already-built data/chunks/ byte-for-byte
-# (scripts/checks/atom_replay.py asserts exactly that). Turning these on without a re-chunk
-# would make compression select from a different document than the one that was embedded.
-# Flip both on for the re-index cycle -- they are inert until then, by design.
-MULTI_HEADING = _flag("RAG_SEC_MULTI_HEADING", False)
-STRIP_TITLE_FURNITURE = _flag("RAG_SEC_STRIP_TITLE_FURNITURE", False)
+# They default ON as of the 2026-09-04 re-index (`RETR-39`). They shipped OFF, because
+# `rag_sec.compress` replays this packer from data/parsed/ and requires it to reproduce the
+# stored data/chunks/ byte-for-byte (scripts/checks/atom_replay.py asserts exactly that) --
+# so before the re-index, ON would have made compression select from a different document
+# than the one embedded. After it, OFF has that same effect in reverse: measured 2026-09-04,
+# default-off replay matched only 52,342/99,654 chunks (52.52%), which is precisely the
+# 52.5% RETR-7 left untouched. The default has to track whichever corpus is stored.
+MULTI_HEADING = _flag("RAG_SEC_MULTI_HEADING", True)
+STRIP_TITLE_FURNITURE = _flag("RAG_SEC_STRIP_TITLE_FURNITURE", True)
 
 MIN_CHUNK_TOKENS = 200
 TARGET_CHUNK_TOKENS = 900
