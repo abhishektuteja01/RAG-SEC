@@ -111,7 +111,10 @@ def main() -> None:
         print("non-numeric predictions (scored wrong), by arm and reason:")
         for (arm, reason), k in sorted(unparsed.items()):
             print(f"  {arm:16} {reason:16} {k}")
-    mult = 0.5 if tiers == {"flex"} else 1.0
+    # flex and batch are both 50% of standard and do not stack (COST-29). A mixed-tier
+    # file gets full price rather than a blended guess -- an under-report is the failure
+    # mode that produced COST-23's wrong $1.53, so round against ourselves.
+    mult = 0.5 if tiers <= {"flex", "batch"} and tiers else 1.0
     tier_label = "/".join(sorted(tiers)) if tiers != {"unknown"} else "unrecorded, assuming standard"
     print(f"spend: {usage_in:,} in + {usage_out:,} billed out "
           f"({usage_vis:,} visible + {usage_out - usage_vis:,} thinking) = "
