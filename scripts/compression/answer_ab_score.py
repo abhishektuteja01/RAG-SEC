@@ -34,6 +34,9 @@ from rag_sec.answer_eval import is_correct, parse_reason
 PAYLOAD = Path("data/day8_cost13_payload.json")
 RESPONSES = Path("data/day8_cost13_responses.jsonl")
 ARMS = ("uncompressed", "slices_1500")
+# Rows written before COST-31 carry no `thinking` field and backfill to medium, which is
+# what they actually ran at (the API default the script never overrode).
+DEFAULT_THINKING = "medium"
 
 
 def exact_mcnemar(n10: int, n01: int) -> float:
@@ -66,6 +69,12 @@ def main() -> None:
     # verdicts go in too, not just the marginals: the McNemar counts cannot be recovered from
     # per-stratum accuracies alone.
     ap.add_argument("--out", type=Path, help="write the paired result to JSON as well as printing it")
+    # A responses file can hold more than one reasoning level -- `thinking` is part of the
+    # runners' checkpoint key (COST-31), so both arms of a level comparison land in one file.
+    # Without this filter the two levels collide on (id, arm) and the last line silently wins,
+    # while the spend line pools levels that were never meant to be added together.
+    ap.add_argument("--thinking", default=DEFAULT_THINKING, choices=("low", "medium", "high"),
+                    help="score only rows at this reasoning level")
     args = ap.parse_args()
 
     payload = json.loads(args.payload.read_text())
@@ -83,6 +92,8 @@ def main() -> None:
         if not line.strip():
             continue
         r = json.loads(line)
+        if r.get("thinking", DEFAULT_THINKING) != args.thinking:
+            continue
         pred, reason = parse_reason(r["response"])
         if reason != "ok":
             unparsed[(r["arm"], reason)] += 1
@@ -103,7 +114,7 @@ def main() -> None:
     for qid in complete:
         by_stratum[strata[qid]].append((correct[(qid, ARMS[0])], correct[(qid, ARMS[1])]))
 
-    print(f"scored {len(complete)} questions with both arms present")
+    print(f"scored {len(complete)} questions with both arms present at thinking={args.thinking}")
     if unparsed:
         # Reported per arm, not pooled: a compliance/refusal gap between arms is itself the
         # effect (the compressed arm should refuse more often when the gold was removed),

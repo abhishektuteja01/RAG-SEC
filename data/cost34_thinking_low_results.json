@@ -1,0 +1,894 @@
+{
+ "payload": "data/day8_cost13_payload.json",
+ "responses": "data/cost31_thinking_low.jsonl",
+ "arms": [
+  "uncompressed",
+  "slices_1500"
+ ],
+ "n_scored": 139,
+ "tiers": [
+  "batch"
+ ],
+ "spend": {
+  "prompt_tokens": 1885882,
+  "billed_output_tokens": 147255,
+  "visible_output_tokens": 28204,
+  "usd": 0.983308875
+ },
+ "unparsed": {
+  "slices_1500/no_number": 3,
+  "slices_1500/refused": 53,
+  "uncompressed/no_number": 3,
+  "uncompressed/refused": 22
+ },
+ "population": {
+  "A_gold_lost": 89,
+  "B_gold_kept": 942,
+  "C_no_gold_either": 77
+ },
+ "strata": {
+  "A_gold_lost": {
+   "n": 89,
+   "uncompressed": 0.5280898876404494,
+   "slices_1500": 0.25842696629213485,
+   "delta": -0.2696629213483146,
+   "stderr": 0.04965235777587,
+   "n10": 25,
+   "n01": 1,
+   "p_exact_mcnemar": 8.046627044677734e-07
+  },
+  "B_gold_kept": {
+   "n": 50,
+   "uncompressed": 0.68,
+   "slices_1500": 0.58,
+   "delta": -0.1,
+   "stderr": 0.058309518948453,
+   "n10": 7,
+   "n01": 2,
+   "p_exact_mcnemar": 0.1796875
+  }
+ },
+ "post_stratified_delta": {
+  "estimate": -0.10667870036101083,
+  "stderr": 0.04973379271412148,
+  "population_covered": 0.9305054151624549,
+  "stratum_c_assumed_zero": true
+ },
+ "measured_strata_only_delta": -0.11464597478176529,
+ "per_question": [
+  {
+   "id": "convfinqa_1127",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_1222",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_1230",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_1240",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_1347",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_1431",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_1837",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_1844",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_1874",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2049",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2115",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2118",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2167",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2183",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2246",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2261",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2337",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2369",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2402",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2416",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2555",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2556",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2625",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_2690",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_2869",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_3013",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_3030",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_3055",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_3095",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_3117",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_3142",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_3211",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_333",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_3363",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_3401",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_3431",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_468",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_476",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_515",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_590",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_622",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_662",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_667",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_67",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_752",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "convfinqa_787",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_919",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "convfinqa_980",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_103",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_107",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_113",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_128",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_144",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_147",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_150",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_160",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_174",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_186",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_195",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_20",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_205",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_222",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_224",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_225",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_231",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_234",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_25",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_259",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_278",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_282",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_290",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_30",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_300",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_310",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_318",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_319",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_322",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_323",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_333",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_337",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_341",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_342",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_346",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_349",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_390",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_404",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_414",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_417",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_418",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_422",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_429",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_447",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_454",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_466",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_469",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_472",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_474",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_487",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_492",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_501",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_511",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_515",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_528",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_530",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_532",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_572",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_576",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_578",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_579",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_592",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_61",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_610",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_612",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_619",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_623",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_626",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_630",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_643",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_647",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_656",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_661",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_669",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_683",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_699",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_712",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_714",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_744",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_751",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_757",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_76",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_773",
+   "stratum": "B_gold_kept",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_784",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_791",
+   "stratum": "B_gold_kept",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_795",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_80",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  },
+  {
+   "id": "finqa_dev_800",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_858",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_876",
+   "stratum": "A_gold_lost",
+   "uncompressed": false,
+   "slices_1500": false
+  },
+  {
+   "id": "finqa_dev_95",
+   "stratum": "A_gold_lost",
+   "uncompressed": true,
+   "slices_1500": true
+  }
+ ]
+}
