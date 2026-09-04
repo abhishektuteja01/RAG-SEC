@@ -92,14 +92,24 @@ remaining bugs are logged there as known and parked — not on this list. What i
 
 ### Cheap
 
-- **`thinking_level` medium -> low: wired, unmeasured.** `answer_ab_run.py --thinking` ships
-  (`COST-31`). The API default for `gemini-3.7-flash` is **medium**, and the script passed no
-  thinking config, so every cost number to date was billed at medium. `thinking` is part of the
-  checkpoint key, which makes the 278 stored rows the `medium` arm for free — only the `low`
-  arm needs paying for (~$2.02 standard, ~$1.01 batch). Google publishes no per-level token
-  counts, so the saving can only be measured, not estimated. Caveat before spending: the medium
-  rows are from 2026-09-02, so reusing them puts any API drift entirely in one arm — either
-  re-run both interleaved (~$4) or re-run ~60 medium rows as a drift check.
+- **Cost work is closed (`COST-36`).** Budget envelope is ~$30 for the project; dev+test
+  uncompressed on batch at `medium` measures **$14.69**. Compression's entire saving across
+  both splits is ~$9 for 9-11 points of answer accuracy, so **do not slice at any budget** —
+  including the 3000 that looks like the compromise. Drop cost arguments from decisions that
+  also have accuracy arguments; `COST-30`'s merge decision stands, but on its non-cost legs.
+  Batch is now justified by rate limits, not price.
+
+- **`thinking_level` medium -> low: measured, and it works (`COST-34`).** Thinking tokens
+  -35.3% (662.0 -> 428.2/call) for a 1.5-point accuracy drop at `p=0.13`. Per pass, standard:
+  uncompressed $13.17 -> $12.03, slices@1500 $4.82 -> $3.72. **The point is that it moves
+  `COST-24`'s floor** — thinking was the cost compression could not touch, and the saving is
+  orthogonal to compression (~$1.1/pass on either arm). Not a free win: all 4 discordant pairs
+  went medium's way, so read it as "no detectable harm at n=278", not "safe". Both arms were
+  re-run today, which also retired the drift worry — two-day drift moved exactly one question
+  of 139. **The `$/pass` figures are on the pre-`RETR-7` payload; do not quote them beside
+  `RETR-39`.**
+- **Batch caps enqueued tokens per account, not per job (`COST-35`).** Two concurrent 1.63M
+  submissions 429'd the second; sequential worked. Submit arms one at a time.
 - **`COST-12` is closed, decided against (`COST-30`).** Do not merge `judge` into `answer`.
   The measured insufficiency rate is 15.1% against a ~15-25% break-even, so it was a coin flip
   rather than the claimed 22%; and CRAG's loop loses to hybrid+rerank on T²-RAGBench itself.

@@ -617,11 +617,26 @@ it's about to be re-read for the next round of fixes.
 **`day8_survival_flags.json`** (296 KB) — **Keep**, but flagged: these were built with the loose
 measure that has since been shown to over-report. Anything built on them inherits that.
 
-**`day8_cost13_payload.json`** (6.5 MB) — **Delete or archive.** Rebuildable, but it's the only
-record of exactly what was sent to the model.
+**`day8_cost13_payload.json`** (6.5 MB) — **Keep, upgraded from "delete or archive" by
+`COST-34`.** It is no longer just a record: it is the fixed prompt set that both the medium and
+low arms share, and that shared-ness is the whole reason their delta is clean. It is also
+*not* cheaply rebuildable now — regenerating it post-`RETR-7` needs the slice-rerank GPU job,
+and rebuilding it would silently change the prompts underneath both stored arms. Deleting it
+makes `COST-34` unreproducible.
 
 **`day8_cost13_responses.jsonl`** (144 KB) — **Keep. You paid for this.** It's also what makes
-re-running free instead of paid.
+re-running free instead of paid. Note it holds *two* reasoning levels — 278 medium rows from
+2026-09-02 plus `COST-33`'s 10-row low pilot — so it must be read with
+`answer_ab_score.py --thinking`, which is why that flag exists (`COST-34`).
+
+**`cost31_thinking_medium.jsonl`** and **`cost31_thinking_low.jsonl`** (~170 KB each) —
+**Keep. You paid for these, ~$2.09 of batch.** `COST-34`'s two arms, 278 rows each, 0 failed,
+both run 2026-09-04 on the payload above. The medium file is *not* redundant with the older
+278 medium rows: re-running it same-day is what retired the drift confound, and comparing the
+two is the only record of how small that drift was.
+
+**`cost34_thinking_{medium,low}_results.json`** (17 KB each) — **Keep.** Per-question verdicts
+at each level; the printed tables cannot be recovered from the marginals alone.
 
 **`day8_slice_budget_dev_results.json`** (1.9 KB) and **`day8_cost13_dev_results.json`** (17 KB) —
 **Keep.** The survival sweep and the paired answer result, as files rather than as terminal output
