@@ -1,15 +1,13 @@
-"""Standalone retrieval tool for the Day 8 agentic loop -- same dense+BM25/RRF+rerank
-pipeline as scripts/arms/day5_run_arm3.py, extracted so a LangGraph node can call it as
-a real tool (query in, ranked chunks out) instead of duplicating the eval-script's logic.
-
-DECISIONS.md ARM3-1/ARM2-1: rerank model and RRF fusion choices are unchanged here --
-this module only relocates the mechanism, it doesn't re-decide it.
+"""The shipping retrieval path: dense + BM25/RRF + cross-encoder rerank, query in and
+ranked chunks out. Same pipeline scripts/archive/arm3_singleprocess.py evaluates offline
+(DECISIONS.md ARM2-1/ARM3-1/RETR-31); the private helpers are shared, not re-implemented.
 """
 
 from functools import lru_cache
 
 from rag_sec.company import resolve as resolve_companies
-from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME
+from rag_sec.company import strip_entity_framing
+from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device
 from rag_sec.store import get_conn
 
 TOP_K = 10
@@ -26,10 +24,9 @@ def _embed_model():
 
 @lru_cache(maxsize=1)
 def _cross_encoder():
-    import torch
     from sentence_transformers import CrossEncoder
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device()
     return CrossEncoder(RERANK_MODEL_NAME, device=device)
 
 
@@ -76,22 +73,28 @@ def _fetch_texts(conn, pairs: list[tuple[str, int]]) -> dict[tuple[str, int], st
     return {p: lookup[p] for p in pairs if p in lookup}
 
 
-def retrieve(query: str, k: int = TOP_K, company_filter: bool = True, reserve: int = 0) -> list[dict]:
-    """Dense+BM25/RRF candidates, reranked by the cross-encoder, top-k returned.
+def retrieve(
+    query: str,
+    k: int = TOP_K,
+    company_filter: bool = True,
+    strip_query: bool = True,
+    reserve: int = 0,
+) -> list[dict]:
+    """Dense+BM25/RRF candidates, reranked by the cross-encoder, top-k returned as dicts
+    (LLM-readable as a LangGraph tool result, and scoreable as eval input).
 
-    Returns plain dicts (not a dataclass) so the same shape works as a LangGraph
-    tool result (LLM-readable) and as eval input for later scoring.
+    Defaults are RETR-31's `filtered_stripped` cell, the winning one: recall@10 0.581 ->
+    0.726 on the held-out test split. Both flags stay parameters so the earlier arms remain
+    reproducible from this same code path.
 
     `company_filter` scopes candidate generation to whichever company the question names,
-    resolved from the question text alone (`rag_sec.company`). Measured +8.1 points
-    recall@50, 102 questions recovered against 2 lost -- DECISIONS.md RETR-26, the
-    variant-clean re-measurement; RETR-5's +7.6/96/2 was taken on the contaminated pool.
-    It is a parameter rather than unconditional so the pre-filter arms stay reproducible.
+    resolved from the question text alone (`rag_sec.company`). Filter alone is +0.042.
 
-    NOT applied here: the entity-framing strip (`company.strip_entity_framing`), which is
-    two thirds of the measured gain -- filter alone +0.042 recall@10 on test against
-    +0.145 for filter+strip (RETR-31). It exists only in the offline payload builder, so
-    this module currently implements the weaker of the two measured cells.
+    `strip_query` reranks against the question with company/filing framing removed, while
+    candidate generation still sees the full question -- exactly the split
+    scripts/retrieval/rerank_prepare.py measured. Alone it is +0.015, but
+    with the filter it is +0.145: once every candidate is the right company, the company
+    name only rewards whichever chunk repeats the most boilerplate (RETR-6).
 
     `reserve` keeps that many candidate slots for unfiltered results, as insurance against
     the one failure mode that can delete gold: a question naming an acquired business or a
@@ -102,6 +105,7 @@ def retrieve(query: str, k: int = TOP_K, company_filter: bool = True, reserve: i
     cross_encoder = _cross_encoder()
     query_emb = embed_model.encode(query, normalize_embeddings=True)
     tickers = resolve_companies(query) if company_filter else []
+    rerank_query = strip_entity_framing(query) if strip_query else query
 
     with get_conn() as conn:
         if tickers:
@@ -124,7 +128,7 @@ def retrieve(query: str, k: int = TOP_K, company_filter: bool = True, reserve: i
         texts = _fetch_texts(conn, fused)
 
     candidates = [c for c in fused if c in texts]
-    pairs = [(query, texts[c]) for c in candidates]
+    pairs = [(rerank_query, texts[c]) for c in candidates]
     scores = cross_encoder.predict(pairs, batch_size=32) if pairs else []
     order = sorted(range(len(candidates)), key=lambda j: scores[j], reverse=True)[:k]
 
