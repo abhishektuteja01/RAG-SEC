@@ -25,6 +25,7 @@ load_dotenv()
 
 from tqdm import tqdm  # noqa: E402
 
+from rag_sec.candidates import LIVE_VARIANT, bm25, dense, rrf_fuse  # noqa: E402
 from rag_sec.company import resolve as resolve_companies  # noqa: E402
 from rag_sec.config import EMBED_MODEL_NAME  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
@@ -32,30 +33,9 @@ from rag_sec.eval import (  # noqa: E402
     gold_relevant_chunk_ids,
     load_matched_questions,
 )
-from rag_sec.retrieve import _rrf_fuse  # noqa: E402
 from rag_sec.store import get_conn  # noqa: E402
 
 CANDIDATE_K = 50
-def _dense(conn, emb, k, tickers):
-    sql = "SELECT filing_stem, chunk_index FROM chunks WHERE variant = 'A' {} ORDER BY embedding <=> %s LIMIT %s"
-    where = "AND split_part(filing_stem, '_', 1) = ANY(%s)" if tickers else ""
-    args = (tickers, emb, k) if tickers else (emb, k)
-    return [(r[0], r[1]) for r in conn.execute(sql.format(where), args).fetchall()]
-
-
-def _bm25(conn, q, k, tickers):
-    if tickers:
-        sql = """SELECT filing_stem, chunk_index, paradedb.score(id) AS s FROM chunks
-                 WHERE id @@@ paradedb.match('text', %s) AND variant = 'A'
-                   AND split_part(filing_stem, '_', 1) = ANY(%s)
-                 ORDER BY s DESC LIMIT %s"""
-        args = (q, tickers, k)
-    else:
-        sql = """SELECT filing_stem, chunk_index, paradedb.score(id) AS s FROM chunks
-                 WHERE id @@@ paradedb.match('text', %s) AND variant = 'A'
-                 ORDER BY s DESC LIMIT %s"""
-        args = (q, k)
-    return [(r[0], r[1]) for r in conn.execute(sql, args).fetchall()]
 
 
 def main() -> None:
@@ -89,10 +69,10 @@ def main() -> None:
             stats["n"] += 1
             stats["resolved"] += bool(tickers)
 
-            base = set(_rrf_fuse([_dense(conn, emb, CANDIDATE_K, None),
-                                  _bm25(conn, q, CANDIDATE_K, None)])[:CANDIDATE_K])
-            filt = set(_rrf_fuse([_dense(conn, emb, CANDIDATE_K, tickers),
-                                  _bm25(conn, q, CANDIDATE_K, tickers)])[:CANDIDATE_K]) if tickers else base
+            base = set(rrf_fuse([dense(conn, emb, CANDIDATE_K, LIVE_VARIANT),
+                                 bm25(conn, q, CANDIDATE_K, LIVE_VARIANT)])[:CANDIDATE_K])
+            filt = set(rrf_fuse([dense(conn, emb, CANDIDATE_K, LIVE_VARIANT, tickers),
+                                 bm25(conn, q, CANDIDATE_K, LIVE_VARIANT, tickers)])[:CANDIDATE_K]) if tickers else base
 
             b, f = bool(gold & base), bool(gold & filt)
             stats["base_hit"] += b

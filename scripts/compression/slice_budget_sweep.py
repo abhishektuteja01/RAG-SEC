@@ -36,7 +36,8 @@ Usage:
     python scripts/compression/slice_budget_sweep.py --arms full,chunks
     python scripts/compression/slice_budget_sweep.py \
         --arms full,chunks,slices,slices50 \
-        --scores data/day8_slice_scores_t150_filtered_stripped.jsonl
+        --scores data/day8_slice_scores_t150_filtered_stripped.jsonl \
+        --out data/day8_slice_budget_dev_results.json
 """
 
 import argparse
@@ -105,6 +106,10 @@ def main() -> None:
     # Per-question flags, not just the marginals: McNemar's power on COST-13 comes from
     # discordant pairs, which the aggregate survival rates cannot be recovered from.
     ap.add_argument("--dump", type=Path, help="write per-question survival flags as JSON")
+    # Aggregate table to disk, alongside the printed one. --dump holds the per-question
+    # flags COST-13 needs; this holds the marginals COST-11/COST-18 quote, so the numbers in
+    # DECISIONS.md have a file behind them like every earlier arm does.
+    ap.add_argument("--out", type=Path, help="write the survival table to JSON as well as printing it")
     args = ap.parse_args()
 
     arms = [a.strip() for a in args.arms.split(",") if a.strip()]
@@ -250,6 +255,22 @@ def main() -> None:
                 for arm in cols
             ]
             print(f"{budget:>7}  " + "  ".join(f"{c:>22}" for c in cells))
+
+    if args.out:
+        table: dict[str, dict[str, dict[str, float]]] = {}
+        for arm, budget in hits:
+            key = "uncompressed" if budget == UNCOMPRESSED else str(budget)
+            table.setdefault(arm, {})[key] = {
+                "survival": hits[(arm, budget)] / n,
+                "mean_tokens": toks[(arm, budget)] / n,
+            }
+        args.out.write_text(json.dumps({
+            "chunk_scores": str(args.chunk_scores), "cell": args.cell,
+            "slice_scores": str(args.scores) if args.scores else None,
+            "slice_target": target, "top_k": TOP_K, "budgets": list(BUDGETS),
+            "arms": arms, "n_scored": n, "survival": table,
+        }, indent=1))
+        print(f"wrote {args.out}")
 
 
 if __name__ == "__main__":

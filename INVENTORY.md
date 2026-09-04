@@ -161,6 +161,11 @@ Its limit: it stops a bad run from starting, it cannot check a result already wr
 alone, and strips the company name back out before searching. Together these are the **biggest
 measured win in the project.** **Keep.**
 
+**`candidates.py`** — the one home for first-stage search: the dense query, the BM25 query, the
+fusion of the two, and the text lookup for the result. Used to be eleven copies scattered across
+five files, which is how the variant bug needed the same fix seven times. **Keep.** Which table
+layout to search is a required argument here, never a default — that is the whole point.
+
 **`retrieve.py`** — the full search pipeline as one callable function: company filter plus the
 query strip, the latter applied to the reranker only. This is the best measured setup. **Keep.**
 
@@ -270,7 +275,7 @@ are now in `archive/` and only this one is current.
 
 **`arm1_dense.py`** — Arm 1 end to end. **Keep, active.** The `--company-filter` option is what produced the improvement from 0.329 to 0.384.
 
-**`arm2_hybrid.py`** — Arm 2. **Keep, active.** Differs from Arm 1 by only 72 lines — they're one option apart.
+**`arm2_hybrid.py`** — Arm 2. **Keep, active.** Differs from Arm 1 by only 12 lines — they're one option apart.
 
 **`rerank_prepare.py`** — the current, best version. Builds four combinations
 in one GPU booking so the improvement can be attributed properly. **Keep, active** — this produced
@@ -319,7 +324,7 @@ It carries a real operational rule in its comments: submit this **second**, afte
 has loaded its model, because both pull the same model into the same cache and two cold downloads
 at once risks corrupting it.
 
-**`slice_budget_sweep.py`** — 256 lines. Sweeps budgets across four approaches and reports
+**`slice_budget_sweep.py`** — 277 lines. Sweeps budgets across four approaches and reports
 how much evidence survives. **Keep — but the number it prints is the wrong one.**
 The stricter, honest measure lives only in `analysis/stratum_b_channel.py` and was never folded back
 in. The file admits this in its own comments. Adding it as a second column is the obvious fix.
@@ -373,6 +378,10 @@ as "Day 8 one-offs" used to hide.
 **Keep**, but it's a safety check, not an investigation. The same check now runs automatically.
 Its remaining use is running with the database down or before committing — and right now
 **nothing actually invokes it**, so that guard is only half wired up.
+
+**`candidate_sql.py`** — pins the exact database queries `candidates.py` sends, fully filled in,
+so a "harmless tidy-up" of the shared search code can't silently change what any published number
+was measured on. **Keep — this is a regression test**, and it needs no database.
 
 **`company_resolver.py`** — 27 hand-written cases checking the company matcher doesn't
 confuse "apple prices" or "visa applications" for tickers. **Keep — this is a real regression test**,
@@ -561,6 +570,10 @@ in the project and the source of your current best numbers.
 **`day8_retr18_test_scores.jsonl`** (14 MB) — **Keep.** 7.2 GPU-hours, on the untouched test split.
 This is the evidence that your improvement isn't just fitted to the data you tuned on.
 
+**`day8_retr16v2_dev_results.json`** (1.7 KB) and **`retr35_test_scores.json`** (1.7 KB) —
+**Keep.** The scored tables behind the headline, dev and test. Tiny, and they are what stops the
+best number in the project from living only in prose (`INFRA-10`).
+
 **`day8_retr16_rerank_payload.json`** (**113 MB**) — **Delete.** The input to a run you've formally withdrawn.
 
 **`day8_failure_cases.json`** (15 MB) — **Delete.** Free to regenerate; the conclusions are already written down.
@@ -580,6 +593,11 @@ record of exactly what was sent to the model.
 
 **`day8_cost13_responses.jsonl`** (144 KB) — **Keep. You paid for this.** It's also what makes
 re-running free instead of paid.
+
+**`day8_slice_budget_dev_results.json`** (1.9 KB) and **`day8_cost13_dev_results.json`** (17 KB) —
+**Keep.** The survival sweep and the paired answer result, as files rather than as terminal output
+(`INFRA-10`). The second one carries the per-question verdicts, which the printed table cannot be
+recovered from. Both regenerate for free from the score files above.
 
 ### Leftover cluster inputs and other
 
