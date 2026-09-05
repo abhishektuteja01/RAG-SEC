@@ -3,7 +3,8 @@
 Living document. Overwrite stale lines; don't append to them. Numbers and reasoning live
 in `DECISIONS.md` — this file only says where things stand and what to pick up.
 
-Last updated: 2026-09-04. Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
+Last updated: 2026-09-04, with a paid Day 9 run in flight — see §2's first block before
+doing anything. Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
 (`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). **Day 10's
 observability was then pulled forward ahead of Day 9's run** (`OBS-1`..`OBS-10`) so that
 run produces its own traces instead of needing a second paid pass.
@@ -70,27 +71,100 @@ accuracy arguments. Batch is now justified by rate limits, not price.
 
 ## 2. Open questions, in the order worth doing them
 
-### Day 9 IN FLIGHT — restarted clean after `AGENT-16`
+### Day 9 IS RUNNING RIGHT NOW — read this before touching anything
+
+**A live paid run is in progress** (started 2026-09-04 evening, ~65/198 questions at last check,
+0 errors, ETA ~3h). **First action in any new session: check whether it is still alive**, because
+everything below forks on the answer:
+
+```bash
+pgrep -f '[a]gent_run.py' && echo ALIVE || echo STOPPED
+wc -l < data/day9_arm6_dev_results.jsonl        # rows done
+grep -c ERROR data/day9_run.log                 # should be 0
+tail -3 data/day9_run.log
+```
+
+- **If ALIVE:** do not edit `src/rag_sec/**` or `scripts/eval/agent_run.py`. The run is resumable,
+  so editing mid-flight means half the results file came from a different build — the provenance
+  `spec.md:136` requires. Docs, analysis scripts and new files are fine.
+- **If STOPPED before 200 rows:** re-run the identical command below. It keeps successes, retries
+  errors, drops duplicates, and wipes each question's stale checkpoint. Do NOT delete the results
+  file — that was only correct once, when `AGENT-16` invalidated every row in it.
+
+```bash
+caffeinate -is uv run scripts/eval/agent_run.py -n 200 --concurrency 1 2>&1 | tee -a data/day9_run.log
+```
+
+**Environment requirements, all learned the hard way:**
+- **`--concurrency 1`, always.** Concurrent MPS model construction segfaults the machine
+  (`AGENT-10`/`AGENT-17`). The default is now 1; do not raise it.
+- **Mains power.** A 3-4h MPS-saturating run flattens this battery, and `caffeinate` prevents
+  sleep, not battery death.
+- **Docker must keep running** — Postgres is the `rag-sec-postgres-1` container on `localhost:5432`,
+  and every question retrieves from it and checkpoints into it. Quitting Docker kills the run.
+- **Nothing else CPU- or memory-heavy.** 16 GiB total against a Docker VM plus two transformer
+  models; swap hit ~10 GB during this run. Two concurrent CPU passes measured 8x slower, not 2x.
+
+**When the run finishes, in order (all free, no GPU, no API):**
+1. `uv run scripts/eval/agent_analyze.py` — the authoritative trajectory / cost / accuracy numbers.
+2. `uv run scripts/eval/worst_failures.py` — **must be regenerated**; the earlier output was deleted
+   as stale, having been built on pre-`AGENT-16` rows (`spec.md` 2.2 rule 5, `OBS-12`).
+3. Capture Langfuse dashboard and trace screenshots (`OBS-11`) — **Hobby retention is 30 days**, and
+   Day 14's README needs them, so do this during Day 10, not at the end.
+4. Commit `data/day9_arm6_dev_results.jsonl` and `data/day9_run.log`. They are deliberately
+   uncommitted while in flight; everything else is committed as of `d066358`.
+5. Then Day 10's real half: diagnose the ten worst failures from their traces.
+
+**Where each number goes:**
+- Trajectory, cost, latency, judge accuracy, paired answer accuracy -> `DECISIONS.md`, a new Day 9
+  row, and the results table at the top of that file if an arm-level figure changes.
+- `$/question` comes from `agent_analyze.py`, never from the Langfuse dashboard — per-trace cost is
+  not expressible there (`OBS-11`).
+- Per-arm cost/latency comparisons come from the two separate traces, never summed (`OBS-9`).
+- **Stage latencies from this run are NOT publishable.** See the contamination note below.
+- Nothing from a partial file is a result. Quote nothing until the run completes.
+
+**Owed once it finishes, and each one is a correction, not new work:**
+- **`AGENT-13` is probably wrong and must be revised.** It says `COST-30`'s 15.1% insufficiency rate
+  "does not transfer", written on n=5. At n=60 the first-iteration rate is **10.0%** — so it roughly
+  does transfer and the pilot's 16-60% was noise. Recompute at n=200 and rewrite the row.
+- **`OBS-10`'s cost split and loop multiple need restating at n=200.** The multiple fell 3.6x (n=3)
+  -> 1.80x (n=60) as single-iteration questions dominated; the row already says not to quote it.
+- **A clean stage-latency re-measurement.** `embed_s` p50 read **12.89s** at n=60 against 0.33-0.57s
+  in the quiet two-question pilot, with model construction already excluded (`model_init_s` = 0.00).
+  A 20-40x slowdown on embedding one short query is paging, not compute. So `spec.md:121`'s p50/p95
+  and Day 13's gated p95 must come from a re-measurement on a quiet machine — free, since retrieval
+  latency needs no LLM calls — not from this run.
+
+**Early signal at n=60, explicitly not a result:** looping adds essentially no retrieval. Iteration 1
+alone scored recall 0.692 / nDCG@10 0.600; all iterations unioned scored 0.708 / **0.600**; the static
+arm scored 0.708 / 0.604. Mean iterations 1.25, cap hit 5%. Answer accuracy favoured the loop
+73.1% vs 69.2% on 2-0 discordant pairs, which at n=52 is not significant. This is the direction
+`COST-30` predicted, and if it holds at n=200 it is the honest headline for Day 9.
+
+**One trace gotcha before you open a trace.** There are more root observations than questions x 2:
+deterministic trace-id seeding (`OBS-8`) makes a re-run question *merge* into its existing trace
+rather than fork one — which is what makes resume idempotent. So the ~21 questions that also ran in
+the aborted attempt carry two `answer-question` roots in one trace, one from pre-`AGENT-16` code.
+**Disambiguate by timestamp**, or you will diagnose the buggy attempt.
+
+---
+
+### How this run came to be restarted
 
 **A first attempt was stopped 18 questions in and archived** (`data/archive/day9_static_unsorted*`):
 the static baseline was reading the published rankings in first-stage order, so it was Arm 2 +
 filter rather than Arm 3 + filter + strip (`AGENT-16`). Nine further fixes came out of the
 pre-restart audit (`AGENT-17`), three of them run-killers. Everything below is post-fix.
 
-**Next action, one command** (~3-5h, ~$7-13, MPS, serial, resumable). **Plug the machine in
-first** — the aborted run was on battery and rerank latency stepped 22.9s -> 66.8s mean
-(2.9x) with no thermal warning ever recorded, so the published `spec.md:121` p50/p95 would
-have been battery throttling; and a 5h MPS-saturating run will flatten this battery long
-before it finishes, which `caffeinate` cannot prevent:
-
-```bash
-caffeinate -is uv run scripts/eval/agent_run.py -n 200 --concurrency 1 2>&1 | tee -a data/day9_run.log
-```
-
-Re-running the identical command resumes: it keeps successes, retries errors, drops
-duplicates, and wipes each question's stale checkpoint before starting it. `data/day9_arm6_dev_results.jsonl`
-already holds **2 verified post-fix rows**, so it will run 198. Then:
-`uv run scripts/eval/agent_analyze.py` (free, read-only, safe on a partial file).
+**The battery hypothesis was wrong, and this is worth remembering.** The aborted attempt's
+rerank drift (22.9s -> 66.8s mean, 2.9x) was blamed on battery power. It reproduced almost
+identically on mains, at the same inflection point. The cause is **memory pressure**: swap grew
+from 1.7 GB to ~10 GB during the run on a 16 GiB machine, with the Docker VM holding Postgres and
+two transformer models in MPS unified memory. Neither `ps` RSS nor thermal warnings show it —
+`ps` cannot see MPS buffers or the VM's footprint, and no thermal warning was ever recorded.
+**Check `sysctl vm.swapusage` before blaming heat or power.** The drift also partly reverses when
+a competing process is killed, so CPU contention compounds it.
 
 **Tracing is live and the run needs no extra flag.** Spans go to Langfuse Cloud whenever
 `LANGFUSE_*` is in `.env` and no-op silently when it is not, so a keyless machine or CI runs
@@ -268,6 +342,12 @@ original claim.
   call a level comparison same-day, not simultaneous. **Still unchecked:** the key's tier in AI
   Studio, which `COST-29` asked for and would distinguish the 3M cap from a concurrent-job
   limit of 1.
+- **This machine is the binding constraint on any GPU run, and it is memory, not heat.** 16 GiB
+  total against a Docker VM holding Postgres plus two transformer models in MPS unified memory.
+  Swap reached ~10 GB during the Day 9 run and `embed_s` inflated from ~0.4s to ~13s — paging, not
+  compute. **Diagnose with `sysctl vm.swapusage`, not `ps` RSS** (which cannot see MPS buffers or
+  the VM) and not `pmset -g therm` (no thermal warning has ever been recorded on this machine).
+  Any latency this project publishes needs the machine state recorded next to it.
 - **Don't run two CPU passes concurrently.** Measured 2026-09-01: contended ~0.5 it/s vs
   ~3.9 it/s alone — **8x, not 2x**. Each compression pass took ~5 min alone against a
   projected 40. Run them sequentially.
