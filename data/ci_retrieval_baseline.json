@@ -1,0 +1,17 @@
+{
+  "split": "dev",
+  "cell": "filtered_stripped",
+  "n": 400,
+  "seed": 17,
+  "source": "retr7_rr_dev_scores.jsonl",
+  "metrics": {
+    "recall_10": 0.785417,
+    "recall_50": 0.819583,
+    "ndcg_10": 0.659344
+  },
+  "stderr": {
+    "recall_10": 0.019072,
+    "recall_50": 0.018129,
+    "ndcg_10": 0.019023
+  }
+}
