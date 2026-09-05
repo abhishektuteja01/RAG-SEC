@@ -1,9 +1,10 @@
 # Where the project is, and what to do next
 
 Living document. Overwrite stale lines; don't append to them. Numbers and reasoning live
-in `DECISIONS.md` — this file only says where things stand and what to pick up.
+in `DECISIONS.md` — this file only says where things stand and what to pick up. **§5 is the
+Day 9-14 checklist**; it refers to §2's numbered command lists rather than repeating them.
 
-Last updated: 2026-09-04, with a paid Day 9 run in flight — see §2's first block before
+Last updated: 2026-09-05, with a paid Day 9 run in flight — see §2's first block before
 doing anything. Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
 (`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). **Day 10's
 observability was then pulled forward ahead of Day 9's run** (`OBS-1`..`OBS-10`) so that
@@ -114,6 +115,21 @@ caffeinate -is uv run scripts/eval/agent_run.py -n 200 --concurrency 1 2>&1 | te
 4. Commit `data/day9_arm6_dev_results.jsonl` and `data/day9_run.log`. They are deliberately
    uncommitted while in flight; everything else is committed as of `d066358`.
 5. Then Day 10's real half: diagnose the ten worst failures from their traces.
+
+**Also owed once the machine is free** — all written during the run and therefore never executed.
+Free of API cost except #10 (~$0.60), and 7-8 are CPU/IO-heavy, so they wait for the run rather
+than contend with it (`DEPLOY-1`, `CI-1`, `EVAL-1`):
+
+6. `uv lock` — picks up the new `serve` extra. **Deliberately not run mid-flight:** re-locking
+   would mean a resumed run resolved a different environment, `AGENT-16`'s provenance failure.
+7. `docker build -t rag-sec-api .` — first build of the serving image. Never built.
+8. `uv run scripts/checks/ci_fixture_build.py` — writes `data/ci_retrieval_fixture.jsonl` and
+   `data/ci_retrieval_baseline.json`. Resolves gold over the corpus, so it is the CPU-heavy one.
+9. `uv run scripts/checks/retrieval_gate.py` — confirm the gate is green on real data. It has
+   only ever been run against a synthetic fixture.
+10. `uv run scripts/eval/unanswerable_run.py` — the refusal-correctness pass (`EVAL-1`). The one
+   item here that **costs money**: ~$0.60 of answer calls, plus local reranking. Smoke-test with
+   `--limit 5` first; it resumes, so an interrupted pass keeps its successes.
 
 **Where each number goes:**
 - Trajectory, cost, latency, judge accuracy, paired answer accuracy -> `DECISIONS.md`, a new Day 9
@@ -244,11 +260,14 @@ reprinting `RETR-3` blames for retrieval failures. Building a multi-hop set was 
 
 ### Then back to `spec.md`
 
-**Days 10-14.** 10: **instrumentation half is done** (`OBS-*`) — what remains is the half
-`spec.md` calls "the skill", diagnosing the ten worst failures from their traces, plus a dashboard
-screenshot pass. 11: CI
-quality gate, citation grounding, unanswerable set, first interview drill. 12-13: AWS, MCP
-server, latency pass with a stated p95. 14: README, writeup, final drill.
+**Days 10-14 — §5 holds the item-by-item state; this is only what moved.** Three halves are now
+done ahead of their day and all three were written during the Day 9 run, so **none has touched real
+data or a real build**: Day 10's instrumentation (`OBS-*`), Day 11's gate scripts and workflow
+(`CI-1`, tested only on a synthetic fixture), and Day 12's serving layer and `Dockerfile`
+(`DEPLOY-1`, never built). What is genuinely untouched: diagnosing the ten worst failures from
+their traces, citation grounding, the unanswerable set, both drills, **AWS (~10h, the binding
+block)**, the MCP server, the p95 pass — which `DEPLOY-1` moves into the container — and Day 14's
+README and writeup.
 
 ### Decided against
 
@@ -360,3 +379,56 @@ original claim.
   there short and number-free — an unversioned file is a bad last home for a number.
 - **Guards that exist and should stay green:** `scripts/checks/candidate_sql.py` (fails any
   `FROM chunks` read whose WHERE omits `variant`), and the per-variant chunk count.
+
+
+---
+
+## 5. Day 9-14 checklist
+
+Where each day stands. **"run-list #N"** points at the numbered commands in §2's *When the run
+finishes* / *Also owed once the machine is free* lists — that list is the source of truth for what
+to type; this one only says what is blocked on what.
+
+### Day 9 — Arm 6 agentic loop
+- [~] Paid run — in flight
+- [ ] Trajectory/cost/accuracy numbers — **run-list #1**
+- [ ] Worst-failures files regenerated — **run-list #2**
+- [ ] Results jsonl + log committed — **run-list #4**
+- [ ] `AGENT-13` rewritten, `OBS-10` restated at n=200 — depends on #1
+- [x] Multi-doc negative written up (`AGENT-15`)
+
+### Day 10 — Observability
+- [x] Instrumentation half (`OBS-1`..`OBS-12`)
+- [ ] Dashboard + trace screenshots — **run-list #3**, inside the 30-day retention
+- [ ] Diagnose the ten worst failures — **run-list #5**, depends on #2
+
+### Day 11 — Gate and drill
+- [x] Gate scripts + workflow written and tested on a synthetic fixture (`CI-1`)
+- [ ] Real fixture built, gate green on real data — **run-list #8, #9**
+- [ ] Deliberately-broken commit proving the gate fires — depends on #8
+- [ ] Citation-grounding check — not started
+- [x] Unanswerable set written and validated, 48 questions (`EVAL-1`)
+- [ ] Refusal correctness measured — **run-list #10**
+- [ ] Interview drill #1 — not started
+- [ ] Answer-accuracy leg, on-merge not per-push (`COST-39`) — depends on #1
+
+### Day 12 — AWS
+- [x] Serving layer, `Dockerfile`, `.dockerignore` (`DEPLOY-1`)
+- [ ] Image built and smoke-tested — **run-list #6, #7**
+- [ ] App Runner/ECS + RDS pgvector + S3 + Bedrock — not started, ~10h, the largest unknown
+
+### Day 13 — Ship and latency
+- [ ] Deploy finished, live URL — depends on Day 12
+- [ ] MCP server — not started
+- [ ] p95 measured **in the container**, not on this laptop (`DEPLOY-1`) — depends on #7
+- [ ] Gate enforces p95 — depends on the gate and the p95
+
+### Day 14 — Ship
+- [ ] README benchmark table + trace screenshots — depends on Days 9 and 10
+- [ ] The written post
+- [ ] Final drill
+
+**Roughly 20h remains.** Days 11 and 12 are off zero, but everything written during the Day 9 run
+is drafted, not proven: `CI-1` has only met a synthetic fixture, `DEPLOY-1` has never been built,
+and `EVAL-1`'s 48 questions have never been asked. **AWS is the binding block at ~10h**, and it is
+the one item on this list that nothing already written has started.

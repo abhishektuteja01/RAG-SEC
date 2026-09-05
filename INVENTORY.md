@@ -88,6 +88,34 @@ no memory tuning, and **no backup anywhere** — that one volume holds roughly 1
 **`Dockerfile.postgres`** — builds that container, adding the keyword-search extension at an exact version.
 **Status: Keep.** The best-pinned file in the project.
 
+**`Dockerfile`** — builds the *application* container: the search pipeline plus a web server,
+CPU-only, with both model weight files copied in rather than downloaded on startup.
+**Status: Keep, unbuilt.** Written during the Day 9 run, so it has never been built — the build
+needs a dependency re-lock, and re-locking mid-run would have changed the environment underneath it.
+
+**`.dockerignore`** — keeps the data folder, the virtual environment and the notes out of that image.
+**Keep.** Without it the build would copy roughly the whole project, including the corpus.
+
+**`.github/workflows/ci.yml`** — the automatic checks that run on every push. Two stages: the
+self-contained guards, then the search-quality gate. **Keep, never run.** Written before the
+fixture it scores existed.
+
+**`scripts/checks/ci_fixture_build.py`** — makes the small committed file the gate scores:
+400 dev questions, each with its correct chunks and the ranking the published run produced.
+Run by hand, rarely. **Keep, not yet run.**
+
+**`scripts/checks/retrieval_gate.py`** — scores that file and fails the build if quality dropped
+more than two points. Borrows the scoring functions from `eval.py` rather than copying them.
+**Keep.** Tested against a made-up file: passes clean, fails a planted regression.
+
+**`scripts/checks/unanswerable_validate.py`** — proves the trick questions really have no answer
+in the corpus, for the 30 of 48 where that can be checked by machine. **Keep.** Catches the
+non-obvious case: a year with no filing of its own can still be answerable, because annual
+reports reprint several earlier years.
+
+**`scripts/eval/unanswerable_run.py`** — asks all 48 and reports how often the system correctly
+says it does not know, broken down by kind of question. **Keep, not yet run.** Costs about $0.60.
+
 ### Environment and settings
 
 **`.env`** — **not in git**, correctly. Holds real credentials.
@@ -177,6 +205,10 @@ layout to search is a required argument here, never a default — that is the wh
 
 **`retrieve.py`** — the full search pipeline as one callable function: company filter plus the
 query strip, the latter applied to the reranker only. This is the best measured setup. **Keep.**
+
+**`api.py`** — the web layer: two health checks and one `/ask` endpoint that runs the best
+measured setup and returns the answer with the chunks it cited. Reuses the answer prompt from
+`agent.py`, so what gets served is the same thing that was measured. **Keep, unrun.**
 
 **`agent.py`** — the multi-step loop: plan, search, judge, answer.
 **Keep, parked.** Verified working on 3 questions, then deferred on cost evidence. One prompt
@@ -743,6 +775,15 @@ it. If it isn't, the right fix is to back up the database, not to keep this.
 **`company_lexicon.json`** (10 KB) — **Keep — actively read** on the search path.
 Careful: it's committed to git *and* rebuilds itself only when missing. A stale committed copy will
 silently win over a corpus change. If the corpus grows, delete this file to force a rebuild.
+
+**`unanswerable_questions.jsonl`** (48 questions) — trick questions with no answer in the corpus,
+used to test whether the system says "I don't know" instead of inventing a number. Five kinds;
+30 of them are checkable by machine, the other 18 rest on what an annual report contains and say
+so in the file. **Keep — hand-written, not regeneratable.**
+
+**`ci_retrieval_fixture.jsonl` / `ci_retrieval_baseline.json`** — the small committed slice the
+automatic quality check scores, plus the numbers it compares against. **Keep once built** — they
+are what lets the check run without a database or a GPU. Neither exists yet.
 
 ---
 
