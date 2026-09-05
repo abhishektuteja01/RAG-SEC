@@ -4,11 +4,13 @@ Living document. Overwrite stale lines; don't append to them. Numbers and reason
 in `DECISIONS.md` — this file only says where things stand and what to pick up. **§5 is the
 Day 9-14 checklist**; it refers to §2's numbered command lists rather than repeating them.
 
-Last updated: 2026-09-05, with a paid Day 9 run in flight — see §2's first block before
-doing anything. Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
-(`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). **Day 10's
-observability was then pulled forward ahead of Day 9's run** (`OBS-1`..`OBS-10`) so that
-run produces its own traces instead of needing a second paid pass.
+Last updated: 2026-09-05, **Day 9's run is COMPLETE** — 200/200 questions, 0 errors, 339.6
+min. Everything on the old run-list is done except the two things that need a human
+(Langfuse screenshots, AWS). Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
+(`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). Day 10's
+observability was pulled forward ahead of the run (`OBS-1`..`OBS-12`), so it produced its
+own traces. **Read §2's first block before quoting any Day 9 number** — three of them are
+not what the pilot predicted, and two published numbers turned out to be non-comparable.
 
 **"Day N" is a unit of planned work in `spec.md`, not a calendar date** — Day 8 spanned
 several days. The `COST-`/`RETR-` IDs follow the project label, not the calendar, so a
@@ -50,6 +52,13 @@ corrected labels unless marked:
 | Arm 3 + filter + strip | **0.760** | 0.802 |
 | Arm 4-B / 4-C (NOT re-indexed) | 0.237 / 0.236 | 0.268 / 0.270 |
 | **Arm 3 + filter + strip, TEST** | **0.747** | 0.785 |
+| Arm 6 loop, iteration 1 only (n=200 subset) | 0.703 | — |
+| Arm 3 + filter + strip, same 200 (paired) | 0.736 | — |
+
+**The last two rows are the Day 9 paired subset (n=200), not the full dev split** — they are
+comparable to each other and to nothing else in this table, and the loop is *behind* because
+iteration 1 searches a `plan`-rewritten query (`AGENT-19`). Arm 6's case rests on answer
+accuracy (69.2% vs 61.6%, p=0.00098), not on retrieval.
 
 **All rows are post-`RETR-7` and on corrected labels except Arm 4-B/C**, deliberately not
 re-embedded and no longer text-comparable with variant A. Arm 1/Arm 2 movement against the old
@@ -72,99 +81,76 @@ accuracy arguments. Batch is now justified by rate limits, not price.
 
 ## 2. Open questions, in the order worth doing them
 
-### Day 9 IS RUNNING RIGHT NOW — read this before touching anything
+### Day 9 is DONE — read this before quoting any of its numbers
 
-**A live paid run is in progress** (started 2026-09-04 evening, ~65/198 questions at last check,
-0 errors, ETA ~3h). **First action in any new session: check whether it is still alive**, because
-everything below forks on the answer:
+**The run finished 2026-09-05: 200/200 questions, 0 errors, 339.6 min, serial, on mains.**
+`data/day9_arm6_dev_results.jsonl` and `data/day9_run.log` are committed. Full numbers are in
+`DECISIONS.md` (`AGENT-19`..`AGENT-24`, `DEPLOY-5`/`DEPLOY-6`, `CI-2`); this section says only
+what changed and what to be careful with.
 
-```bash
-pgrep -f '[a]gent_run.py' && echo ALIVE || echo STOPPED
-wc -l < data/day9_arm6_dev_results.jsonl        # rows done
-grep -c ERROR data/day9_run.log                 # should be 0
-tail -3 data/day9_run.log
-```
+**The headline reversed, and that IS the interview story.** The n=60 early signal said the loop
+was a negative result and `AGENT-15` had already decided to report one. At n=200 the loop wins
+answer accuracy **69.2% vs 61.6%**, discordant **14-1**, McNemar exact **p=0.00098**. But its
+retrieval is *worse*: iteration-1 recall@10 **0.703** against the static arm's **0.736**,
+because iteration 1 searches with a query `plan` rewrote rather than the raw question that
+filter+strip was tuned for. **So the win is real and it is not a retrieval win** — the answer
+stage sees the deduped union of every iteration (28-30 chunks vs 10) and refuses less often.
+Quote the accuracy pair and the p-value; never quote a retrieval gain (`AGENT-19`).
 
-- **If ALIVE:** do not edit `src/rag_sec/**` or `scripts/eval/agent_run.py`. The run is resumable,
-  so editing mid-flight means half the results file came from a different build — the provenance
-  `spec.md:136` requires. Docs, analysis scripts and new files are fine.
-- **If STOPPED before 200 rows:** re-run the identical command below. It keeps successes, retries
-  errors, drops duplicates, and wipes each question's stale checkpoint. Do NOT delete the results
-  file — that was only correct once, when `AGENT-16` invalidated every row in it.
+**Two numbers this run printed are NOT comparable and must not be quoted** (`AGENT-22`):
+`agent_analyze.py` scores the union row at `k=len(got)` — up to 40 chunks — against the static
+row's recall@10, so its `0.756 vs 0.736` compares a 40-slot budget to a 10-slot one. And the
+union's nDCG@10 is *identically* iteration 1's by construction, because the union is built in
+iteration order, so the 0.593/0.593 match is arithmetic, not a finding.
 
-```bash
-caffeinate -is uv run scripts/eval/agent_run.py -n 200 --concurrency 1 2>&1 | tee -a data/day9_run.log
-```
+**`AGENT-13` and `OBS-10` are revised, as they were owed.** First-iteration insufficiency is
+**13.0%** at n=200, so `COST-30`'s 15.1% roughly DOES transfer and the pilot's 11-60% was
+noise. Cost split is answer 64% / judge 19% / plan 17% at a **1.77x** loop multiple (not 3.6x),
+and prefix cache is **4.0%** (not 26.1%) — all three moved because 174 of 200 questions ran a
+single iteration, and a single-iteration question neither replays history nor caches.
 
-**Environment requirements, all learned the hard way:**
-- **`--concurrency 1`, always.** Concurrent MPS model construction segfaults the machine
-  (`AGENT-10`/`AGENT-17`). The default is now 1; do not raise it.
-- **Mains power.** A 3-4h MPS-saturating run flattens this battery, and `caffeinate` prevents
-  sleep, not battery death.
-- **Docker must keep running** — Postgres is the `rag-sec-postgres-1` container on `localhost:5432`,
-  and every question retrieves from it and checkpoints into it. Quitting Docker kills the run.
-- **Nothing else CPU- or memory-heavy.** 16 GiB total against a Docker VM plus two transformer
-  models; swap hit ~10 GB during this run. Two concurrent CPU passes measured 8x slower, not 2x.
+**Stage latency is now measurable, and the old diagnosis was wrong** (`AGENT-20`/`AGENT-24`).
+The drift was never battery, heat, or contention with the Docker VM: it is MPS's caching
+allocator never returning freed blocks on a 16 GiB unified-memory machine. `ps` RSS cannot see
+it (0.1 GB against 7 GB of swap growth) and swap fell 9.8 -> 2.8 GB the instant the process
+exited. **One line — `torch.mps.empty_cache()` per retrieval, now in `retrieve.py` — removes
+it.** Laptop steady state: embed p50 **0.075s**, search **0.241s**, rerank **32.60s**, total
+**32.97s** / p95 **36.53s**, swap flat. The run's own p50s (embed 12.98s, rerank 59.59s) were
+saturated-regime numbers and are superseded.
 
-**When the run finishes, in order (all free, no GPU, no API):**
-1. `uv run scripts/eval/agent_analyze.py` — the authoritative trajectory / cost / accuracy numbers.
-2. `uv run scripts/eval/worst_failures.py` — **must be regenerated**; the earlier output was deleted
-   as stale, having been built on pre-`AGENT-16` rows (`spec.md` 2.2 rule 5, `OBS-12`).
-3. Capture Langfuse dashboard and trace screenshots (`OBS-11`) — **Hobby retention is 30 days**, and
-   Day 14's README needs them, so do this during Day 10, not at the end.
-4. Commit `data/day9_arm6_dev_results.jsonl` and `data/day9_run.log`. They are deliberately
-   uncommitted while in flight; everything else is committed as of `d066358`.
-5. Then Day 10's real half: diagnose the ten worst failures from their traces.
+**69.2% is a floor, not an estimate** (`AGENT-21`/`AGENT-23`). Four questions whose gold is
+yes/no are scored wrong in both arms because `answer_eval` requires a number on the ANSWER
+line, though the model answered correctly; replaying with `yes->1.0`/`no->0.0` gives arm6
+71.5% / static 63.4%, moving the gap by 0.5. **Not fixed deliberately** — redefining a metric
+after seeing its results is a human decision. And at least one 'reasoning failure' is a wrong
+gold: `finqa_dev_147`'s own filing table gives 78.93%, which is what the model said, against a
+gold of 34.96 that reads the 2009 column.
 
-**Also owed once the machine is free** — all written during the run and therefore never executed.
-Free of API cost except #10 (~$0.60), and 7-8 are CPU/IO-heavy, so they wait for the run rather
-than contend with it (`DEPLOY-1`, `CI-1`, `EVAL-1`):
+**What still needs a human, and nothing else does:**
 
-6. `uv lock` — picks up the new `serve` extra. **Deliberately not run mid-flight:** re-locking
-   would mean a resumed run resolved a different environment, `AGENT-16`'s provenance failure.
-7. `docker build -t rag-sec-api .` — first build of the serving image. Never built.
-8. `uv run scripts/checks/ci_fixture_build.py` — writes `data/ci_retrieval_fixture.jsonl` and
-   `data/ci_retrieval_baseline.json`. Resolves gold over the corpus, so it is the CPU-heavy one.
-9. `uv run scripts/checks/retrieval_gate.py` — confirm the gate is green on real data. It has
-   only ever been run against a synthetic fixture.
-10. `uv run scripts/eval/unanswerable_run.py` — the refusal-correctness pass (`EVAL-1`). The one
-   item here that **costs money**: ~$0.60 of answer calls, plus local reranking. Smoke-test with
-   `--limit 5` first; it resumes, so an interrupted pass keeps its successes.
+1. **Langfuse dashboard + trace screenshots** (`OBS-11`). Hobby retention is 30 days from
+   2026-09-05. Disambiguate by timestamp: ~21 questions carry two `answer-question` roots in
+   one trace because deterministic trace-id seeding merges a re-run into its existing trace,
+   and the older root is pre-`AGENT-16` code.
+2. **AWS**, the binding ~10h block — but see `DEPLOY-6` before sizing anything.
+3. **Decide the yes/no scorer question** (`AGENT-21`). Free to replay either way.
+4. **Decide the container's reranker route** (`DEPLOY-6`). This one gates Day 12/13.
+5. **Review `retrieve.py` and `api.py`** — both were changed during this session.
 
-**Where each number goes:**
-- Trajectory, cost, latency, judge accuracy, paired answer accuracy -> `DECISIONS.md`, a new Day 9
-  row, and the results table at the top of that file if an arm-level figure changes.
-- `$/question` comes from `agent_analyze.py`, never from the Langfuse dashboard — per-trace cost is
-  not expressible there (`OBS-11`).
-- Per-arm cost/latency comparisons come from the two separate traces, never summed (`OBS-9`).
-- **Stage latencies from this run are NOT publishable.** See the contamination note below.
-- Nothing from a partial file is a result. Quote nothing until the run completes.
+**Two things found by finally building and running what Day 10-12 had only written:**
 
-**Owed once it finishes, and each one is a correction, not new work:**
-- **`AGENT-13` is probably wrong and must be revised.** It says `COST-30`'s 15.1% insufficiency rate
-  "does not transfer", written on n=5. At n=60 the first-iteration rate is **10.0%** — so it roughly
-  does transfer and the pilot's 16-60% was noise. Recompute at n=200 and rewrite the row.
-- **`OBS-10`'s cost split and loop multiple need restating at n=200.** The multiple fell 3.6x (n=3)
-  -> 1.80x (n=60) as single-iteration questions dominated; the row already says not to quote it.
-- **A clean stage-latency re-measurement.** `embed_s` p50 read **12.89s** at n=60 against 0.33-0.57s
-  in the quiet two-question pilot, with model construction already excluded (`model_init_s` = 0.00).
-  A 20-40x slowdown on embedding one short query is paging, not compute. So `spec.md:121`'s p50/p95
-  and Day 13's gated p95 must come from a re-measurement on a quiet machine — free, since retrieval
-  latency needs no LLM calls — not from this run.
+- **`DEPLOY-1`'s image had never been built and could not have built** (`DEPLOY-5`): five
+  defects, three fatal to the build, two that would have shipped silently — `stage_latency`
+  was always `{}` (so Day 13's p95 gate would have gated an empty dict), and `python:slim`
+  ships no wordlist, so `RETR-11`'s guard is **off in the container** and the deployed
+  resolver is not the benchmarked one. **That last one is still open.**
+- **The CPU container is far too slow to serve interactively** (`DEPLOY-6`): 212.4s for one
+  question, 207.8s of it the cross-encoder, at 755% CPU. A 2-vCPU free-tier host implies
+  ~800s/question. Correctness is fine — top citation 0.996, right answer. **Do not size the
+  EC2 host until the reranker route is chosen.**
 
-**Early signal at n=60, explicitly not a result:** looping adds essentially no retrieval. Iteration 1
-alone scored recall 0.692 / nDCG@10 0.600; all iterations unioned scored 0.708 / **0.600**; the static
-arm scored 0.708 / 0.604. Mean iterations 1.25, cap hit 5%. Answer accuracy favoured the loop
-73.1% vs 69.2% on 2-0 discordant pairs, which at n=52 is not significant. This is the direction
-`COST-30` predicted, and if it holds at n=200 it is the honest headline for Day 9.
-
-**One trace gotcha before you open a trace.** There are more root observations than questions x 2:
-deterministic trace-id seeding (`OBS-8`) makes a re-run question *merge* into its existing trace
-rather than fork one — which is what makes resume idempotent. So the ~21 questions that also ran in
-the aborted attempt carry two `answer-question` roots in one trace, one from pre-`AGENT-16` code.
-**Disambiguate by timestamp**, or you will diagnose the buggy attempt.
-
----
+**Budget:** $40 total. Day 9 came in at **$4.10** for 200 questions ($0.0205/q), plus ~$0.60
+for the unanswerable pass and ~$0.01 for one container smoke test. Roughly $29-30 remains.
 
 ### How this run came to be restarted
 
@@ -361,11 +347,16 @@ original claim.
   call a level comparison same-day, not simultaneous. **Still unchecked:** the key's tier in AI
   Studio, which `COST-29` asked for and would distinguish the 3M cap from a concurrent-job
   limit of 1.
-- **This machine is the binding constraint on any GPU run, and it is memory, not heat.** 16 GiB
-  total against a Docker VM holding Postgres plus two transformer models in MPS unified memory.
-  Swap reached ~10 GB during the Day 9 run and `embed_s` inflated from ~0.4s to ~13s — paging, not
-  compute. **Diagnose with `sysctl vm.swapusage`, not `ps` RSS** (which cannot see MPS buffers or
-  the VM) and not `pmset -g therm` (no thermal warning has ever been recorded on this machine).
+- **This machine WAS the binding constraint on any GPU run, and one line fixed it**
+  (`AGENT-24`). The cause was never heat, battery, or contention with the Docker VM: MPS's
+  caching allocator does not return freed blocks, which is free on a discrete GPU and ruinous
+  on 16 GiB of unified memory. Proof it was intra-process: a retrieval-only pass running
+  ALONE reproduced the whole curve, and swap fell 9.8 -> 2.8 GB the moment that process
+  exited. `retrieve()` now calls `torch.mps.empty_cache()` per question and stage latency is
+  flat over 25+ questions. **Still diagnose with `sysctl vm.swapusage`, never `ps` RSS** —
+  RSS reported 0.1 GB against 7 GB of swap growth, because it cannot see MPS buffers — and
+  never `pmset -g therm` (no thermal warning has ever been recorded here). **Numbers measured
+  before 2026-09-05 in a long pass are saturated-regime and are not the system's latency.**
   Any latency this project publishes needs the machine state recorded next to it.
 - **Don't run two CPU passes concurrently.** Measured 2026-09-01: contended ~0.5 it/s vs
   ~3.9 it/s alone — **8x, not 2x**. Each compression pass took ~5 min alone against a
@@ -385,50 +376,74 @@ original claim.
 
 ## 5. Day 9-14 checklist
 
-Where each day stands. **"run-list #N"** points at the numbered commands in §2's *When the run
-finishes* / *Also owed once the machine is free* lists — that list is the source of truth for what
-to type; this one only says what is blocked on what.
+Where each day stands. The old "run-list #N" numbering is retired — that list is finished.
+**Everything unchecked below is either a human task or a decision, except where marked.**
 
-### Day 9 — Arm 6 agentic loop
-- [~] Paid run — in flight
-- [ ] Trajectory/cost/accuracy numbers — **run-list #1**
-- [ ] Worst-failures files regenerated — **run-list #2**
-- [ ] Results jsonl + log committed — **run-list #4**
-- [ ] `AGENT-13` rewritten, `OBS-10` restated at n=200 — depends on #1
+### Day 9 — Arm 6 agentic loop — COMPLETE
+- [x] Paid run — 200/200, 0 errors, 339.6 min, $4.10
+- [x] Trajectory/cost/accuracy numbers (`AGENT-19`, `AGENT-22`)
+- [x] Worst-failures files regenerated, both arms
+- [x] Results jsonl + log committed
+- [x] `AGENT-13` revised, `OBS-10` restated at n=200
 - [x] Multi-doc negative written up (`AGENT-15`)
 
 ### Day 10 — Observability
 - [x] Instrumentation half (`OBS-1`..`OBS-12`)
-- [ ] Dashboard + trace screenshots — **run-list #3**, inside the 30-day retention
-- [ ] Diagnose the ten worst failures — **run-list #5**, depends on #2
+- [ ] **Dashboard + trace screenshots — YOU. Retention expires ~2026-10-05.** Disambiguate the
+      ~21 double-rooted traces by timestamp; the older root is pre-`AGENT-16` code
+- [x] Ten worst failures diagnosed — `data/day9_failure_diagnosis_ANALYSIS.md`, a **machine
+      draft**; one claim verified by hand against the filing (`AGENT-23`), the rest are not
+- [ ] Read that draft and keep or cut its unverified claims
 
 ### Day 11 — Gate and drill
-- [x] Gate scripts + workflow written and tested on a synthetic fixture (`CI-1`)
-- [ ] Real fixture built, gate green on real data — **run-list #8, #9**
-- [ ] Deliberately-broken commit proving the gate fires — depends on #8
+- [x] Gate scripts + workflow (`CI-1`)
+- [x] Real fixture built (400q), gate green on real data (`CI-2`)
+- [x] Gate proven to fire — degraded fixture exits 1, clean exits 0
+- [x] Refusal correctness measured (`EVAL-2`)
+- [x] Unanswerable set written and validated (`EVAL-1`)
 - [ ] Citation-grounding check — not started
-- [x] Unanswerable set written and validated, 48 questions (`EVAL-1`)
-- [ ] Refusal correctness measured — **run-list #10**
 - [ ] Interview drill #1 — not started
-- [ ] Answer-accuracy leg, on-merge not per-push (`COST-39`) — depends on #1
+- [ ] Answer-accuracy leg, on-merge not per-push (`COST-39`) — now unblocked, baseline exists
 
 ### Day 12 — AWS
 - [x] Serving layer, `Dockerfile`, `.dockerignore` (`DEPLOY-1`)
-- [ ] Image built and smoke-tested — **run-list #6, #7**
-- [ ] App Runner/ECS + RDS pgvector + S3 + Bedrock — not started, ~10h, the largest unknown
+- [x] Image built, boots offline as non-root, `/health` `/ready` `/ask` all good (`DEPLOY-5`).
+      Five defects fixed; **9.06GB image, 2.17-2.75GiB resident**
+- [ ] **Fix the container wordlist** (`DEPLOY-5`) — `python:slim` has none, so `RETR-11`'s guard
+      is off and the deployed resolver is NOT the benchmarked one. Install `wamerican` or bake a
+      list and set `COMPANY_WORDLIST`. **Do this before deploying anything**
+- [ ] **Decide the reranker route** (`DEPLOY-6`) — 207.8s per question on CPU. Cut `CANDIDATE_K`
+      for serving / ONNX-quantise / bigger instance / go async. **Gates instance sizing**
+- [ ] **AWS account** — user-owned (card, MFA). Pick the **Free** plan at signup, not Paid
+- [ ] Verify the $100 landed: Billing -> **Credits**, a real row with amount + expiry. Empty page = fall back
+- [ ] Zero-spend Budget **before any workload** — the "Free plan shuts down instead of billing" claim is
+      unconfirmed by AWS
+- [ ] Four remaining $20 tasks, then re-check Credits that they paid out. Delete the RDS instance after
+- [ ] Report whether the second $100 arrived — it sets instance size and how long the URL stays up
+      (`DEPLOY-4`). All five gate everything below
+- [ ] IAM, ECR, S3 — no local build needed, and the image now exists to push
+- [ ] Both containers on one EC2 host via docker-compose, arm64/Graviton (`DEPLOY-4`). Postgres from
+      `Dockerfile.postgres` — **not** RDS; `pg_search` rules it out (`DEPLOY-2`). **Size from
+      `DEPLOY-6`'s decision, not from the 2.17GiB alone**
+- [ ] Corpus load — needs a `pg_dump` of the 2.1 GB live DB. **Unblocked now**
+- [x] Bedrock dropped, generation stays Gemini (`DEPLOY-3`, closes `AGENT-18`)
 
 ### Day 13 — Ship and latency
-- [ ] Deploy finished, live URL — depends on Day 12
+- [ ] Deploy finished, live URL, single EC2 host, up through Day 14 (`DEPLOY-4`) — depends on
+      Day 12 and on the credit check; falls back to deploy/screenshot/teardown if credits fall short
 - [ ] MCP server — not started
-- [ ] p95 measured **in the container**, not on this laptop (`DEPLOY-1`) — depends on #7
-- [ ] Gate enforces p95 — depends on the gate and the p95
+- [ ] p95 measured **in the container** (`DEPLOY-1`) — the field it reads is fixed and populated
+      (`DEPLOY-5`), but the number it currently gives is 212s (`DEPLOY-6`)
+- [ ] Gate enforces p95 — **blocked on `DEPLOY-6`**, not on the gate
 
 ### Day 14 — Ship
-- [ ] README benchmark table + trace screenshots — depends on Days 9 and 10
+- [ ] README benchmark table + trace screenshots — depends on the screenshots above
 - [ ] The written post
 - [ ] Final drill
 
-**Roughly 20h remains.** Days 11 and 12 are off zero, but everything written during the Day 9 run
-is drafted, not proven: `CI-1` has only met a synthetic fixture, `DEPLOY-1` has never been built,
-and `EVAL-1`'s 48 questions have never been asked. **AWS is the binding block at ~10h**, and it is
-the one item on this list that nothing already written has started.
+**What actually remains is smaller than it was, and differently shaped.** Days 9 and 11 are
+done. Day 10 needs only screenshots and a read-through. Day 12's *code* half is proven rather
+than drafted — but building it surfaced two blockers that did not exist as known work
+yesterday (`DEPLOY-5`'s wordlist, `DEPLOY-6`'s 207.8s rerank), and `DEPLOY-6` is a design
+decision, not a task. **AWS is still the binding block, and it is now second in line behind
+deciding how the reranker gets served.**
