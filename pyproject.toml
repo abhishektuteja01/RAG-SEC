@@ -36,6 +36,15 @@ dependencies = [
     "transformers==5.8.1",
 ]
 
+# Serving-only, kept OUT of the default dependencies deliberately: `uv run` syncs default
+# groups, and adding a web server there would reinstall into the venv that long eval runs
+# are executing from. The Dockerfile asks for it explicitly with `--extra serve`.
+[project.optional-dependencies]
+serve = [
+    "fastapi>=0.120.0",
+    "uvicorn[standard]>=0.40.0",
+]
+
 [build-system]
 requires = ["uv_build>=0.12.1,<0.13.0"]
 build-backend = "uv_build"

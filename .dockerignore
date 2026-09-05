@@ -1,0 +1,13 @@
+.git
+.venv
+data
+images
+*.md
+!README.md
+.env
+.env.example
+scripts
+__pycache__
+**/__pycache__
+*.pyc
+.DS_Store
