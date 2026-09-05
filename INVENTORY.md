@@ -1,7 +1,7 @@
 # Inventory
 
 Every folder and every file in this project: what it is, where it came from, what uses it,
-and whether you still need it. Written 2026-09-02, last checked 2026-09-03, by reading the
+and whether you still need it. Written 2026-09-02, last checked 2026-09-04, by reading the
 files, not by running them.
 
 Words used throughout:
@@ -126,7 +126,7 @@ probably committed early, before the ignore rules matured. Worth a look someday,
 
 ## `src/rag_sec/` — the shared library
 
-Fifteen files, about 2,300 lines. This is the code that the scripts all borrow from. Nothing here
+Seventeen files, about 3,280 lines. This is the code that the scripts all borrow from. Nothing here
 runs on its own; everything here gets imported.
 
 **`__init__.py`** — empty, marks the folder as importable. **Keep.**
@@ -194,6 +194,15 @@ allowing for units like thousands and millions. **Keep.**
 **Keep** — the next planned fixes land here.
 Note: one function, `compress()`, is unused but deliberately kept as the template for that fix.
 
+**`tracing.py`** — 452 lines. The Langfuse wrapper: one context manager per observation kind
+(`span`, `generation`, `retriever`, `embedding`) plus `question_trace` and `flush_tracing`.
+**The only file allowed to import `langfuse`** — everything else goes through here, so the
+backend is swappable in one place. **Keep.** Two properties it is built around: it no-ops
+entirely when `LANGFUSE_*` is unset, so keyless machines and CI import it fine, and it never
+raises into its caller — the first failure anywhere latches tracing off for the process rather
+than retrying ~8,000 times or killing a 4.4-hour paid run. `scripts/checks/tracing_offline.py`
+is what holds it to both.
+
 ### What could be tidied in `src/`
 
 - Most of what looks messy here is deliberate and documented. Don't "clean" it without reading the reasons.
@@ -205,7 +214,7 @@ Note: one function, `compress()`, is unused but deliberately kept as the templat
 
 ## `scripts/` — the layout
 
-Eight folders, named by what the scripts do rather than the day they were written. The old
+Nine folders, named by what the scripts do rather than the day they were written. The old
 `dayN_` prefixes are gone; the day tags live in `DECISIONS.md`, where they belong.
 
 | Folder | What lives there |
@@ -214,7 +223,8 @@ Eight folders, named by what the scripts do rather than the day they were writte
 | `index/` | making the corpus searchable |
 | `retrieval/` | the live search arms and the current rerank pipeline |
 | `compression/` | evidence compression and the paid answer A/B |
-| `eval/` | ground-truth resolution |
+| `eval/` | ground-truth resolution, and the Arm 6 run with its two free readers |
+| `observability/` | the Langfuse dashboard, defined as code |
 | `checks/` | guards and regression tests, not investigations |
 | `analysis/` | one-off investigations behind published numbers |
 | `archive/` | superseded scripts kept as the record of how a number was made |
@@ -318,7 +328,7 @@ lines to fix, and the highest-value fix in this folder.
 
 ## `scripts/compression/` — evidence compression and the paid answer A/B
 
-Seven files, all about measuring whether compressing the evidence saves money without losing
+Eight files, all about measuring whether compressing the evidence saves money without losing
 accuracy. **This is the only folder in the project that spends real money.**
 
 **`slice_prepare.py`** — cuts candidate chunks into ~150-word slices and packages them
@@ -374,7 +384,9 @@ Prices `flex` and `batch` rows at 50% and everything else at full. **Keep.**
 
 ---
 
-## `scripts/eval/` — one file
+## `scripts/eval/` — four files
+
+One ground-truth resolver, one paid run, and two free readers of what that run wrote.
 
 **`resolve_gold_evidence.py`** — turns pointers like `table_6` into the actual rows and
 sentences, so scoring never has to touch the huge original dataset files.
@@ -389,6 +401,46 @@ Two problems, both confirmed:
 
 Everything you can currently measure depends on these two files. Neither can be rebuilt from
 this repository.
+
+**`agent_run.py`** — 346 lines. The Day 9 Arm 6 run: the loop over a seeded random dev sample,
+plus the paired static baseline on the same questions. **NOT FREE — live paid Gemini calls at
+`standard`, ~$8 for n=300.** There is no dry-run and no price estimate; `-n` is the only brake.
+**Keep** — it is the one artifact several later days read, which is why it is written as a
+one-off. Resume is at the **file level**: completed ids in `--out` are skipped and errored rows
+are not counted as done, so a kill costs nothing but deleting that file costs money again.
+Defaults to `--concurrency 1` and must stay there — concurrent model construction on MPS
+segfaults the machine (`AGENT-10`/`AGENT-17`).
+
+**`agent_analyze.py`** — 169 lines. The Day 9 metrics: trajectory, judge accuracy, retrieval
+and answer scores, p50/p95 per stage. **Free, read-only, no API and no GPU**, and safe to point
+at a partial results file mid-run. **Keep — this is the authoritative source for $/question**;
+it prices each usage record itself from the model ids in the row, so the number is not typed in
+anywhere.
+
+**`worst_failures.py`** — 240 lines. Writes the 20 worst failures per arm as markdown
+(`spec.md` 2.2 rule 5), to `data/day9_worst_failures_{arm6,static}.md`. **Free, read-only**, and
+also safe on a partial file. **Keep.** Its ordering is a stated choice, not a measurement:
+failures are ranked by how close the gold evidence got to the answer model — reasoning, then
+rerank, then retrieval — because every wrong number is equally wrong.
+Note: **regenerate it from the finished run.** The two files from the pre-`AGENT-16` data were
+deleted rather than kept, since a stale worst-failures list is read as if it were current.
+
+---
+
+## `scripts/observability/` — the dashboard as code
+
+**`build_langfuse_dashboard.py`** — 358 lines, one file. Builds the Day 10 dashboard
+("RAG-SEC -- Arm 6 loop vs static") and its **12 widgets** by pushing them to Langfuse: per-arm
+cost and question count, question and per-stage latency at p50/p95, four iteration tiles, two
+judge-verdict tiles, cached-vs-fresh input tokens, and observations by level.
+**Keep** — this is why the dashboard is reproducible rather than a screenshot of some clicks.
+Needs the Langfuse keys and network; no GPU, no model calls, so it costs nothing to re-run.
+**Idempotent by name**: widgets and the dashboard are looked up by name and PATCHed, never
+duplicated, and nothing is removed unless `--prune` or `--delete` is passed explicitly.
+Note: it writes through the `unstable/` API, pinned in the file to snapshot 4.16.0. That
+surface **drops unknown body keys silently instead of erroring**, so the script re-reads what it
+wrote and compares field by field — a half-built dashboard that renders is worse than a failed
+run. It also backs off on 429, because a full build is ~30 calls against a 30/min limit.
 
 ---
 
@@ -420,6 +472,20 @@ unchanged, heading misattribution goes 45.9% -> 0.0%, and (with `--labels 300`) 
 moves. **Keep — this is what makes the fix safe to ship dark**, and it must pass before the
 re-index cycle flips the flags on. Read-only, no GPU, no API calls.
 
+**`tracing_offline.py`** — 462 lines, **nine checks** over `src/rag_sec/tracing.py`.
+**No keys, no network, no GPU, no cost** — the enabled cases point the SDK at a port that is
+never listening, so the failure paths are exercised for real rather than mocked. Each case runs
+in its own subprocess, because the module latches its enabled/disabled decision once per
+process. **Keep — this is what makes `OBS-4`'s "tracing can never kill the run" a checked claim
+instead of a comment**, and it exits non-zero on the first failure so it can go in CI.
+
+**`static_ranking_order.py`** — 81 lines. Fails if the static rankings `agent_run.py` slices
+`[:TOP_K]` from are not in descending rerank-score order **at the point of use**. Read-only, no
+GPU, no API. **Keep** — this is `AGENT-16`'s guard: `rerank_hpc.py` attaches the score to the
+first-stage RRF order and promises nothing about ordering, the published scorer sorts on load
+and `agent_run.py` did not, and 0 of 1235 dev cells were in order. Fourth instance of the
+project's recurring bug class, which is why it is mechanical now.
+
 **`agent_loop_smoke_test.py`** — **the dangerous one.** It looks like a test, but every run makes live
 paid model calls (about $0.04) and writes rows into your database. There is **no dry-run and no
 confirmation prompt.** **Keep, but give it a guard.** It lives here rather than with the compression
@@ -430,7 +496,8 @@ the cost warning.
 
 ## `scripts/analysis/` — one-off investigations
 
-Seven scripts. These aren't part of the pipeline. Each was written to answer one
+Twelve scripts, the eight below plus four label-audit/matcher ones this map has not
+caught up with. These aren't part of the pipeline. Each was written to answer one
 question, printed a table, and the answer was written into `DECISIONS.md`. **Every one of them is
 the only way to regenerate a number you've published**, and none of them save their output — so
 deleting one means rewriting it to get that number back.
@@ -520,7 +587,7 @@ Day 8 gain is measured against. It is also still the only script that can score 
 
 ---
 
-## `data/` — 4.8 GB, 73 entries
+## `data/` — 4.9 GB, 96 entries
 
 The biggest source of confusion, and the biggest cleanup opportunity. Roughly **1 GB is dead weight.**
 
@@ -643,6 +710,28 @@ at each level; the printed tables cannot be recovered from the marginals alone.
 (`INFRA-10`). The second one carries the per-question verdicts, which the printed table cannot be
 recovered from. Both regenerate for free from the score files above.
 
+### Day 9 agentic loop
+
+**`day9_arm6_dev_results.jsonl`** — **Keep. You are paying for this**, one row per question with
+both arms, their trajectories, usage and per-stage latencies. Growing while the run is in
+flight; `agent_run.py` resumes off it, so **deleting it re-spends the money.** Everything Days
+9-13 publish about the loop is read from this file by `agent_analyze.py` and `worst_failures.py`.
+
+**`day9_run.log`** — **Keep while the run is live**, then decide: it is the run's stdout, and its
+timing evidence is also in the JSONL. Nothing reads it.
+
+**`day9_multidoc_negative_ANALYSIS.md`** — 12 KB. **Keep.** The `AGENT-15` write-up of Day 9's
+negative: `spec.md`'s multi-document subset is empty, so the loop's published best case cannot be
+tested on this benchmark, and this is where the check, the 10-K comparatives trap, and what the
+run still establishes are written down. Writing rather than data, like `day2_findings.md`.
+
+**`archive/`** — 572 KB, **5 files.** The `.bak` rows the Day 9 restarts left behind, kept as
+provenance for `AGENT-9` (19 rows whose answer prompt asked for the wrong format, so both arms
+scored 0.0%) and `AGENT-16` (the 21 rows plus log from before the static-ordering bug stopped the
+run), and the 5-question CPU pilot behind `AGENT-13`.
+**Keep as archive.** Their trajectories and `usage` are valid — only the answers are unscoreable
+— and several `DECISIONS.md` rows cite them by path.
+
 ### Leftover cluster inputs and other
 
 **`day5_embed_payload.json`** (**103 MB**) — **Delete.** Rebuilt in minutes.
@@ -679,8 +768,13 @@ silently win over a corpus change. If the corpus grows, delete this file to forc
 
 **Looks deletable, is not:** anything ending `_rerank_scores.jsonl` or `_slice_scores_*.jsonl`
 (GPU hours), `day7_gold_inds_matched_full.json` (nothing can recreate it),
-`day8_cost13_responses.jsonl` and `day6_table_summaries.json` (paid for),
-and the `.bak_old_labeler` files (deliberately kept).
+`day8_cost13_responses.jsonl`, `day6_table_summaries.json` and `day9_arm6_dev_results.jsonl`
+(paid for — the last one is also what makes a re-run free), and the `.bak_old_labeler` and
+`data/archive/*.bak` files (deliberately kept).
+
+**Genuinely deletable and already deleted:** `data/day9_worst_failures_{arm6,static}.md`, both
+generated from pre-`AGENT-16` data. They regenerate for free once the run finishes — the reason
+to delete rather than keep was that a stale failure list reads as a current one.
 
 ---
 
@@ -691,12 +785,14 @@ and the `.bak_old_labeler` files (deliberately kept).
    would overwrite good data with almost nothing. Either save the matching as a real script, or
    write down plainly that this file is frozen and back it up.
 
-2. **Your best number isn't saved anywhere.** `rerank_score.py` prints and exits. About ten
-   lines would fix that.
+2. ~~**Your best number isn't saved anywhere.**~~ **Done.** `rerank_score.py` used to print and
+   exit; it now takes `--out` and writes the scored table, which is where
+   `data/retr7_arm3_{dev,test}_results.json` — the `RETR-39` headline, dev and test — come from.
 
 3. ~~**The naming is the reason this folder feels overwhelming.**~~ **Done.** Every script used to
    be called `dayN_something`, which recorded *when* it was written, not *what it does* — and it was
    already misleading, since `arm4_rerank_score.py` carried a Day 6 prefix while computing a current
    baseline. `scripts/` is now organised by job (`corpus`, `index`, `retrieval`,
-   `compression`, `eval`, `checks`, `analysis`, `archive`) with every file named for what it does; the
+   `compression`, `eval`, `observability`, `checks`, `analysis`, `archive`) with every file named
+   for what it does; the
    day tags stay in `DECISIONS.md`, where they belong.
