@@ -399,7 +399,8 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [x] Gate scripts + workflow (`CI-1`)
 - [x] Real fixture built (400q), gate green on real data (`CI-2`)
 - [x] Gate proven to fire — degraded fixture exits 1, clean exits 0
-- [x] Refusal correctness measured (`EVAL-2`)
+- [x] Refusal correctness measured — 47/48, and the one miss is our label (`EVAL-2`)
+- [ ] Fix or drop `unans_034`, which is answerable (`EVAL-2`)
 - [x] Unanswerable set written and validated (`EVAL-1`)
 - [ ] Citation-grounding check — not started
 - [ ] Interview drill #1 — not started
