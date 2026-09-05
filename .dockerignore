@@ -1,6 +1,7 @@
 .git
 .venv
 data
+!data/company_lexicon.json
 images
 *.md
 !README.md

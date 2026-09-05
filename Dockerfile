@@ -13,10 +13,15 @@
 ARG PYTHON_VERSION=3.12
 ARG UV_VERSION=0.12.1
 
+# `COPY --from=<image>` does not expand variables, so the pinned uv image has to become a
+# named stage first -- `FROM` is the only instruction that expands a global ARG. Pinning uv
+# at all is the point: it resolves the lock, and an unpinned resolver is a silent way for a
+# build to install something other than what uv.lock says.
+FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uvbin
+
 # ---------------------------------------------------------------------------- deps
 FROM python:${PYTHON_VERSION}-slim-bookworm AS builder
-ARG UV_VERSION
-COPY --from=ghcr.io/astral-sh/uv:${UV_VERSION} /uv /bin/uv
+COPY --from=uvbin /uv /bin/uv
 
 WORKDIR /build
 COPY pyproject.toml uv.lock ./
@@ -26,10 +31,19 @@ COPY pyproject.toml uv.lock ./
 # resolves PyPI's CUDA-bundled torch wheel and adds ~2.5GB to an image that will never see a
 # GPU. `--frozen` keeps the exact locked versions -- the pins in pyproject.toml exist so a
 # routine upgrade cannot move the numbers in DECISIONS.md, and that has to survive the build.
+# The CUDA packages are STRIPPED FROM THE EXPORT, not just deselected by a flag, and the
+# distinction is why the first build of this image failed. uv.lock carries 43 `nvidia-*`
+# entries plus `triton` marked `sys_platform == 'linux'`, so `uv export` names them as
+# explicit requirements -- at which point `UV_TORCH_BACKEND` cannot help, because that
+# governs RESOLUTION and this step installs an already-resolved list. Left in, they pulled
+# ~3GB of CUDA runtime into an image whose own header says CPU only, and the build ran the
+# disk out during layer export. `--torch-backend=cpu` still goes on the install so torch
+# itself resolves to the +cpu variant, which has no nvidia dependencies to reinstate.
 RUN uv export --frozen --no-dev --no-emit-project --no-hashes --extra serve \
-        -o /build/requirements.txt \
+        -o /build/requirements.full.txt \
+    && grep -vE '^(nvidia-|triton)' /build/requirements.full.txt > /build/requirements.txt \
     && uv venv /opt/venv \
-    && VIRTUAL_ENV=/opt/venv UV_TORCH_BACKEND=cpu uv pip install -r /build/requirements.txt
+    && VIRTUAL_ENV=/opt/venv uv pip install --torch-backend=cpu -r /build/requirements.txt
 
 # ---------------------------------------------------------------------------- weights
 FROM builder AS weights
@@ -43,8 +57,7 @@ RUN --mount=type=cache,target=/root/.cache/huggingface \
     /opt/venv/bin/python -c "\
 from huggingface_hub import snapshot_download; \
 snapshot_download('${EMBED_MODEL}', ignore_patterns=['*.onnx','*.h5','*.msgpack','onnx/*']); \
-snapshot_download('${RERANK_MODEL}', ignore_patterns=['*.onnx','*.h5','*.msgpack','onnx/*'])" \
-    && cp -r /models /models-baked
+snapshot_download('${RERANK_MODEL}', ignore_patterns=['*.onnx','*.h5','*.msgpack','onnx/*'])"
 
 # ---------------------------------------------------------------------------- runtime
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
@@ -59,8 +72,16 @@ ENV PYTHONUNBUFFERED=1 \
     PORT=8080
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=weights /models-baked /models
+COPY --from=weights /models /models
 COPY src /app/src
+# The company lexicon, 10KB, baked. Without it `load_lexicon()` falls through to
+# `build_lexicon()`, which imports the HF dataset loader and reads `data/chunks/` -- neither
+# of which belongs in a serving image, and both of which are excluded from it. The first
+# build of this image started, loaded both models, and then died in the lifespan warmup for
+# exactly that reason. company.py's own docstring already says lexicon BUILDING is kept out
+# of the retrieval path; this is what makes that true at runtime rather than only by
+# intention. It is committed, so the image and the eval resolve identical aliases.
+COPY data/company_lexicon.json /app/data/company_lexicon.json
 WORKDIR /app
 
 # Non-root, and it owns nothing writable: the container reads Postgres and HF cache only.

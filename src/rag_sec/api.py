@@ -87,7 +87,12 @@ def ask(req: AskRequest) -> AskResponse:
     chunks = _dedupe_chunks(retrieve(req.question, k=req.k))
     # `_s` keys only: last_call_stats() also carries the full candidate list, which is the
     # retriever's internals and would be several hundred KB on a k=50 response.
-    stages = {k: v for k, v in last_call_stats().items() if k.endswith("_s")}
+    # Read out of ["timings"], NOT off the top level: the top-level keys are `timings`,
+    # `rerank_query`, `tickers`, `candidates`, `reranked`, none of which ends in `_s`, so
+    # filtering there returned {} on every request and `stage_latency` was always empty.
+    # Day 13 gates a p95 taken from this field (DEPLOY-1), so it would have gated nothing.
+    stages = {k: v for k, v in last_call_stats().get("timings", {}).items()
+              if k.endswith("_s")}
     if not chunks:
         raise HTTPException(status_code=404, detail="no candidates retrieved")
 
