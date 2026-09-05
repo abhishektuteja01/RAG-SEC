@@ -204,10 +204,26 @@ def retrieve(
             top = [[candidates[j][0], int(candidates[j][1]), float(scores[j])] for j in order]
             sp.set(output=top, lock_wait_s=t["rerank_lock_wait_s"], compute_s=compute_s)
 
-        # The four stage keys only. The lock-wait keys are already inside embed_s/rerank_s and
-        # model_init_s is one-off warm-up, not per-question work; adding either would
-        # double-count or inflate every published latency number in the Day 9 JSONL.
-        t["total_s"] = t["embed_s"] + t["resolve_s"] + t["search_s"] + t["rerank_s"]
+        # Releasing MPS's cached blocks is what keeps stage latency flat across a long pass.
+        # Without it, embed_s climbs 0.11s -> 7.7s and rerank_s 27s -> 48s over ~10 questions
+        # while swap grows 2.3 GB -> 8.4 GB, on an ONLY-process machine -- and it is not a
+        # leak in the usual sense: torch.mps.current_allocated_memory() stays pinned at
+        # 4542 MB throughout, so nothing is retained, the caching allocator simply never
+        # returns freed blocks to a 16 GiB unified-memory system that needs them back.
+        # Measured both ways over 25 questions (AGENT-24, scripts/checks/mps_leak_probe.py).
+        # Guarded on device because empty_cache exists only on MPS, and imported here because
+        # config.py keeps torch lazy for the chunking/eval paths that never touch a GPU.
+        t0 = time.perf_counter()
+        if device == "mps":
+            import torch
+
+            torch.mps.empty_cache()
+        t["mps_empty_cache_s"] = time.perf_counter() - t0
+        # Counted in total_s, unlike model_init_s: a caller pays this on every question, so
+        # excluding it would publish a per-question latency the system does not actually
+        # deliver. The lock-wait keys stay out -- they are already inside embed_s/rerank_s.
+        t["total_s"] = (t["embed_s"] + t["resolve_s"] + t["search_s"] + t["rerank_s"]
+                        + t["mps_empty_cache_s"])
         _last.stats = {
             "timings": t,
             "rerank_query": rerank_query,
