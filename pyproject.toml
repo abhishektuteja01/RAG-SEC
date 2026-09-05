@@ -15,6 +15,9 @@ dependencies = [
     "huggingface-hub==1.28.0",
     "langchain-core>=1.6.1",
     "langchain-google-genai==4.3.7",
+    # Pinned: the tracing wrapper reads v4-only APIs (start_as_current_observation,
+    # create_trace_id) and langfuse renames them across majors.
+    "langfuse==4.15.1",
     "langgraph==1.2.11",
     "langgraph-checkpoint-postgres==3.1.2",
     "numpy>=2.0.0,<3.0.0",
