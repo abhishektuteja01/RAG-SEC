@@ -50,7 +50,13 @@ from rag_sec.retrieve import last_call_stats, retrieve  # noqa: E402
 
 SEED = 42  # agent_run.py's, so the question set matches
 OUT = _ROOT / "data" / "day9_latency_clean.jsonl"
-META = _ROOT / "data" / "day9_latency_clean_meta.json"
+
+
+def meta_path(out: Path) -> Path:
+    """Derived from --out, never a constant: a smoke test pointed at a scratch file would
+    otherwise stamp its own n next to the real pass's data, which is this project's
+    recurring bug class (RETR-24, AGENT-16) rebuilt in a new file."""
+    return out.with_name(out.stem + "_meta.json")
 STAGES = ["embed_s", "resolve_s", "search_s", "rerank_s", "total_s"]
 
 
@@ -114,7 +120,8 @@ def main() -> int:
 
     if args.report_only:
         rows = [json.loads(l) for l in args.out.read_text().splitlines() if l.strip()]
-        meta = json.loads(META.read_text()) if META.exists() else {}
+        mp = meta_path(args.out)
+        meta = json.loads(mp.read_text()) if mp.exists() else {}
         report(rows, meta)
         return 0
 
@@ -136,7 +143,7 @@ def main() -> int:
             rows.append(rec)
     meta["swap_after"] = swap()
     meta["finished"] = datetime.now(timezone.utc).isoformat()
-    META.write_text(json.dumps(meta, indent=2) + "\n")
+    meta_path(args.out).write_text(json.dumps(meta, indent=2) + "\n")
     report(rows, meta)
     return 0
 
