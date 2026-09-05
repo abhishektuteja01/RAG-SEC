@@ -1,0 +1,73 @@
+# The CI quality gate (spec.md 2.4). Two jobs, split on cost, not on tidiness.
+#
+#   guards     static/self-contained checks. No data, no DB, no network. Seconds.
+#   gate       replays the committed retrieval fixture and fails on regression.
+#
+# What is deliberately NOT here:
+#   - heading_fix.py reads data/chunks/, which is gitignored (the whole corpus). It stays a
+#     local check until the fixture idea is extended to it.
+#   - The answer-accuracy leg. 2,000 answer sends is $23.62/push at standard rates, and the
+#     batch rate that makes it affordable carries a 24h SLO, so it cannot gate a push
+#     (COST-39). It belongs on merges to the default branch, as a separate workflow.
+#   - The p95 latency leg. It has to be measured in the serving container (DEPLOY-1), not
+#     replayed, so it arrives with the Day 13 deploy.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+
+env:
+  UV_VERSION: "0.12.1"
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
+      - name: Cache uv downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+      - name: Install locked deps, CPU torch
+        # Exported and pip-installed rather than `uv sync`, because --torch-backend exists on
+        # `uv pip install` and not on `uv sync` (uv 0.12.1). Without it the linux runner pulls
+        # the CUDA-bundled torch wheel: ~2.5GB downloaded on every cold cache, for a job that
+        # only ever imports torch to pick a device.
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-hashes -o requirements.txt
+          uv venv
+          UV_TORCH_BACKEND=cpu uv pip install -r requirements.txt
+      - name: Every read of `chunks` constrains `variant` (RETR-24)
+        run: .venv/bin/python scripts/checks/variant_predicates.py
+      - name: Candidate SQL and RRF ordering unchanged
+        run: .venv/bin/python scripts/checks/candidate_sql.py
+      - name: Static rankings are rank-ordered at point of use (AGENT-16)
+        run: .venv/bin/python scripts/checks/static_ranking_order.py
+      - name: Tracing degrades to a no-op without keys (OBS-*)
+        # Runs with no LANGFUSE_* in the environment on purpose: that IS the property.
+        run: .venv/bin/python scripts/checks/tracing_offline.py
+
+  gate:
+    runs-on: ubuntu-latest
+    needs: guards
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install uv
+        run: curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
+      - name: Cache uv downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+      - name: Install locked deps, CPU torch
+        run: |
+          uv export --frozen --no-dev --no-emit-project --no-hashes -o requirements.txt
+          uv venv
+          UV_TORCH_BACKEND=cpu uv pip install -r requirements.txt
+      - name: Retrieval quality gate
+        run: .venv/bin/python scripts/checks/retrieval_gate.py
