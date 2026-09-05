@@ -4,7 +4,9 @@ Living document. Overwrite stale lines; don't append to them. Numbers and reason
 in `DECISIONS.md` — this file only says where things stand and what to pick up.
 
 Last updated: 2026-09-04. Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
-(`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`).
+(`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). **Day 10's
+observability was then pulled forward ahead of Day 9's run** (`OBS-1`..`OBS-10`) so that
+run produces its own traces instead of needing a second paid pass.
 
 **"Day N" is a unit of planned work in `spec.md`, not a calendar date** — Day 8 spanned
 several days. The `COST-`/`RETR-` IDs follow the project label, not the calendar, so a
@@ -68,7 +70,75 @@ accuracy arguments. Batch is now justified by rate limits, not price.
 
 ## 2. Open questions, in the order worth doing them
 
-### Blocking: Day 9's premise is false
+### Day 9 IN FLIGHT — restarted clean after `AGENT-16`
+
+**A first attempt was stopped 18 questions in and archived** (`data/archive/day9_static_unsorted*`):
+the static baseline was reading the published rankings in first-stage order, so it was Arm 2 +
+filter rather than Arm 3 + filter + strip (`AGENT-16`). Nine further fixes came out of the
+pre-restart audit (`AGENT-17`), three of them run-killers. Everything below is post-fix.
+
+**Next action, one command** (~3-5h, ~$7-13, MPS, serial, resumable). **Plug the machine in
+first** — the aborted run was on battery and rerank latency stepped 22.9s -> 66.8s mean
+(2.9x) with no thermal warning ever recorded, so the published `spec.md:121` p50/p95 would
+have been battery throttling; and a 5h MPS-saturating run will flatten this battery long
+before it finishes, which `caffeinate` cannot prevent:
+
+```bash
+caffeinate -is uv run scripts/eval/agent_run.py -n 200 --concurrency 1 2>&1 | tee -a data/day9_run.log
+```
+
+Re-running the identical command resumes: it keeps successes, retries errors, drops
+duplicates, and wipes each question's stale checkpoint before starting it. `data/day9_arm6_dev_results.jsonl`
+already holds **2 verified post-fix rows**, so it will run 198. Then:
+`uv run scripts/eval/agent_analyze.py` (free, read-only, safe on a partial file).
+
+**Tracing is live and the run needs no extra flag.** Spans go to Langfuse Cloud whenever
+`LANGFUSE_*` is in `.env` and no-op silently when it is not, so a keyless machine or CI runs
+unchanged. Two traces per question (loop arm, static arm) grouped by `session_id` = question
+id; every row carries `trace_id`, `trace_id_static` and `session_id` as the join. **Hobby
+retention is 30 days, so capture the Day 10/14 screenshots within a month of the run.**
+
+**What the run produces**, one JSON row per question — built as a one-off that also feeds
+Days 10/11/13, because re-running costs money: trajectory + per-iteration queries/verdicts,
+`usage` per LLM call (tokens, cost, latency, `cached_input_tokens`), `stage_latency`
+(embed/search/rerank), top-10 + 50 pre-rerank candidates + full reranked list per iteration,
+`gold_chunk_ids`, both gold answer fields, `trace_id`/`trace_id_static`/`session_id`, and
+**`static_baseline`** — the paired Arm 3+filter+strip answer over the *published* `RETR-39`
+ranking (`data/retr7_rr_dev_scores.jsonl:filtered_stripped`), so retrieval is not re-run and the
+comparison is paired by construction. **That file stores candidates in first-stage order with
+rerank scores merely attached, so the loader must re-sort** — not doing so was `AGENT-16`, and
+`scripts/checks/static_ranking_order.py` now fails the run rather than trusting it.
+
+**Bugs fixed before and during this run are in `DECISIONS.md`, not here**: `AGENT-9`..`AGENT-12`
+(answer-format, MPS thread-safety, file-level resume, errored-rows-counted-as-done), `AGENT-16`
+(the static-baseline ordering bug that forced the restart) and `AGENT-17` (nine more from the
+pre-restart audit, three of them run-killers). **The two operational rules that follow from them:**
+run serial — concurrent MPS model construction segfaults the machine, and the reranker is the bulk
+of wall clock so concurrency buys nothing — and run on **mains power**. The concurrency at which
+the original SIGSEGV was reproduced is unestablished (`SESSION` said 4, the code comment said 2, no
+log survives); `AGENT-10` records it as ">1" and it should not be quoted.
+
+**Measured on the pilot, and it moves the numbers:** `COST-30`'s 15.1% insufficiency rate
+**does not transfer** — it was measured on one-shot `COST-13` responses, not a loop's partial
+evidence. Observed **11-60%** depending on sample (`AGENT-13`; the 16% low end does not
+reproduce), and questions terminating on the **cap** rather than a verdict. `AGENT-8` is
+**confirmed** — prefix caching fires — but **quote neither the cache share nor the loop's cost
+multiple from a pilot**: both swing hard with the iteration mix (multiple 3.6x at n=3 vs 1.96x at
+n=9; cache 12.4-26.1%), because a single-iteration question caches nothing and costs little
+(`OBS-10`, `AGENT-14`). Take both from the finished run.
+
+**Still owed after the run:** regenerate the worst-failures files — `scripts/eval/worst_failures.py`
+exists and its earlier output was **deleted as stale**, having been built on the pre-`AGENT-16` rows.
+Then Day 10's real half: diagnose the ten worst failures from their traces, and capture dashboard
+screenshots while the traces are still in retention. **The documentation debt is now cleared** —
+`AGENT-9`..`AGENT-17`, `COST-38` (flex, deliberately unestablished), `COST-39` (CI gate) and
+`OBS-1`..`OBS-12` are all written.
+
+**Budget:** $40 total, ~$6 spent (including ~$0.75 on the aborted attempt and ~$0.5 on pilots).
+Day 9 projects **$7-13** — the spread is the cap-hit rate, not uncertainty about rates. Reserve
+after Days 10-14 (~$19): ~$2-8.
+
+### Decided: Day 9's premise is false, and we report that
 
 **Every question in dev and test maps to exactly one filing** (1235 and 1546, checked
 2026-09-04). `spec.md:383` asks for Arm 6 measured "specifically on the multi-document
@@ -78,15 +148,15 @@ strength (multi-hop composition *across* documents) to Day 9. The only `multi_do
 repo (`scripts/analysis/pack_variants.py:287`) measures whether *retrieved chunks* span
 filings — `RETR-3`'s contamination finding, a property of the result, not of the question.
 
-Three ways out, undecided:
-
-- **Trajectory half only.** `spec.md` also asks for calls, tokens, dollars, wall clock and
-  sufficiency-judge accuracy. All runnable today, all single-document. Real Arm 6 data; does
-  not test the hypothesis.
-- **Report the negative.** "The benchmark cannot answer this, here's the proof, here's what
-  would." With `COST-30`'s cited 0.658-vs-0.816 this is a defensible interview answer, free.
-- **Build a multi-hop set.** Compose questions across filings of one company across years. New
-  scope `spec.md` never budgeted.
+**Decided** (`AGENT-15`): run the trajectory half — calls, tokens, dollars, wall clock,
+sufficiency-judge accuracy, all runnable and all single-document — **and report the negative**.
+Written up in `data/day9_multidoc_negative_ANALYSIS.md`, which re-derived the property
+independently and strengthened it: train is single-filing too (8,958, zero), so widening the pool
+cannot rescue it, and `page_number` is single-valued as well — one *page* per question, not merely
+one filing. Also quantified there: **50.4% of dev questions name two or more distinct years and
+still need exactly one filing**, because 10-Ks reprint prior-year comparatives — the same
+reprinting `RETR-3` blames for retrieval failures. Building a multi-hop set was rejected as scope
+`spec.md` never budgeted.
 
 ### Free — no GPU, no API spend
 
@@ -100,7 +170,9 @@ Three ways out, undecided:
 
 ### Then back to `spec.md`
 
-**Days 10-14.** 10: observability, then diagnose the ten worst failures from traces. 11: CI
+**Days 10-14.** 10: **instrumentation half is done** (`OBS-*`) — what remains is the half
+`spec.md` calls "the skill", diagnosing the ten worst failures from their traces, plus a dashboard
+screenshot pass. 11: CI
 quality gate, citation grounding, unanswerable set, first interview drill. 12-13: AWS, MCP
 server, latency pass with a stated p95. 14: README, writeup, final drill.
 

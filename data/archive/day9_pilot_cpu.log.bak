@@ -1,0 +1,11 @@
+dev: 5 sampled (seed 42), 0 already done, 5 to run
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 73167.34it/s]
+Loading weights:   0%|          | 0/393 [00:00<?, ?it/s]Loading weights: 100%|██████████| 393/393 [00:00<00:00, 6736.25it/s]
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+  1/5 finqa_dev_753      iters=1 calls=3 wall=  86.9s verdicts=finish
+  2/5 finqa_dev_582      iters=4 calls=9 wall= 268.1s verdicts=loop,loop,loop,finish
+  3/5 finqa_dev_548      iters=1 calls=3 wall=  66.2s verdicts=finish
+  4/5 finqa_dev_113      iters=2 calls=5 wall= 140.2s verdicts=loop,finish
+  5/5 finqa_dev_174      iters=4 calls=9 wall= 198.8s verdicts=loop,loop,loop,finish
+     -- 12.7min elapsed, ~0.0min left, 0 errors
+wrote data/day9_arm6_dev_results.jsonl (0 errors)

@@ -1,0 +1,48 @@
+dev: 200 sampled (seed 42), 1 already done, 199 to run
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 88099.54it/s]
+Loading weights:   0%|          | 0/393 [00:00<?, ?it/s]Loading weights: 100%|██████████| 393/393 [00:00<00:00, 10025.49it/s]
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+  1/199 finqa_dev_582      iters=3 calls=7 wall=  97.0s verdicts=loop,loop,finish
+  2/199 finqa_dev_548      iters=1 calls=3 wall=  30.6s verdicts=finish
+  3/199 finqa_dev_113      iters=1 calls=3 wall=  34.7s verdicts=finish
+  4/199 finqa_dev_174      iters=3 calls=7 wall= 122.2s verdicts=loop,loop,finish
+  5/199 finqa_dev_420      iters=1 calls=3 wall=  47.3s verdicts=finish
+  6/199 finqa_dev_309      iters=1 calls=3 wall=  56.5s verdicts=finish
+  7/199 convfinqa_1090     iters=1 calls=3 wall=  35.2s verdicts=finish
+  8/199 finqa_dev_413      iters=1 calls=3 wall=  52.0s verdicts=finish
+  9/199 convfinqa_1759     iters=1 calls=3 wall=  56.4s verdicts=finish
+  10/199 convfinqa_2830     iters=1 calls=3 wall=  66.7s verdicts=finish
+     -- 10.5min elapsed, ~198.1min left, 0 errors
+  11/199 finqa_dev_275      iters=1 calls=3 wall=  59.3s verdicts=finish
+  12/199 finqa_dev_771      iters=1 calls=3 wall=  49.7s verdicts=finish
+  13/199 convfinqa_2497     iters=1 calls=3 wall=  45.1s verdicts=finish
+  14/199 finqa_dev_415      iters=1 calls=3 wall=  57.2s verdicts=finish
+  15/199 finqa_dev_478      iters=1 calls=3 wall=  57.4s verdicts=finish
+  16/199 finqa_dev_609      iters=1 calls=3 wall=  56.6s verdicts=finish
+  17/199 finqa_dev_168      iters=4 calls=9 wall= 278.5s verdicts=loop,loop,loop,finish
+  18/199 finqa_dev_332      iters=1 calls=3 wall=  72.1s verdicts=finish
+/Users/abhishektuteja/.local/share/uv/python/cpython-3.12.12-macos-aarch64-none/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 1 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+dev: 200 sampled (seed 42), 3 already done, 197 to run
+Loading weights:   0%|          | 0/391 [00:00<?, ?it/s]Loading weights: 100%|██████████| 391/391 [00:00<00:00, 77934.37it/s]
+Loading weights:   0%|          | 0/393 [00:00<?, ?it/s]Loading weights: 100%|██████████| 393/393 [00:00<00:00, 8703.94it/s]
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+  1/197 finqa_dev_113      iters=1 calls=3 wall=  43.9s verdicts=finish
+  2/197 finqa_dev_174      iters=2 calls=5 wall=  43.5s verdicts=loop,finish
+  3/197 finqa_dev_420      iters=1 calls=3 wall=  27.8s verdicts=finish
+  4/197 finqa_dev_309      iters=1 calls=3 wall=  38.3s verdicts=finish
+  5/197 convfinqa_1090     iters=1 calls=3 wall=  36.8s verdicts=finish
+  6/197 finqa_dev_413      iters=1 calls=3 wall=  80.5s verdicts=finish
+  7/197 convfinqa_1759     iters=1 calls=3 wall=  74.1s verdicts=finish
+  8/197 convfinqa_2830     iters=1 calls=3 wall=  71.3s verdicts=finish
+  9/197 finqa_dev_275      iters=1 calls=3 wall=  75.5s verdicts=finish
+  10/197 finqa_dev_771      iters=1 calls=3 wall=  89.8s verdicts=finish
+     -- 10.3min elapsed, ~192.4min left, 0 errors
+  11/197 convfinqa_2497     iters=1 calls=3 wall=  64.9s verdicts=finish
+  12/197 finqa_dev_415      iters=1 calls=3 wall=  58.9s verdicts=finish
+  13/197 finqa_dev_478      iters=1 calls=3 wall=  99.1s verdicts=finish
+  14/197 finqa_dev_609      iters=1 calls=3 wall=  90.7s verdicts=finish
+  15/197 finqa_dev_168      iters=1 calls=3 wall=  81.0s verdicts=finish
+  16/197 finqa_dev_332      iters=1 calls=3 wall=  89.2s verdicts=finish
+  17/197 convfinqa_452      iters=1 calls=3 wall=  99.2s verdicts=finish
+  18/197 finqa_dev_490      iters=4 calls=9 wall= 356.8s verdicts=loop,loop,loop,loop
