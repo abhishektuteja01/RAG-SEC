@@ -4,9 +4,12 @@ Living document. Overwrite stale lines; don't append to them. Numbers and reason
 in `DECISIONS.md` — this file only says where things stand and what to pick up. **§5 is the
 Day 9-14 checklist**; it refers to §2's numbered command lists rather than repeating them.
 
-Last updated: 2026-09-05, **Days 9, 10 and 11 are COMPLETE.** The run was 200/200 questions,
-0 errors, 339.6 min; the screenshots are captured; the gate is green on real data. **What is
-left is AWS and two decisions.** Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
+Last updated: 2026-09-06 (late). **Days 9, 10 and 11 are COMPLETE. BOTH reranker latency routes
+are now exhausted** — ONNX/int8 is dead on macOS (`DEPLOY-11`, but for a reason that turned out to
+be wrong, see `DEPLOY-11-CORRECTED`) and cutting `CANDIDATE_K` cannot reach an interactive p95 at
+any acceptable recall (`DEPLOY-14`). The run was 200/200 questions, 0 errors, 339.6 min; the
+screenshots are captured; the gate is green on real data. **What is left is AWS, and a decision
+about what the p95 target even is.** Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
 (`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). Day 10's
 observability was pulled forward ahead of the run (`OBS-1`..`OBS-12`), so it produced its
 own traces. **Read §2's first block before quoting any Day 9 number** — three of them are
@@ -146,17 +149,80 @@ which makes it a cross-validation of two independent code paths. **And its stage
 is still pre-`AGENT-24` saturated data** (embed 13.13s against a true 0.075s) — regenerate it
 before Day 13 gates a p95 off it, which its own caption says it will.
 
-**What still needs a human, and nothing else does:**
+**What still needs a human. Every measurement the old list named is now DONE — what is left is
+AWS and one decision:**
 
-1. **AWS**, the binding ~10h block — but settle `DEPLOY-6` before sizing anything.
-2. **Decide the container's reranker route** (`DEPLOY-6`). 207.8s/question on CPU. This gates
-   Day 12's instance size and Day 13's p95, so it is first.
-3. **Fix the container wordlist** (`DEPLOY-5`) before deploying — 10 minutes, and without it
-   the deployed resolver is not the benchmarked one.
-4. **Decide the yes/no scorer question** (`AGENT-21`). Free to replay either way.
-5. **Fix or drop `unans_034`** (`EVAL-2`), which is answerable.
-6. **Review `retrieve.py`, `api.py`, `agent.py` and `Dockerfile`** — all changed this session.
-7. **Read `data/day9_failure_diagnosis_ANALYSIS.md`** — machine-written, one claim verified.
+1. **AWS**, the binding ~10h block, and now the ONLY block. Genuinely unblocked: the route is
+   chosen, the wordlist is baked, the code is reviewed. **Open the account and request credits
+   FIRST** — the first five steps are waiting, and they run in parallel with everything else.
+2. **Decide what the p95 target is.** Both latency routes are measured and both failed (below).
+   The honest options are: ORT int8 **on Graviton** (a ~20-minute check on the EC2 host you are
+   building anyway, and genuinely open), HF **TEI** (purpose-built arm64 reranker server, never
+   tried), or **restate the target as non-interactive** and say why in the writeup. The third
+   costs zero hours and is defensible — see `DEPLOY-14`'s arithmetic.
+3. **Re-derive the EC2 sizing basis before using it** (`DEPLOY-12`) — now mostly bookkeeping,
+   because `DEPLOY-11-CORRECTED` explains the gap it flagged: 63.0s native vs 207.8s container
+   is **AMX vs NEON** (Linux cannot reach Apple's AMX coprocessor), not container overhead.
+
+### The two latency routes, both now measured and both closed
+
+**Route 1, ONNX/int8: dead on macOS, but `DEPLOY-11`'s stated reason was WRONG and the
+correction matters** (`DEPLOY-11-CORRECTED`). `DEPLOY-11` compared `latency-fp32` (torch
+CrossEncoder) against `latency-int8` (an ONNX Runtime session) and read the gap as precision.
+Those are **different backends**. Verified on this machine: torch reports
+`BLAS_INFO=accelerate`, so its matmuls reach Apple's undocumented **AMX** coprocessor; ORT's
+MLAS never does and gets plain NEON. `scripts/eval/ort_fp32_latency.py` measured the missing
+cell — three legs, **one backend per process**, same 3 questions, same 50 pairs:
+
+| leg | p50 | per question |
+|---|---|---|
+| torch-fp32 (AMX) | **58.5s** | 61.7 / 58.5 / 55.5 — flat |
+| ort-fp32 (NEON) | 415.7s | 278.9 / 415.7 / 422.6 |
+| ort-int8 (NEON) | 276.3s | 106.2 / 276.3 / 349.0 |
+
+**int8 is ~1.5x FASTER than fp32 inside ORT** (0.38 / 0.66 / 0.83 per question — it wins all
+three). The 3.1x was backend, not precision. **Why the fast kernel is missing:** ORT gates its
+i8mm QGEMM kernels behind `#if defined(__linux__)`; this M3 reports `FEAT_I8MM: 1` and ORT
+detects it, then declines the kernel because the OS is not Linux (and the SVE fallback is
+useless here — no M-series has SVE). **So the Mac measurement says NOTHING about Graviton**,
+which is Linux + i8mm, and where torch conversely loses Accelerate. The container's 207.8s is
+the *weak* configuration. **Caveats that must ship with these numbers:** n=3, and the ORT legs
+drift upward within the run (fp32 1.5x, int8 3.3x) while torch is flat at 1.11x — the
+directions are robust, the magnitudes are not. **Do not quote 7.11x; quote 4.5-7.6x.**
+
+**Route 2, cutting `CANDIDATE_K`: measured on both splits, and it cannot do the job**
+(`DEPLOY-14`, via `scripts/eval/candidate_k_curve.py` — free, replayed from disk, no GPU).
+
+| K | test recall@10 | vs 50 | dev | est. container rerank |
+|---|---|---|---|---|
+| 50 | 0.747 | — | 0.760 | 207.8s |
+| 40 | 0.736 | -0.012 | 0.741 | ~166s |
+| 30 | 0.711 | -0.037 | 0.708 | ~125s |
+| 25 | 0.669 | -0.078 | 0.682 | ~104s |
+| 20 | 0.627 | -0.120 | 0.654 | ~83s |
+| 10 | 0.523 | -0.224 | 0.553 | ~42s |
+
+Rerank cost is linear in K, so an interactive number needs a **10-20x cut**, and **K=10 costs
+0.224 test recall — more than the entire filter+strip headline gain of +0.140.** Measured recall
+tracks the *pool ceiling* at every K (K=30: 0.711 vs 0.730; K=20: 0.627 vs 0.637), so cutting K
+destroys the **candidate pool**, not the reranker's ordering — the gold is spread through the
+first stage's tail. That is `RETR-33` restated: **first-stage candidate generation is the
+constraint.** **Adopted: K=30 as a 40%-of-the-work trim, explicitly NOT as the p95 answer.**
+Rejected: any K below 25 at any latency benefit.
+
+**Kept only so the ONNX artifacts are not re-created by accident:** `models/onnx/` is ~2.9GB and
+gitignored; `onnx_rerank_export.py` recreates it in ~30s. The extra is `uv sync --extra onnx` —
+`onnxruntime` + `onnx` + `onnxscript`, deliberately **not** `optimum[onnxruntime]`, which cannot
+install against our pinned `transformers==5.8.1` (`DEPLOY-8`). Do not relax the pin to "fix" it.
+`onnx_rerank_parity.py` still has never completed a parity run, and no longer needs to.
+
+**Settled earlier, all recorded in `DECISIONS.md`** — note `DEPLOY-6-RESOLVED` (reranker route =
+ONNX/int8, `CANDIDATE_K` unchanged) has since been **reversed twice** and is dead; see the two
+routes above. Still standing: the yes/no scorer reports
+both, headline unchanged (`AGENT-27`); `unans_034` is retired and the set scores 47/47
+(`EVAL-3`); the container wordlist is baked from the benchmark's own list rather than installed
+(`DEPLOY-7`); the four changed files were reviewed and five defects fixed (`AGENT-26`); and the
+failure-diagnosis draft is verified claim by claim (`AGENT-28`).
 
 **Two things found by finally building and running what Day 10-12 had only written:**
 
@@ -167,8 +233,10 @@ before Day 13 gates a p95 off it, which its own caption says it will.
   resolver is not the benchmarked one. **That last one is still open.**
 - **The CPU container is far too slow to serve interactively** (`DEPLOY-6`): 212.4s for one
   question, 207.8s of it the cross-encoder, at 755% CPU. A 2-vCPU free-tier host implies
-  ~800s/question. Correctness is fine — top citation 0.996, right answer. **Do not size the
-  EC2 host until the reranker route is chosen.**
+  ~800s/question. Correctness is fine — top citation 0.996, right answer. **Its 207.8s is now
+  explained** (`DEPLOY-11-CORRECTED`): that is torch on NEON, having lost Apple's AMX. Sizing no
+  longer waits on a reranker route — both are closed — but read `DEPLOY-12` before reusing the
+  number.
 
 **Budget:** $40 total. Day 9 came in at **$4.10** for 200 questions ($0.0205/q), plus ~$0.60
 for the unanswerable pass and ~$0.01 for one container smoke test. Roughly $29-30 remains.
@@ -337,6 +405,19 @@ $14.69. Knowing the number is what let me decline it.
 *Caveat:* `p=0.13` means no *detectable* harm at n=278, not that low is safe — and `COST-27`'s
 n=30 pilot sign-flipped at n=300.
 
+**5. I caught my own published conclusion being backwards, and the fix was measuring one
+missing cell.**
+I had written up "ONNX int8 is 3.1x slower than fp32, route abandoned." Reading it back, the
+comparison changed two variables: the fp32 leg was the torch CrossEncoder, the int8 leg was ONNX
+Runtime. Torch on this Mac links against Accelerate and reaches Apple's AMX coprocessor; ORT's
+MLAS gets plain NEON. Thirty minutes of measurement — three legs, one backend per process — and
+int8 turned out **1.5x faster** than fp32 within ORT, with the 3.1x being a 4.5-7.6x backend gap
+wearing a precision costume. The abandonment was still right for macOS; the stated reason was
+not, and the reason is what determines whether it transfers to Graviton (Linux + i8mm — where
+ORT's fast kernel is compiled in and torch loses AMX).
+*Caveat:* n=3, and the ORT legs drift within a run on a fanless laptop, so I quote the range and
+the machine state, never the point estimate.
+
 **If pushed on cost:** the compression work is a genuine accuracy-for-cost trade whose headline
 had to be retracted once retrieval improved. Being able to say "my earlier conclusion didn't
 survive better retrieval, and here's the measurement that killed it" is worth more than the
@@ -413,17 +494,20 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [x] Dashboard + trace screenshots captured — `images/langfuse_dashboard_{1,2,3}_*.png` and
       `images/langfuse_trace_loop_graph.png`, on the `OBS-13` window so counts match the file
 - [ ] Regenerate the stage-latency tile from a post-`AGENT-24` run (`OBS-13`) — its caption
-      says Day 13 gates on it, and it currently shows saturated-regime numbers
+      says Day 13 gates on it, and it currently shows saturated-regime numbers. **The only
+      Day 10 item left**, and it needs a serial pass on a quiet machine
 - [x] Ten worst failures diagnosed — `data/day9_failure_diagnosis_ANALYSIS.md`, a **machine
       draft**; one claim verified by hand against the filing (`AGENT-23`), the rest are not
-- [ ] Read that draft and keep or cut its unverified claims
+- [x] Draft verified claim by claim (`AGENT-28`) — 38 claims, 34 confirmed, 1 refuted, 3
+      corrected in place, none cut; corrections are marked inline in the file
 
 ### Day 11 — Gate and drill — gate COMPLETE
 - [x] Gate scripts + workflow (`CI-1`)
 - [x] Real fixture built (400q), gate green on real data (`CI-2`)
 - [x] Gate proven to fire — degraded fixture exits 1, clean exits 0
 - [x] Refusal correctness measured — 47/48, and the one miss is our label (`EVAL-2`)
-- [ ] Fix or drop `unans_034`, which is answerable (`EVAL-2`)
+- [x] `unans_034` retired; set is 47 questions and scores **47/47** (`EVAL-3`). The results
+      file keeps the measured row — the questions file now defines membership
 - [x] Unanswerable set written and validated (`EVAL-1`)
 - [ ] Citation-grounding check — not started
 - [ ] Interview drill #1 — not started
@@ -433,11 +517,19 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [x] Serving layer, `Dockerfile`, `.dockerignore` (`DEPLOY-1`)
 - [x] Image built, boots offline as non-root, `/health` `/ready` `/ask` all good (`DEPLOY-5`).
       Five defects fixed; **9.06GB image, 2.17-2.75GiB resident**
-- [ ] **Fix the container wordlist** (`DEPLOY-5`) — `python:slim` has none, so `RETR-11`'s guard
-      is off and the deployed resolver is NOT the benchmarked one. Install `wamerican` or bake a
-      list and set `COMPANY_WORDLIST`. **Do this before deploying anything**
-- [ ] **Decide the reranker route** (`DEPLOY-6`) — 207.8s per question on CPU. Cut `CANDIDATE_K`
-      for serving / ONNX-quantise / bigger instance / go async. **Gates instance sizing**
+- [x] **Container wordlist fixed** (`DEPLOY-7`) — baked, not installed: `wamerican` disagrees
+      with the benchmark's list on 27 of 250 aliases, so it would have shipped a different
+      resolver. Guard now runs at build AND startup. **Full 9.06GB rebuild not yet run**
+- [x] **Reranker route decided** (`DEPLOY-6-RESOLVED`) — ONNX + int8, `CANDIDATE_K` unchanged
+- [x] **ONNX/int8 abandoned for macOS** (`DEPLOY-11`), **but its reason was wrong**
+      (`DEPLOY-11-CORRECTED`) — the 3.1x was torch-AMX vs ORT-NEON, and int8 is ~1.5x *faster*
+      than fp32 within ORT. **Graviton is Linux + i8mm, so it is untested there, not ruled out**
+- [x] **`CANDIDATE_K` cut measured on BOTH splits and it FAILS as a latency route** (`DEPLOY-14`).
+      K=30 adopted as a 40% trim (test recall 0.711); no K reaches an interactive p95
+- [ ] **Decide the p95 target** — Graviton ORT int8 (~20 min on the host), HF TEI, or restate it
+      as non-interactive. **This is now the only open reranker decision**
+- [ ] **Re-derive the sizing basis** (`DEPLOY-12`) — container 207.8s vs native 63.0s, and the
+      reranker is bandwidth-bound so `DEPLOY-6`'s per-vCPU scaling does not hold
 - [ ] **AWS account** — user-owned (card, MFA). Pick the **Free** plan at signup, not Paid
 - [ ] Verify the $100 landed: Billing -> **Credits**, a real row with amount + expiry. Empty page = fall back
 - [ ] Zero-spend Budget **before any workload** — the "Free plan shuts down instead of billing" claim is
@@ -449,6 +541,8 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [ ] Both containers on one EC2 host via docker-compose, arm64/Graviton (`DEPLOY-4`). Postgres from
       `Dockerfile.postgres` — **not** RDS; `pg_search` rules it out (`DEPLOY-2`). **Size from
       `DEPLOY-6`'s decision, not from the 2.17GiB alone**
+- [ ] **~20 min once the host exists: ORT int8 vs torch on Graviton.** Cheap because the instance
+      is already there; the one route `DEPLOY-11-CORRECTED` leaves genuinely open
 - [ ] Corpus load — needs a `pg_dump` of the 2.1 GB live DB. **Unblocked now**
 - [x] Bedrock dropped, generation stays Gemini (`DEPLOY-3`, closes `AGENT-18`)
 
@@ -465,13 +559,22 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [ ] The written post
 - [ ] Final drill
 
-**What actually remains is smaller than it was, and differently shaped.** Days 9, 10 and 11
-are done bar one dashboard tile. Day 12's *code* half is proven rather than drafted — but
-building it surfaced two blockers that did not exist as known work before
-(`DEPLOY-5`'s wordlist, `DEPLOY-6`'s 207.8s rerank), and `DEPLOY-6` is a design decision, not
-a task. **Start there: it gates instance size, which gates the deploy, which gates Day 13.**
-AWS is the binding block behind it, and steps 1-5 are mostly waiting on AWS, so open them
-early.
+**What remains is AWS, and one decision.** Days 9, 10 and 11 are done bar one dashboard tile.
+Both reranker latency routes are now measured and both failed, so **no local measurement gates
+anything any more** — the next action is to open the AWS account and request credits, because
+the first five steps are calendar waiting that nothing can compress. **Roughly 20-25 hours of
+work remain**, plus that waiting; budget is not a constraint (~$29-30 of $40 left, and almost
+nothing left costs money).
+
+**The p95 decision is the one thing that needs a human.** `DEPLOY-14`'s arithmetic says the
+workload cannot reach an interactive p95 on free-tier CPU, and saying that plainly in the
+writeup — with the three measured routes behind it — is stronger than a number fudged into
+range. Two optional scope cuts if you want to publish sooner: the **MCP server** (2-3h, nothing
+depends on it) and the **second interview drill**.
+
+**If you run anything on this laptop, read `DEPLOY-12` first:** fanless M3 Air, and ORT rerank
+latency drifted 1.5-3.3x within *three* questions while torch stayed flat. Record per-question
+times and machine state, never just a p50/p95.
 
 **Two standing cautions for whoever picks this up.** Every Day 9 figure predates `AGENT-25`,
 so quote 69.2% as a floor and never as the loop's ceiling. And the four numbers that this
