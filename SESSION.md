@@ -4,9 +4,9 @@ Living document. Overwrite stale lines; don't append to them. Numbers and reason
 in `DECISIONS.md` — this file only says where things stand and what to pick up. **§5 is the
 Day 9-14 checklist**; it refers to §2's numbered command lists rather than repeating them.
 
-Last updated: 2026-09-05, **Day 9's run is COMPLETE** — 200/200 questions, 0 errors, 339.6
-min. Everything on the old run-list is done except the two things that need a human
-(Langfuse screenshots, AWS). Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
+Last updated: 2026-09-05, **Days 9, 10 and 11 are COMPLETE.** The run was 200/200 questions,
+0 errors, 339.6 min; the screenshots are captured; the gate is green on real data. **What is
+left is AWS and two decisions.** Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
 (`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). Day 10's
 observability was pulled forward ahead of the run (`OBS-1`..`OBS-12`), so it produced its
 own traces. **Read §2's first block before quoting any Day 9 number** — three of them are
@@ -126,16 +126,37 @@ after seeing its results is a human decision. And at least one 'reasoning failur
 gold: `finqa_dev_147`'s own filing table gives 78.93%, which is what the model said, against a
 gold of 34.96 that reads the 2009 column.
 
+**The company filter was silently OFF for 60% of the loop's own iterations, and it is now
+fixed** (`AGENT-25`). Found by opening one trace, not from any metric. `retrieve()` resolved
+the company from whatever query it was handed, and after iteration 1 that is the planner's
+rewrite — which drops the company name and invents a `filing_stem:` syntax nothing parses. So
+`resolve()` returned nothing, the unfiltered branch ran across all 799 filings, and
+`finqa_dev_168`'s iterations 2-3 searched Host Hotels, Hologic and Philip Morris while looking
+for Global Payments. **The trace said so outright** — `search-candidates` carries
+`"filtered": false` — so the instrumentation was reporting it before anyone read it. Fixed via
+a `resolve_from` argument defaulting to the old behaviour, so only the agent path changes;
+unresolved fell 59.6% -> 14.9%. **Consequence for every Day 9 number: they all predate this
+fix, so 69.2% is a FLOOR measured on a partly-broken loop.** Do not re-run for it now (~$4).
+
+**The dashboard needs the run's own time window or it lies** (`OBS-13`). Last-1-day reads 185
+questions, last-7-days reads 225, the truth is 200 — the short window truncates the run's
+start, the long one sweeps in the aborted pre-`AGENT-16` attempt. On
+`2026-09-04 20:10 -> 2026-09-05 02:00` it matches the results file exactly on six counts,
+which makes it a cross-validation of two independent code paths. **And its stage-latency tile
+is still pre-`AGENT-24` saturated data** (embed 13.13s against a true 0.075s) — regenerate it
+before Day 13 gates a p95 off it, which its own caption says it will.
+
 **What still needs a human, and nothing else does:**
 
-1. **Langfuse dashboard + trace screenshots** (`OBS-11`). Hobby retention is 30 days from
-   2026-09-05. Disambiguate by timestamp: ~21 questions carry two `answer-question` roots in
-   one trace because deterministic trace-id seeding merges a re-run into its existing trace,
-   and the older root is pre-`AGENT-16` code.
-2. **AWS**, the binding ~10h block — but see `DEPLOY-6` before sizing anything.
-3. **Decide the yes/no scorer question** (`AGENT-21`). Free to replay either way.
-4. **Decide the container's reranker route** (`DEPLOY-6`). This one gates Day 12/13.
-5. **Review `retrieve.py` and `api.py`** — both were changed during this session.
+1. **AWS**, the binding ~10h block — but settle `DEPLOY-6` before sizing anything.
+2. **Decide the container's reranker route** (`DEPLOY-6`). 207.8s/question on CPU. This gates
+   Day 12's instance size and Day 13's p95, so it is first.
+3. **Fix the container wordlist** (`DEPLOY-5`) before deploying — 10 minutes, and without it
+   the deployed resolver is not the benchmarked one.
+4. **Decide the yes/no scorer question** (`AGENT-21`). Free to replay either way.
+5. **Fix or drop `unans_034`** (`EVAL-2`), which is answerable.
+6. **Review `retrieve.py`, `api.py`, `agent.py` and `Dockerfile`** — all changed this session.
+7. **Read `data/day9_failure_diagnosis_ANALYSIS.md`** — machine-written, one claim verified.
 
 **Two things found by finally building and running what Day 10-12 had only written:**
 
@@ -387,15 +408,17 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [x] `AGENT-13` revised, `OBS-10` restated at n=200
 - [x] Multi-doc negative written up (`AGENT-15`)
 
-### Day 10 — Observability
+### Day 10 — Observability — COMPLETE except one tile
 - [x] Instrumentation half (`OBS-1`..`OBS-12`)
-- [ ] **Dashboard + trace screenshots — YOU. Retention expires ~2026-10-05.** Disambiguate the
-      ~21 double-rooted traces by timestamp; the older root is pre-`AGENT-16` code
+- [x] Dashboard + trace screenshots captured — `images/langfuse_dashboard_{1,2,3}_*.png` and
+      `images/langfuse_trace_loop_graph.png`, on the `OBS-13` window so counts match the file
+- [ ] Regenerate the stage-latency tile from a post-`AGENT-24` run (`OBS-13`) — its caption
+      says Day 13 gates on it, and it currently shows saturated-regime numbers
 - [x] Ten worst failures diagnosed — `data/day9_failure_diagnosis_ANALYSIS.md`, a **machine
       draft**; one claim verified by hand against the filing (`AGENT-23`), the rest are not
 - [ ] Read that draft and keep or cut its unverified claims
 
-### Day 11 — Gate and drill
+### Day 11 — Gate and drill — gate COMPLETE
 - [x] Gate scripts + workflow (`CI-1`)
 - [x] Real fixture built (400q), gate green on real data (`CI-2`)
 - [x] Gate proven to fire — degraded fixture exits 1, clean exits 0
@@ -442,9 +465,17 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
 - [ ] The written post
 - [ ] Final drill
 
-**What actually remains is smaller than it was, and differently shaped.** Days 9 and 11 are
-done. Day 10 needs only screenshots and a read-through. Day 12's *code* half is proven rather
-than drafted — but building it surfaced two blockers that did not exist as known work
-yesterday (`DEPLOY-5`'s wordlist, `DEPLOY-6`'s 207.8s rerank), and `DEPLOY-6` is a design
-decision, not a task. **AWS is still the binding block, and it is now second in line behind
-deciding how the reranker gets served.**
+**What actually remains is smaller than it was, and differently shaped.** Days 9, 10 and 11
+are done bar one dashboard tile. Day 12's *code* half is proven rather than drafted — but
+building it surfaced two blockers that did not exist as known work before
+(`DEPLOY-5`'s wordlist, `DEPLOY-6`'s 207.8s rerank), and `DEPLOY-6` is a design decision, not
+a task. **Start there: it gates instance size, which gates the deploy, which gates Day 13.**
+AWS is the binding block behind it, and steps 1-5 are mostly waiting on AWS, so open them
+early.
+
+**Two standing cautions for whoever picks this up.** Every Day 9 figure predates `AGENT-25`,
+so quote 69.2% as a floor and never as the loop's ceiling. And the four numbers that this
+session proved non-comparable — the union recall@40 (`AGENT-22`), the pre-`AGENT-24` stage
+latencies, the pilot-era `AGENT-13`/`OBS-10` figures, and any dashboard count on a default
+time window (`OBS-13`) — are all still sitting in the log above their corrections, because a
+row is a record and not a claim. Read the correction, not the row.
