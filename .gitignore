@@ -84,3 +84,5 @@ data/retr7_embed_payload.json
 data/retr7_embed_results.jsonl
 data/ingest_log.jsonl
 .DS_Store
+models/
+data/onnx_parity_partial/

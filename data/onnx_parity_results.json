@@ -1,0 +1,37 @@
+{
+  "n": 3,
+  "cell": "filtered_stripped",
+  "seed": 17,
+  "model": "BAAI/bge-reranker-v2-m3",
+  "max_length": 2048,
+  "truncated_pairs": 0,
+  "parity": {
+    "top10_exact": 0.0,
+    "top10_setmatch": 0.6666666666666666,
+    "top10_overlap": 0.9333333333333333,
+    "tau": 0.9069387755102041
+  },
+  "metrics": {
+    "r10_fp32": 1.0,
+    "r10_int8": 1.0,
+    "r50_fp32": 1.0,
+    "r50_int8": 1.0,
+    "nd_fp32": 0.643558852691131,
+    "nd_int8": 0.654754362301597
+  },
+  "latency_cpu_s": {
+    "fp32_mean": 63.7333969159954,
+    "int8_mean": 99.06807366700377,
+    "speedup": 0.6433293245432594,
+    "n": 1,
+    "ids": [
+      "convfinqa_109"
+    ],
+    "fp32_secs": [
+      63.7333969159954
+    ],
+    "int8_secs": [
+      99.06807366700377
+    ]
+  }
+}
