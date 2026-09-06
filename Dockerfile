@@ -69,6 +69,7 @@ ENV PYTHONUNBUFFERED=1 \
     HF_HOME=/models \
     HF_HUB_OFFLINE=1 \
     RAG_SEC_DEVICE=cpu \
+    COMPANY_WORDLIST=/app/data/wordlist_web2.txt \
     PORT=8080
 
 COPY --from=builder /opt/venv /opt/venv
@@ -82,7 +83,26 @@ COPY src /app/src
 # of the retrieval path; this is what makes that true at runtime rather than only by
 # intention. It is committed, so the image and the eval resolve identical aliases.
 COPY data/company_lexicon.json /app/data/company_lexicon.json
+
+# The wordlist RETR-11's English-word guard reads, and the reason COMPANY_WORDLIST is set
+# above. `python:slim` ships no /usr/share/dict/words, so without this the guard is OFF in
+# the container -- silently, because a missing wordlist degrades to an empty word set and
+# only warns: nothing fails, 'visa applications' just filters to Visa Inc. and recall drops.
+# It is the FILE, not a package: `apt-get install wamerican` also puts a list at that path,
+# but a different one. wamerican carries proper nouns, so lowercased it makes 'intel',
+# 'merck', 'nike', 'walmart' and 23 other in-corpus aliases "ordinary English" -> risky ->
+# unmatched in lowercase questions. 27 of our 250 aliases/tickers get a different verdict
+# from it, which is a resolver the benchmark never measured (DEPLOY-2). data/wordlist_web2.txt
+# is a committed byte-copy of the macOS/BSD web2 the numbers were produced against
+# (sha256 be41ad97...bab9, 2.5MB), so the image cannot drift with an apt mirror either.
+COPY data/wordlist_web2.txt /app/data/wordlist_web2.txt
+COPY scripts/checks/container_wordlist.py /app/scripts/checks/container_wordlist.py
 WORKDIR /app
+
+# Fail the BUILD if the guard is off or reading a list other than web2. Cheap (stdlib +
+# a 10KB lexicon, no torch), and it is the only way this defect is ever noticed -- it has
+# no runtime symptom.
+RUN python /app/scripts/checks/container_wordlist.py
 
 # Non-root, and it owns nothing writable: the container reads Postgres and HF cache only.
 RUN useradd --system --create-home --uid 10001 app && chown -R app:app /app
@@ -92,4 +112,7 @@ EXPOSE 8080
 # Single worker on purpose. Two workers = two copies of both transformer models in RAM, and
 # concurrent model construction is what SIGSEGV'd the laptop (AGENT-10/AGENT-17). Scale by
 # running more containers, not more workers.
-CMD ["sh", "-c", "uvicorn rag_sec.api:app --host 0.0.0.0 --port ${PORT} --workers 1"]
+# The same check again at startup, because the build-time one cannot see a COMPANY_WORDLIST
+# that `docker run -e` points somewhere else. Refuse to serve rather than serve a resolver
+# that is not the benchmarked one.
+CMD ["sh", "-c", "python /app/scripts/checks/container_wordlist.py && uvicorn rag_sec.api:app --host 0.0.0.0 --port ${PORT} --workers 1"]

@@ -2,12 +2,14 @@
 .venv
 data
 !data/company_lexicon.json
+!data/wordlist_web2.txt
 images
 *.md
 !README.md
 .env
 .env.example
 scripts
+!scripts/checks/container_wordlist.py
 __pycache__
 **/__pycache__
 *.pyc
