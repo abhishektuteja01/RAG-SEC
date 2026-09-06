@@ -173,7 +173,12 @@ def retrieve_node(state: AgentState) -> dict:
     call = last.tool_calls[0]
     # untraced here on purpose: retrieve() opens its own `retrieve-chunks` retriever, and a
     # wrapper span around it put two identical observations in the tree at every iteration
-    results = _retrieve(call["args"]["query"])
+    # `resolve_from` is the ORIGINAL question, not the planner's query: the planner's later
+    # rewrites drop the company name (and invent a `filing_stem:` syntax nothing parses), so
+    # resolving from them silently disabled the company filter on 59.6% of later iterations
+    # and searched all 799 filings (AGENT-25). The rewrite still drives the search itself --
+    # that is the loop's whole point -- it just no longer decides which company we are in.
+    results = _retrieve(call["args"]["query"], resolve_from=state["question"])
     stats = dict(_last_call_stats())
     stats["query"] = call["args"]["query"]
     tool_message = ToolMessage(content=json.dumps(results), tool_call_id=call["id"])

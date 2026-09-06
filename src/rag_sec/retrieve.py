@@ -100,6 +100,7 @@ def retrieve(
     company_filter: bool = True,
     strip_query: bool = True,
     reserve: int = 0,
+    resolve_from: str | None = None,
 ) -> list[dict]:
     """Dense+BM25/RRF candidates, reranked by the cross-encoder, top-k returned as dicts
     (LLM-readable as a LangGraph tool result, and scoreable as eval input).
@@ -116,6 +117,15 @@ def retrieve(
     scripts/retrieval/rerank_prepare.py measured. Alone it is +0.015, but
     with the filter it is +0.145: once every candidate is the right company, the company
     name only rewards whichever chunk repeats the most boilerplate (RETR-6).
+
+    `resolve_from` is the text the company filter resolves against, defaulting to `query`.
+    It exists because an agent rewrites the query between iterations and its rewrites drop
+    the company's name, at which point `resolve_companies` returns nothing, the filter
+    quietly takes the unfiltered branch across all 799 filings, and the results still look
+    entirely normal -- measured at 59.6% of the loop's later iterations (`AGENT-25`). Callers
+    that hold the ORIGINAL question should pass it here, so a rewrite cannot disable a
+    retrieval feature by choosing different words. Default `None` keeps every non-agent
+    caller on exactly the previous behaviour.
 
     `reserve` keeps that many candidate slots for unfiltered results, as insurance against
     the one failure mode that can delete gold: a question naming an acquired business or a
@@ -153,7 +163,7 @@ def retrieve(
 
         with span("resolve-company", input=query) as sp:
             t0 = time.perf_counter()
-            tickers = resolve_companies(query) if company_filter else []
+            tickers = resolve_companies(resolve_from or query) if company_filter else []
             rerank_query = strip_entity_framing(query) if strip_query else query
             t["resolve_s"] = time.perf_counter() - t0
             sp.set(output={"tickers": list(tickers), "rerank_query": rerank_query},
