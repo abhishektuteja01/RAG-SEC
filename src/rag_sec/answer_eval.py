@@ -43,16 +43,25 @@ def _to_float(token: str) -> float | None:
         return None
 
 
+def answer_line(text: str) -> str | None:
+    """The body of the ANSWER line, or None if there isn't one. Exposed so a caller can
+    inspect a non-numeric answer (AGENT-21's yes/no sensitivity) without re-implementing
+    this regex -- the duplication AGENT-9 already paid for once with `FORMAT_LINE`."""
+    if not text or not text.strip():
+        return None
+    m = _ANSWER_LINE.search(text)
+    return m.group(1) if m else None
+
+
 def parse_reason(text: str) -> tuple[float | None, str]:
     """(value, reason) so the caller can report *why* a prediction is missing. Reasons:
     `ok`, `refused` (ANSWER line present, explicitly declines), `no_number` (ANSWER line
     present, unparseable), `no_answer_line` (format not followed), `empty`."""
     if not text or not text.strip():
         return None, "empty"
-    m = _ANSWER_LINE.search(text)
-    if not m:
+    body = answer_line(text)
+    if body is None:
         return None, "no_answer_line"
-    body = m.group(1)
     nums = _NUMBER.findall(body)
     if not nums:
         return None, "refused" if _REFUSAL.search(body) else "no_number"

@@ -28,7 +28,15 @@ MAX_ITERATIONS = 4
 @tool
 def retrieve_tool(query: str) -> list[dict]:
     """Search SEC filing chunks (dense + BM25 + reranked) for text relevant to `query`."""
-    return _retrieve(query)
+    # Deliberately not executable. This body cannot pass `resolve_from`, because a tool call
+    # carries only the planner's rewritten query and not the original question -- so running
+    # it would silently restore the AGENT-25 bug it took a trace read to find. Swapping a
+    # prebuilt ToolNode in for `retrieve_node` would do exactly that, quietly; this makes it
+    # fail loudly instead.
+    raise RuntimeError(
+        "retrieve_tool is bound for its schema only; retrieve_node executes retrieval so it "
+        "can pass resolve_from=state['question'] (AGENT-25)"
+    )
 
 
 class AgentState(TypedDict):

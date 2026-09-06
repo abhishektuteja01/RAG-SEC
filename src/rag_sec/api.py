@@ -91,8 +91,15 @@ def ask(req: AskRequest) -> AskResponse:
     # `rerank_query`, `tickers`, `candidates`, `reranked`, none of which ends in `_s`, so
     # filtering there returned {} on every request and `stage_latency` was always empty.
     # Day 13 gates a p95 taken from this field (DEPLOY-1), so it would have gated nothing.
-    stages = {k: v for k, v in last_call_stats().get("timings", {}).items()
-              if k.endswith("_s")}
+    # An explicit whitelist, not `endswith("_s")`: that matched nine keys, and three of them
+    # double-count. `embed_lock_wait_s`/`rerank_lock_wait_s` are already INSIDE embed_s and
+    # rerank_s, and `model_init_s` is one-off warm-up, not per-question work. A p95 gate
+    # summing the filtered dict (DEPLOY-1 reads its p95 from this field) would have counted
+    # rerank twice and failed a system that passes. Same class as the `{}` bug this replaced.
+    _timings = last_call_stats().get("timings", {})
+    stages = {k: _timings[k] for k in
+              ("embed_s", "resolve_s", "search_s", "rerank_s", "mps_empty_cache_s", "total_s")
+              if k in _timings}
     if not chunks:
         raise HTTPException(status_code=404, detail="no candidates retrieved")
 

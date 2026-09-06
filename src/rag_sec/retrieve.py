@@ -4,6 +4,7 @@ ranked chunks out. Same pipeline scripts/archive/arm3_singleprocess.py evaluates
 `rag_sec.candidates`, shared with every offline arm rather than re-implemented (RETR-36).
 """
 
+import contextlib
 import threading
 import time
 from functools import lru_cache, wraps
@@ -94,6 +95,49 @@ def _cross_encoder():
     return CrossEncoder(RERANK_MODEL_NAME, device=device)
 
 
+def _drain_mps(device: str) -> float:
+    """Release MPS's cached blocks. Returns the elapsed seconds so the caller can publish it.
+
+    Without this, embed_s climbs 0.11s -> 7.7s and rerank_s 27s -> 48s over ~10 questions
+    while swap grows 2.3 GB -> 8.4 GB, on an ONLY-process machine -- and it is not a leak in
+    the usual sense: torch.mps.current_allocated_memory() stays pinned at 4542 MB throughout,
+    so nothing is retained; the caching allocator simply never returns freed blocks to a
+    16 GiB unified-memory system that needs them back. Measured both ways over 25 questions
+    (AGENT-24, scripts/checks/mps_leak_probe.py).
+
+    `startswith`, not `==`: RAG_SEC_DEVICE is returned verbatim by `pick_device()`, and a
+    perfectly valid `mps:0` would otherwise turn the drain off silently and regress latency
+    to the saturated curve with no error and no log line.
+
+    Imported here because config.py keeps torch lazy for the chunking/eval paths that never
+    touch a GPU.
+    """
+    t0 = time.perf_counter()
+    if device.startswith("mps"):
+        import torch
+
+        torch.mps.empty_cache()
+    return time.perf_counter() - t0
+
+
+@contextlib.contextmanager
+def _drain_on_error(device: str):
+    """Drain on the way out of a FAILED retrieval.
+
+    The success path drains inline and times it into `mps_empty_cache_s`. An exception --
+    from `cross_encoder.predict`, `chunk_texts`, or the DB -- would otherwise skip the drain
+    entirely, and `agent_run.py` catches per-question errors and keeps going, so one
+    transient failure mid-pass silently restores the saturation curve for every question
+    after it, inflating the stage latencies that pass then publishes. No timing is recorded
+    here: a failed call has no per-question latency worth publishing.
+    """
+    try:
+        yield
+    except BaseException:
+        _drain_mps(device)
+        raise
+
+
 def retrieve(
     query: str,
     k: int = TOP_K,
@@ -134,8 +178,13 @@ def retrieve(
     """
     t = {}
     device = _device()
-    with retriever("retrieve-chunks", input=query, k=k, company_filter=company_filter,
-                   strip_query=strip_query, reserve=reserve) as root:
+    with _drain_on_error(device), \
+            retriever("retrieve-chunks", input=query, k=k, company_filter=company_filter,
+                      strip_query=strip_query, reserve=reserve,
+                      # recorded so a trace states whether AGENT-25's fix was active: without
+                      # it, pre- and post-fix traces are indistinguishable on the one
+                      # attribute that changed
+                      resolve_from=resolve_from) as root:
         with embedding("embed-query", model=EMBED_MODEL_NAME, input=query, device=device) as sp:
             # First-call model construction is timed SEPARATELY, not inside embed_s: it lands
             # in whichever question runs first and is ~19.0s against 0.114s for the identical
@@ -161,7 +210,10 @@ def retrieve(
             sp.set(output={"dim": len(query_emb)}, lock_wait_s=t["embed_lock_wait_s"],
                    compute_s=compute_s)
 
-        with span("resolve-company", input=query) as sp:
+        # input is what we RESOLVE from, not the search query: tracing `query` here while
+        # resolving from `resolve_from` is what would make AGENT-25's own 59.6% analysis
+        # unreproducible, since it pairs this span's input against its `tickers` output.
+        with span("resolve-company", input=resolve_from or query) as sp:
             t0 = time.perf_counter()
             tickers = resolve_companies(resolve_from or query) if company_filter else []
             rerank_query = strip_entity_framing(query) if strip_query else query
@@ -214,21 +266,7 @@ def retrieve(
             top = [[candidates[j][0], int(candidates[j][1]), float(scores[j])] for j in order]
             sp.set(output=top, lock_wait_s=t["rerank_lock_wait_s"], compute_s=compute_s)
 
-        # Releasing MPS's cached blocks is what keeps stage latency flat across a long pass.
-        # Without it, embed_s climbs 0.11s -> 7.7s and rerank_s 27s -> 48s over ~10 questions
-        # while swap grows 2.3 GB -> 8.4 GB, on an ONLY-process machine -- and it is not a
-        # leak in the usual sense: torch.mps.current_allocated_memory() stays pinned at
-        # 4542 MB throughout, so nothing is retained, the caching allocator simply never
-        # returns freed blocks to a 16 GiB unified-memory system that needs them back.
-        # Measured both ways over 25 questions (AGENT-24, scripts/checks/mps_leak_probe.py).
-        # Guarded on device because empty_cache exists only on MPS, and imported here because
-        # config.py keeps torch lazy for the chunking/eval paths that never touch a GPU.
-        t0 = time.perf_counter()
-        if device == "mps":
-            import torch
-
-            torch.mps.empty_cache()
-        t["mps_empty_cache_s"] = time.perf_counter() - t0
+        t["mps_empty_cache_s"] = _drain_mps(device)
         # Counted in total_s, unlike model_init_s: a caller pays this on every question, so
         # excluding it would publish a per-question latency the system does not actually
         # deliver. The lock-wait keys stay out -- they are already inside embed_s/rerank_s.
