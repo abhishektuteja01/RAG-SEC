@@ -148,6 +148,17 @@ def main() -> int:
             print(f"error: {args.out} missing", file=sys.stderr)
             return 1
         results = [json.loads(ln) for ln in args.out.read_text().splitlines() if ln.strip()]
+        # The QUESTIONS file defines the set; the results file is an append-only record of
+        # what was asked, including questions since retired (EVAL-2 dropped `unans_034`,
+        # which turned out to be answerable). Filtering here rather than deleting the row
+        # keeps the measurement on disk while the score reflects the current set -- a
+        # retired question must not go on being scored, in either direction.
+        keep = {r["id"] for r in rows}
+        retired = [r for r in results if r["id"] not in keep]
+        results = [r for r in results if r["id"] in keep]
+        if retired:
+            print(f"note: {len(retired)} result row(s) not in the current set, excluded: "
+                  + ", ".join(r["id"] for r in retired))
     else:
         results = run(rows, args.out)
 

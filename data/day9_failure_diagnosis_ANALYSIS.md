@@ -1,5 +1,9 @@
 # Day 9 — diagnosis of the ten worst Arm 6 failures
 
+> **Verification status (`AGENT-28`).** Every claim below was checked against the chunk
+> files and the results file: 38 claims, 34 confirmed, 1 refuted, 3 corrected in place, none
+> cut. The corrections are marked inline. This file is no longer an unverified machine draft.
+
 **DRAFT — not reviewed by a human.** Written by reading `data/day9_worst_failures_arm6.md`,
 `data/day9_worst_failures_static.md`, `data/day9_arm6_dev_results.jsonl` and the gold chunk
 text in `data/chunks/`. Every number below was read off disk or computed from disk; inferences
@@ -90,6 +94,11 @@ here and got no credit.
 
 ### 5. `finqa_dev_367` — reasoning — gold rank 1, 2 iterations
 
+**Verified, and stronger than written below:** the maturities table's own header reads
+"annual long-term debt maturities (**excluding lease obligations**…)", so the gold divides an
+excluded item by a total that explicitly excludes it. The denominator is wrong by definition,
+not merely arguable, and the model's refusal is correct rather than conservative.
+
 Asked: what percentage of Entergy's 2014 long-term debt maturities is Entergy Louisiana lease
 obligations. Gold `0.3866` / `38.7%`, gold chunk `ETR_2013_65984#115`. Model answered
 INSUFFICIENT. Judge: loop, finish.
@@ -176,8 +185,13 @@ and worse than the loop's honest refusal.
 correct (490, 147, 2300, 170 all check out against the chunk text). The candidate hypotheses
 in the brief fare as follows:
 
-- *Arithmetic across table cells* — not observed in these ten, and the two nearest candidates
-  just outside them are also gold problems, checked against the chunks: `finqa_dev_286`
+- *Arithmetic across table cells* — not observed in these ten. Two further gold problems sit
+  below them, checked against the chunks — but note `610` is rank **20**, not "just outside",
+  and ranks 12-19 were never examined. Rank 12 was checked during verification and is a
+  *fifth* artifact class this draft does not otherwise name: `finqa_dev_323`, where the model
+  answered `$167.48` (the ending value in JPM's five-year performance table) against a gold of
+  `67.48%` (the return) — an ending-value-vs-return convention, identical in both arms.
+  `finqa_dev_286`
   (rank 11) — the model computed the share-weighted average the question explicitly defines
   ("dividing the aggregate value … by the aggregate number of shares") and got 3.79; gold 3.61
   is the *simple* mean (3.24+3.98)/2. `finqa_dev_610` (rank 20) — the model computed
@@ -202,8 +216,11 @@ Whole-run numbers computed from `day9_arm6_dev_results.jsonl` to check whether t
 generalise:
 
 - 53 arm6 failures = 19 `refused` + 4 `no_number` + 30 wrong number. Static: 29 + 3 + 34.
-- All 4 `no_number` failures are the 4 yes/no questions in the scoreable set — **100% of yes/no
-  questions fail in both arms for a scorer reason**, not a model reason.
+- All 4 `no_number` failures are the 4 yes/no questions in the scoreable set. All 4 fail in
+  **both** arms, but only in arm6 do all 4 fail *for a scorer reason*: in the static arm
+  `finqa_dev_247` fails as `refused`, a model reason, and only 3 are `no_number`. **So
+  accepting yes/no gold recovers 4 failures in arm6 and 3 in static** (`AGENT-27`), not 4 in
+  both — the correction matters because the recovery is what moves the gap.
 - Of the 30 wrong-number failures, 5 match gold in magnitude but not sign (`finqa_dev_332`,
   `_482`, `_754`, `convfinqa_853`, `_615` — "percentage decline" phrasing), and 4 are within
   10% of gold (`_170` 1.3%, `convfinqa_2125` 1.8%, `_286` 5%, `_609` 9.4%).
@@ -274,10 +291,22 @@ What looping did cost, on these ten:
   to a wrong one — but n = 5 looped cases, so this is untested, not disproved.
 - Latency: 372s (672, 4 iterations) and 285s (490) versus ~73-103s for the single-iteration ones.
 
-Where looping *helped* among the ten: 490, 247 and 367 were all `INSUFFICIENT` in the static arm
-because static retrieval missed the gold entirely; the loop's rewritten queries fetched it. Two
-of those three (490, 247) then lost points to a gold error and a scorer limitation rather than to
-the pipeline.
+Where looping *helped* among the ten: **490 and 247** — not 367 — were `INSUFFICIENT` in the
+static arm because static retrieval missed the gold entirely, and the loop's rewritten queries
+fetched it. Both then lost points to a gold error and a scorer limitation rather than to the
+pipeline. **367 was removed from this list on verification:** static classified it `reasoning`
+with the gold at top-k position **2**, so static *had* the evidence and refused anyway, and in
+the loop the gold arrived at **iteration 1, rank 1** — no rewrite fetched anything. It fails
+both halves of the claim.
+
+**Provenance caveat on this whole section (`AGENT-25`).** Three of the ten ran iterations with
+the company filter silently OFF: 672 (iterations 2, 3, 4), 490 (2, 3) and 196 (1 and 3). So the
+"off-target dilution" described above — 672's iteration-4 sweep of DG/EW/RSG/MO/KHC for an FIS
+question — is an unfiltered search across all 799 filings, **not a loop behaviour**, and 490's
+rescue happened *while the filter was off*. No diagnosis in §2 flips, because gold sat at rerank
+rank 1 in all ten regardless; what changes is attribution. Verification also extended `AGENT-25`
+itself: **20 of 200 iteration-1 queries resolve to no company too**, because `plan` rewrites
+before the first retrieval as well, so the row's "iteration 1 filtered, 2-4 not" is too clean.
 
 ## 6. What I could not determine
 
