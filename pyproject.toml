@@ -44,6 +44,21 @@ serve = [
     "fastapi>=0.120.0",
     "uvicorn[standard]>=0.40.0",
 ]
+# Reranker ONNX/int8 export and inference (DEPLOY-6-RESOLVED). Optional for the same reason
+# `serve` is: it drags onnxruntime into any venv that syncs it, and the eval runs execute from
+# the default one. Asked for explicitly with `--extra onnx`.
+#
+# `onnxruntime` ALONE, deliberately not `optimum[onnxruntime]`, which is the documented route:
+# every published optimum-onnx caps transformers at <4.58 and this project pins 5.8.1, so the
+# two cannot coexist. Downgrading transformers to satisfy an export tool would change the
+# tokenizer under the benchmarked models, which is not a trade worth making for convenience.
+# torch.onnx.export + onnxruntime.quantization do the same job with no transformers dependency
+# at all, so the pin stands and the export runs in this venv rather than a second one.
+onnx = [
+    "onnxruntime>=1.20.0",
+    "onnx>=1.17.0",        # quantize_dynamic imports it; onnxruntime does not pull it in
+    "onnxscript>=0.5.0",   # torch.onnx.export(dynamo=True) imports it; torch does not
+]
 
 [build-system]
 requires = ["uv_build>=0.12.1,<0.13.0"]
