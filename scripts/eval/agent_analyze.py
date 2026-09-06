@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from rag_sec import eval as E
-from rag_sec.answer_eval import gold_is_scoreable, gold_values, is_correct, parse_reason
+from rag_sec.answer_eval import answer_line, gold_is_scoreable, gold_values, is_correct, parse_reason
 
 PRICE = {"gemini-3.7-flash": (0.75, 3.75, 0.075), "gemini-3.1-flash-lite": (0.25, 1.50, 0.025)}
 
@@ -145,15 +145,42 @@ def main() -> None:
         print(f"  {label:<24} recall {st.mean(r10):.3f}   nDCG@10 {st.mean(nd):.3f}   MRR {st.mean(mr):.3f}  (n={len(r10)})")
 
     # ---- 6. answer accuracy, paired (spec.md 2.1 / COST-21) ----
-    print("\n-- answer accuracy, paired --")
+    for yesno in (False, True):
+        _answer_accuracy(rows, yesno)
+
+
+# AGENT-21: gold is numeric 1.0/0.0 on four dev questions whose *question* is yes/no, and the
+# model answers the word. `answer_eval` requires a number, so both arms score them wrong while
+# being right. This maps the word to the number -- and lives HERE, not in `answer_eval`, on
+# purpose: the shipped scorer stays exactly as it was when the run was measured, so the
+# headline is the measured one and this is a reported sensitivity beside it, not a metric
+# redefined after seeing its own results.
+_YESNO = {"yes": 1.0, "no": 0.0}
+
+
+def _pred(text: str, yesno: bool) -> float | None:
+    v, _ = parse_reason(text)
+    if v is not None or not yesno:
+        return v
+    body = answer_line(text)
+    if body is None:
+        return None
+    return _YESNO.get(body.strip().strip(".").casefold())
+
+
+def _answer_accuracy(rows, yesno: bool) -> None:
+    label = "answer accuracy, paired"
+    if yesno:
+        label += " -- AGENT-21 yes/no sensitivity (NOT the headline)"
+    print(f"\n-- {label} --")
     n10 = n01 = both = neither = skipped = 0
     for r in rows:
         if not gold_is_scoreable(r["program_answer"], r["original_answer"]):
             skipped += 1
             continue
         g = gold_values(r["program_answer"], r["original_answer"])
-        a = is_correct(parse_reason(r["final_answer"])[0], g)
-        b = is_correct(parse_reason(r["static_baseline"]["final_answer"])[0], g)
+        a = is_correct(_pred(r["final_answer"], yesno), g)
+        b = is_correct(_pred(r["static_baseline"]["final_answer"], yesno), g)
         both += a and b
         neither += (not a) and (not b)
         n10 += a and not b
