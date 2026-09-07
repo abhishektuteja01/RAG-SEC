@@ -12,8 +12,12 @@ wheels/
 # Local secrets
 .env
 
-# Personal working rules, not project source of truth (spec.md/DECISIONS.md are)
+# Personal working notes, kept local and purged from history (2026-09-06). Nothing in
+# the repo reads them -- the many spec.md/SESSION.md citations in docs and scripts are
+# prose references only. DECISIONS.md and INVENTORY.md stay tracked.
 CLAUDE.md
+spec.md
+SESSION.md
 
 # Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
 # ignored -- it is the shared, committable half.
