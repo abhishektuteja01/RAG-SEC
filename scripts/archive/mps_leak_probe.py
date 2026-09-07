@@ -3,7 +3,7 @@
 THE OBSERVATION THIS EXISTS TO EXPLAIN. `latency_measure.py`, running alone, watched
 `embed_s` go 0.138s -> 13.2s and `rerank_s` 24.9s -> 49.1s over eleven questions while swap
 climbed 2.3 GB -> 9.6 GB, monotonically. Nothing else heavy was running. That kills the
-standing explanation (AGENT-17 / SESSION.md housekeeping), which blamed contention with the
+standing explanation (AGENT-17), which blamed contention with the
 Docker VM and a second competing process: the contention is absent here and the curve is not.
 
 So the hypothesis under test is INTRA-PROCESS: something inside retrieve() accumulates across

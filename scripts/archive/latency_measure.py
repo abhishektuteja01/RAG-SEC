@@ -1,4 +1,4 @@
-"""Clean stage-latency re-measurement for spec.md:121's p50/p95 (and Day 13's gate).
+"""Clean stage-latency re-measurement: p50/p95 per stage (and Day 13's gate).
 
 WHY THIS EXISTS SEPARATELY FROM agent_analyze.py. The Day 9 run's `stage_latency` is not
 publishable: `embed_s` p50 read 12.89s at n=60 against 0.33-0.57s in a quiet two-question
@@ -8,7 +8,8 @@ machine holding the Docker VM plus two transformer models in MPS unified memory)
 published latency has to come from a pass that is the ONLY heavy thing on the machine.
 
 Retrieval only -- no LLM call, no API spend, no gold scoring. It is the same `retrieve()`
-the shipped arm uses, at its shipped defaults, so the stages are the ones spec.md names.
+the shipped arm uses, at its shipped defaults, so the stages are the published ones --
+embed, search, rerank.
 
 SAME QUESTIONS AS THE RUN, deliberately: identical split, seed and sampling as
 `agent_run.py`, so the contaminated numbers and these are the same workload measured under
@@ -20,7 +21,7 @@ explicit warm-up, and reported separately, because a p50 is a steady-state claim
 
 SWAP IS RECORDED NEXT TO THE NUMBERS, before and after, because the whole point of the
 re-measurement is the machine state, and a latency without it is the thing being replaced
-(SESSION.md housekeeping: diagnose with `sysctl vm.swapusage`, not `ps` RSS).
+(diagnose with `sysctl vm.swapusage`, not `ps` RSS: RSS cannot see MPS buffers).
 
 Usage:
     uv run scripts/archive/latency_measure.py -n 100

@@ -1,5 +1,5 @@
 """The only module allowed to import `langfuse`: every caller goes through this wrapper so
-the tracing backend is swappable in one file (spec.md:240, Day 10 at spec.md:387).
+the tracing backend is swappable in one file rather than across every call site.
 
 Two properties the consumer depends on and that shape everything below: a 4.4h / ~$11.50
 benchmark run must not die because the tracing backend does, and the same run must stay

@@ -47,7 +47,7 @@ from tqdm import tqdm  # noqa: E402
 
 PAYLOAD = Path("data/day8_cost13_payload.json")
 OUT = Path("data/day8_cost13_responses.jsonl")
-MODEL = "gemini-3.7-flash"  # the answer node's model (AGENT-3)
+MODEL = "gemini-3.7-flash"  # the answer node's model (OBS-10)
 SERVICE_TIER = "standard"  # COST-29: flex 503d ~9 of 10 requests. Batch is the discount route.
 # The API default for 3.7-flash. Named explicitly so it lands in each row rather than being
 # an unrecorded property of the day a run happened -- rows written before 2026-09-04 carry

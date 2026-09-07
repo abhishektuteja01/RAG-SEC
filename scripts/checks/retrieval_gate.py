@@ -1,19 +1,19 @@
 """The CI quality gate's retrieval leg: fails the build when replayed scores drop below the
-recorded baseline (spec.md 2.4).
+recorded baseline.
 
 Scores `data/ci_retrieval_fixture.jsonl` with eval.py's OWN metric functions -- imported,
 never re-implemented. That is the whole point: a second copy of the scorer would be the
 project's recurring bug class (RETR-24, AGENT-16), and the gate exists partly to catch a
 change to those very functions.
 
-Thresholds, from spec.md 2.4:
+Thresholds:
     recall@10   may not drop more than 2.0 points below baseline
     nDCG@10     may not drop more than 2.0 points below baseline
     recall@50   same tolerance; it is the candidate pool, so it moves for different reasons
     numeric-match accuracy   may not drop AT ALL -- skipped until a baseline exists
 
-Latency and cost per query are the other two legs spec.md 2.4 names. Neither is gated here:
-both need a measurement in the serving container (DEPLOY-1), not a replay.
+p95 latency and cost per query are the gate's other two legs. Neither is here: both need a
+measurement in the serving container (DEPLOY-1), not a replay.
 
 Usage:
     uv run scripts/checks/retrieval_gate.py
@@ -31,7 +31,7 @@ from rag_sec.eval import mean_and_stderr, ndcg_at_k, recall_at_k  # noqa: E402
 
 FIXTURE = _ROOT / "data" / "ci_retrieval_fixture.jsonl"
 BASELINE = _ROOT / "data" / "ci_retrieval_baseline.json"
-TOLERANCE = 0.02  # 2 points, spec.md 2.4
+TOLERANCE = 0.02  # a metric may fall 2 points below baseline before the build fails
 
 
 def score(rows: list[dict]) -> dict[str, float]:

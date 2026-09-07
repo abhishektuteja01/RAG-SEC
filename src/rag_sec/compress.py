@@ -83,7 +83,7 @@ def compress(atoms: list[Atom], scores: list[float], budget: int, heading: str |
 
     CURRENTLY UNUSED, kept deliberately: every measured arm calls `pack_by_score`, which
     emits in score order and carries no heading. This is the template for the fix that
-    SESSION.md 2(a) proposes, not dead weight.
+    the open packing-order fix would need, not dead weight.
 
     Document order because DSLR found relevance-rank reassembly costs accuracy -- the reader
     loses the discourse thread. The heading is always kept and charged to the budget: it is
@@ -208,7 +208,7 @@ def pack_by_score(units: list[tuple[str, int]], budget: int) -> list[str]:
 
     Returns SCORE order with no `[stem chunk N]` provenance, unlike `compress` above, while
     the uncompressed control is chunk-ordered and labelled -- so COST-23 varies three things,
-    not one. Open item, SESSION.md 2(a).
+    not one. Open item.
     """
     kept, remaining = [], budget
     for text, tokens in units:

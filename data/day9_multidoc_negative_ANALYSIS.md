@@ -1,6 +1,6 @@
 # Day 9's premise is false: T²-RAGBench has no multi-document questions
 
-`spec.md:383` asks for Arm 6 measured "specifically on the multi-document questions where
+The Day 9 plan asked for Arm 6 measured "specifically on the multi-document questions where
 Fin-RATE says one-shot retrieval falls apart." **That subset is empty.** Every question in
 this benchmark is answerable from a single filing, so the agentic loop's published best case
 — multi-hop composition across documents — cannot be tested here at all.
@@ -44,7 +44,7 @@ test  n_rows 1546 unique ids 1546 | max distinct cik/id 1 | max distinct year/id
 train n_rows 8958 unique ids 8958 | max distinct cik/id 1 | max distinct year/id 1 | max distinct chunk_file/id 1 | ids with >1 filing: 0
 ```
 
-**Independently reproduces `SESSION.md`'s 1235 dev / 1546 test exactly.** Two things the
+**Independently reproduces the project's 1235 dev / 1546 test split exactly.** Two things the
 original statement did not say, both of which matter:
 
 - **Train is the same** (8,958 rows, 0 multi-filing). There is no rescue by widening the
@@ -165,14 +165,14 @@ Concretely, and stated as requirements rather than aspirations:
    filer. Otherwise a company filter alone solves the task (`RETR-39`: +0.140 on test from
    filter + strip) and the benchmark measures entity resolution, not composition.
 
-Building this is real annotation scope `spec.md` never budgeted, and composing it
+Building this is real annotation scope the plan never budgeted, and composing it
 automatically from FinQA pairs would produce questions no analyst would ask. **It is listed
 here as the specification of the gap, not as queued work.**
 
 ## 6. What Day 9's run does and does not establish
 
 The decision taken was: **run the trajectory half anyway and report the negative.** That is a
-defensible use of ~$11.5 because `spec.md:383` asks for two things and only the first is
+defensible use of ~$11.5 because the Day 9 plan asks for two things and only the first is
 blocked.
 
 **Does not establish** — anything about the loop's headline hypothesis. Not "the loop doesn't
@@ -181,7 +181,7 @@ comparison from this run is single-document by construction, so a loop loss here
 *consistent* with the published multi-hop wins and is not evidence against them. It also
 cannot be fixed by re-running, by sampling differently, or by spending more.
 
-**Does establish**, all of it single-document and all of it what `spec.md:383` asks for after
+**Does establish**, all of it single-document and all of it what the Day 9 plan asks for after
 "Full trajectory metrics":
 
 - **Calls, tokens, dollars, wall clock** per question, and the loop-vs-static cost multiple on
@@ -209,7 +209,7 @@ the run is scored by `agent_analyze.py` (now `scripts/pipeline/07_arm6_loop.py a
 
 Checked the question-to-filing cardinality before building Arm 6, not after — it is the
 one-line query in §1 and it costs nothing. The reason it wasn't checked is instructive and
-worth saying out loud: `spec.md` asserted the multi-document subset existed, citing Fin-RATE,
+worth saying out loud: the plan asserted the multi-document subset existed, citing Fin-RATE,
 and an assertion in the plan document was treated as a property of the data. That is the same
-failure mode `SESSION.md` §4 records for numbers — **a value correct in one context, silently
+failure mode this project keeps hitting with numbers — **a value correct in one context, silently
 wrong in the next** — arriving in a scope claim rather than a metric.

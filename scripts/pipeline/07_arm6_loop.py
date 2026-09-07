@@ -34,11 +34,12 @@ DECISIONS.md ROWS THIS BACKS
     AGENT-8   `cached_input_tokens` is tracked per call, and priced separately here.
     AGENT-10  torch's MPS backend is not thread-safe: SIGSEGV with no traceback and zero
               rows written. RUN SERIAL. The reproducing figure on record is concurrency
-              ">1" -- SESSION.md said 4, the code comment said 2, no log survives, so
+              ">1" -- one note said 4, the code comment said 2, no log survives, so
               nothing more precise than ">1" may be quoted.
-    AGENT-15  spec.md:383's multi-document subset is EMPTY on this benchmark (max 1
-              filing per question in all three splits), so this phase runs the trajectory
-              half and publishes the negative.
+    AGENT-15  the specced experiment -- Arm 6 measured on the MULTI-DOCUMENT questions,
+              where one-shot retrieval is said to fall apart -- is untestable here: that
+              subset is EMPTY (max 1 filing per question in all three splits), so this
+              phase runs the trajectory half and publishes the negative.
     AGENT-16  the static baseline was not the arm it claimed to be. See TRAPS -- this is
               the single most important line in this file.
     AGENT-17  the pre-restart audit: `--concurrency` defaulted to 8 (now 1 and refused
@@ -54,7 +55,7 @@ DECISIONS.md ROWS THIS BACKS
     AGENT-22  the union retrieval row is NOT comparable to the static row. See TRAPS.
     AGENT-24  `torch.mps.empty_cache()` per retrieval, inherited from
               rag_sec.retrieve.retrieve(). Without it stage latencies drift 2.3x inside
-              one process, and spec.md:121 publishes those latencies.
+              one process, and those per-stage latencies are published.
     AGENT-25  the company filter silently switches OFF for 59.6% of later-iteration
               queries. Fixed AFTER this run -- so every number here predates the fix.
     COST-21   two gold answer fields that disagree on 10.1% of dev; both are stored per
@@ -87,8 +88,9 @@ TRAPS
   * SERIAL ONLY, AND ON MAINS POWER. `--concurrency` is 1 and values above 1 are
     REFUSED, not warned about: concurrent MPS model construction segfaults the machine
     with no traceback and no rows written (AGENT-10 / AGENT-17). Mains power is not
-    superstition -- battery throttling moves the very per-stage latencies spec.md:121
-    publishes, so a run on battery produces unpublishable timings (AGENT-20 / AGENT-24).
+    superstition -- battery throttling moves the very per-stage p50/p95 latencies this
+    phase publishes, so a run on battery produces unpublishable timings (AGENT-20 /
+    AGENT-24).
   * THE STATIC RANKING IS NOT STORED IN RANK ORDER. `data/retr7_rr_dev_scores.jsonl`
     holds each cell in FIRST-STAGE RRF order with the rerank score merely attached as the
     third element -- 0 of 1235 dev cells are score-descending. Reading it as stored made
@@ -201,7 +203,7 @@ STATIC_SCORES = DATA_DIR / "retr7_rr_dev_scores.jsonl"
 STATIC_CELL = SHIPPED_CELL
 
 # Measured cost of the published pass, for --help and for the money gate's refusal text.
-# From SESSION.md's Day 9 line: $4.10 across 200 questions. Stated per question as well,
+# Measured on the published pass: $4.10 across 200 questions. Stated per question as well,
 # because `run -n` scales linearly -- one loop iteration more or less moves it, but not by
 # an order of magnitude (OBS-10: answer 47%, plan 36%, judge 18%).
 RUN_COST_TOTAL_USD = 4.10
@@ -365,7 +367,7 @@ def static_baseline(row, rankings) -> dict:
 
     Only the answer call is new, and it imports `_ANSWER_PROMPT`/`_answer_llm` from the loop
     so the two arms cannot differ in prompt wording or thinking level: the single change
-    between them is the loop itself (spec.md:132).
+    between them is the loop itself -- one change per arm, or the delta means nothing.
     """
     ranked, ret_latency = rankings[row["id"]]
     top = ranked[:TOP_K]
@@ -490,7 +492,7 @@ def run_one(graph, checkpointer, row, rankings) -> dict:
             "plan_model": "gemini-3.7-flash/low",
             "judge_model": "gemini-3.1-flash-lite/minimal",
             "answer_model": "gemini-3.7-flash/medium", "service_tier": "standard",
-            # stage latencies are device-dependent and spec.md:121 publishes them, so the
+            # stage latencies are device-dependent and this phase publishes them, so the
             # device belongs in the row, not just in whoever ran it's memory
             "device": pick_device(),
         },
@@ -668,7 +670,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print("NOTE: the published run predates the AGENT-25 company-filter fix, so its answer "
           "accuracy is a FLOOR.\n")
 
-    # ---- 1. trajectory (spec.md:112) ----
+    # ---- 1. trajectory: retrieval calls per question -- did the loop converge or spin ----
     iters = [r["iterations"] for r in rows]
     caps = sum(r["hit_iteration_cap"] for r in rows)
     first_loop = sum(1 for r in rows if r["judge_verdicts"][:1] == ["loop"])
@@ -678,7 +680,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print(f"hit cap: {pct(caps, n)}    first-iteration 'insufficient': "
           f"{pct(first_loop, n)}  (COST-30 predicted 15.1%)")
 
-    # ---- 2. cost (spec.md:113) ----
+    # ---- 2. cost: tokens and dollars per question ----
     loop_c = [cost_of(r["usage"]) for r in rows]
     stat_c = [cost_of(r["static_baseline"]["usage"]) for r in rows]
     bynode: dict[str, float] = {}
@@ -695,7 +697,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
         for k, v in sorted(bynode.items())))
     print(f"prefix cache: {cch:,}/{tin:,} input tokens = {cch / tin:.1%}  (AGENT-8)")
 
-    # ---- 3. latency (spec.md:121) ----
+    # ---- 3. latency: p50/p95 per stage, plus wall clock per question ----
     stages: dict[str, list] = {}
     for r in rows:
         for t in r["trajectory"]:
@@ -717,7 +719,8 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print(f"  {'question':<10} p50 {percentile(w, .5):>6.1f}  "
           f"p95 {percentile(w, .95):>6.1f}")
 
-    # ---- 4. sufficiency-judge accuracy (spec.md:115) ----
+    # ---- 4. sufficiency-judge accuracy: when the loop said "I have enough", was it
+    # right? Stopping early and never stopping are different bugs; this separates them ----
     print("\n-- sufficiency-judge accuracy --")
     cells = {"stop_with_gold": 0, "stop_without_gold": 0,
              "loop_with_gold": 0, "loop_without_gold": 0}
@@ -742,7 +745,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print(f"  looped WITH gold (wasted)      {cells['loop_with_gold']:>4}  "
           "<- pays for evidence it already had")
 
-    # ---- 5. retrieval (spec.md 2.1) ----
+    # ---- 5. retrieval: recall@k is the ceiling on everything downstream ----
     # THE k COLUMN IS NOT CONSTANT DOWN THIS TABLE AND THAT IS THE POINT (AGENT-22). The
     # union row is scored at k=len(got) -- every chunk the loop saw across up to 4
     # iterations, so up to 40 slots -- because it answers "did looping ever surface gold, at
@@ -793,7 +796,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print("  union nDCG@10 == iter-1 nDCG@10 by construction (union is in iteration "
           "order); it is arithmetic, not corroboration.")
 
-    # ---- 6. answer accuracy, paired (spec.md 2.1 / COST-21) ----
+    # ---- 6. answer accuracy, paired -- numeric match, no LLM judge (COST-21) ----
     for yesno in (False, True):
         _answer_accuracy(rows, yesno)
 
@@ -820,8 +823,8 @@ def main() -> None:
             "  * SERIAL. --concurrency is 1 and anything higher is refused: concurrent "
             "MPS model construction SIGSEGVs the process with no traceback and no rows "
             "written (AGENT-10, at concurrency >1).\n"
-            "  * ON MAINS POWER. Battery throttling moves the per-stage latencies "
-            "spec.md:121 publishes, so a run on battery produces unpublishable "
+            "  * ON MAINS POWER. Battery throttling moves the per-stage p50/p95 "
+            "latencies this phase publishes, so a run on battery produces unpublishable "
             "timings.\n\n"
             "Dev only (COST-30). Resumable: completed ids are skipped, errored rows are "
             "dropped and retried."),

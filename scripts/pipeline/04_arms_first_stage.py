@@ -1,7 +1,7 @@
 """Pipeline phase 04 — first-stage retrieval arms, scored on the dev split.
 
-TWO ARMS, one argument apart. They are deliberately one change apart (spec.md 2.2: change
-one thing per arm), which is why they belong in one file:
+TWO ARMS, one argument apart. The project's standing rule is one change per arm, so that
+every delta is attributable — which is why they belong in one file:
 
     arm1   dense only. BGE-M3 query embedding -> pgvector cosine, FIRST_STAGE_K back.
     arm2   hybrid. The same dense list PLUS a pg_search BM25 list, fused with Reciprocal
@@ -26,8 +26,8 @@ DECISIONS.md ROWS THIS BACKS
     RETR-5    --company-filter scopes candidates to the company named in the question. Off
               by default, and filtered runs write to a *_companyfilter sidecar rather than
               overwriting the unfiltered numbers.
-    INFRA-4 / ARM2-1   real BM25 via pg_search, not tsvector/ts_rank — spec.md's explicit
-              trap: no length normalization, no term saturation, degrades on long docs.
+    INFRA-4 / ARM2-1   real BM25 via pg_search, not tsvector/ts_rank. ts_rank has no
+              length normalization and no term saturation, so it degrades on long docs.
     RETR-36   dense/bm25/rrf_fuse live in src/rag_sec/candidates.py and `variant` is a
               REQUIRED argument there. These arms pass LIVE_VARIANT explicitly. The
               helpers used to exist as 11 hand-copied definitions across 5 files, which is
@@ -50,8 +50,8 @@ WHEN THIS ACTUALLY RAN
                        — those prefixes are plan numbers and carry no date at all.
 
 TRAPS
-  * These arms are DEV-ONLY. spec.md 2.2 holds test back to one touch per arm at the end;
-    there is no --split here because that hold-back is the point.
+  * These arms are DEV-ONLY. Test is touched once per arm, at the end, and never during
+    tuning; there is no --split here because that hold-back is the point.
   * Quote levels, not deltas, against anything from before 2026-09-04: corpus (RETR-7/8)
     and labels (RETR-35) both moved, so a pre/post difference mixes two changes.
   * recall@10 can be NaN for a question with no gold labels; the worst-failures sort maps
@@ -193,7 +193,9 @@ def main() -> None:
                 }
             )
 
-    # ─── STEP 3: aggregate with standard errors (spec.md 2.3) ─────────────────
+    # ─── STEP 3: aggregate with standard errors ───────────────────────────────
+    # Every published number is reported as mean ± stderr, never a bare point: on this
+    # split a difference under ~2 points is not distinguishable from noise.
     metrics = {}
     for key in METRIC_KEYS:
         mean, stderr = mean_and_stderr([q[key] for q in per_question])

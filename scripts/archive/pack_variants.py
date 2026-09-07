@@ -1,4 +1,4 @@
-"""COST-26 + SESSION.md 2(a): packing variants scored offline against gold-figure survival.
+"""COST-26: packing variants scored offline against gold-figure survival.
 
 Free -- every input is on disk (chunk scores, slice scores, parsed filings). No GPU, no API.
 
@@ -6,7 +6,7 @@ The metric is `COST-25`'s stricter one: are *all* of a question's gold table-row
 literally in the prompt. Not the 84.9% matcher, which fires on a caption alone and so
 flatters the compressed arm twice as hard as the control.
 
-Cells, each differing from the one before in exactly one rule (spec.md 2.2):
+Cells, each differing from the one before in exactly one rule:
   base      today's `compress.pack_by_score` -- score order, no labels
   A         group packed slices by chunk, label each group, document order within it.
             Headings are charged to the budget, so the arm stays honestly 1500 tokens.
@@ -35,7 +35,7 @@ from rag_sec.compress import chunk_atoms, pack_by_score, slice_atom
 from rag_sec.eval import _gold_evidence_resolved
 
 # Reuse the validated loaders rather than copying them: duplicated retrieval/scoring code is
-# exactly what let RETR-24 hide in seven files at once (SESSION.md 4). By file path because
+# exactly what let RETR-24 hide in seven files at once. By file path because
 # scripts/ is not a package, so a sibling script is not importable by name.
 _spec = importlib.util.spec_from_file_location("sbc", Path(__file__).with_name("stratum_b_channel.py"))
 sbc = importlib.util.module_from_spec(_spec)

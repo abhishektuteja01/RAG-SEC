@@ -21,9 +21,9 @@ CANDIDATE_K = 50
 
 # Per-stage timings + the pre-rerank candidate list from the most recent retrieve() call on
 # THIS thread. Stashed rather than returned so the signature stays what every offline arm and
-# the LangGraph tool already call (RETR-36). Day 9 reads it after each call: spec.md:121 wants
-# p50/p95 split embed/search/rerank, and recall@50 per iteration needs the candidates that
-# reranking then drops. Thread-local because the Day 9 runner drives questions concurrently.
+# the LangGraph tool already call (RETR-36). Day 9 reads it after each call: latency is
+# published as p50/p95 split embed/search/rerank, and recall@50 per iteration needs the
+# candidates that reranking then drops. Thread-local because the Day 9 runner drives questions concurrently.
 _last = threading.local()
 
 # Torch's MPS backend is NOT thread-safe -- full account in config.pick_device(). Every local
@@ -186,7 +186,7 @@ def retrieve(
         with embedding("embed-query", model=EMBED_MODEL_NAME, input=query, device=device) as sp:
             # First-call model construction is timed SEPARATELY, not inside embed_s: it lands
             # in whichever question runs first and is ~19.0s against 0.114s for the identical
-            # warm encode, and spec.md:121 publishes embed_s as a p50/p95. It is recorded
+            # warm encode, and embed_s is published as a p50/p95. It is recorded
             # rather than dropped so the warm-up stays visible.
             # NOTE embed_s therefore changed meaning here: pre-fix numbers are not comparable.
             t0 = time.perf_counter()

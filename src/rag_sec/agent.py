@@ -1,6 +1,7 @@
 """LangGraph agentic loop: plan -> retrieve -> judge -> (loop, or answer). Unlike Arms 1-4's
 one-shot retrieval it issues a fresh sub-query per iteration and lets a cheap `judge` model
-decide when the evidence is enough. spec.md Day 8, DECISIONS.md AGENT-1/AGENT-2.
+decide when the evidence is enough. Postgres checkpointing so a dead run resumes rather than
+restarting. DECISIONS.md AGENT-1.
 """
 
 import json
@@ -47,7 +48,7 @@ class AgentState(TypedDict):
     # one verdict per iteration, not just the last: a trajectory printout wants every call
     judge_verdicts: Annotated[list[str], operator.add]
     final_answer: str
-    # one entry per LLM call, unaggregated, so cost/latency break down by node (spec.md Day 9)
+    # one entry per LLM call, unaggregated, so cost/latency break down by node
     usage: Annotated[list[dict], operator.add]
     # one entry per retrieve call: per-stage timings + the pre-rerank candidates. Kept per
     # iteration (not just the last) so recall@k is scoreable at every step of the trajectory.
@@ -87,7 +88,7 @@ def _record_usage(node: str, model: str, response, elapsed: float = 0.0, gen=Non
     rec = {
         "node": node,
         "model": model,
-        # spec.md:121 wants p50/p95 per stage; without this the generate stage has no latency
+        # latency is published as p50/p95 per stage; without this generate has none
         "latency_s": round(elapsed, 3),
         "input_tokens": meta.get("input_tokens", 0),
         "cached_input_tokens": cache_read,

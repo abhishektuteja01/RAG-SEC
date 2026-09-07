@@ -3,13 +3,13 @@
 ## The Arm 1 / Arm 2 comparison is CONFOUNDED. Do not quote a delta.
 
 Arm 1, post-RETR-7, corrected labels: **recall@10 0.337, recall@50 0.473**.
-Arm 1 as published in `SESSION.md`:    recall@10 0.329, recall@50 0.466.
+Arm 1 as previously published:          recall@10 0.329, recall@50 0.466.
 
 That is **not** a +0.008 improvement from RETR-7. **Two things changed at once:**
 
 1. the corpus (RETR-7/RETR-8 changed 47.5% of chunk texts), and
 2. the labels — the published Arm 1/Arm 2 rows are the last two still on the OLD
-   pre-`RETR-35` matcher, which `SESSION.md` says understates by roughly 0.025.
+   pre-`RETR-35` matcher, which understates by roughly 0.025.
 
 Labels are recomputed from chunk text at eval time, so this run is automatically on
 corrected labels. Expected Arm 1 on corrected labels *alone*, with no RETR-7, would be
@@ -19,7 +19,7 @@ Arm 1 specifically, so that subtraction is not sound either.
 
 **Honest statement: Arm 1 on the new corpus with corrected labels is 0.337 / 0.473, and
 there is no directly comparable prior number.** This is exactly the failure mode
-`SESSION.md` §4 names — "reusing a number without checking which job produced it."
+this project keeps hitting — "reusing a number without checking which job produced it."
 
 ## Arm 2, same caveat
 
@@ -27,7 +27,7 @@ Arm 2, post-RETR-7, corrected labels: **recall@10 0.514, recall@50 0.708**.
 Arm 2 as published:                    recall@10 0.495, recall@50 0.687.
 
 Same confound, same refusal to quote a delta. But the two arms together are mildly
-informative. Applying `SESSION.md`'s rough +0.025 old-label correction as a *prediction*:
+informative. Applying the rough +0.025 old-label correction as a *prediction*:
 
 | arm | published (old labels) | naive corrected prediction | observed (new corpus) |
 |---|---|---|---|
@@ -49,7 +49,7 @@ Restore `~/rag-sec-backups/chunks_pre_retr7_20260904.dump` into a *scratch* data
 run Arm 1 and Arm 2 against it. That yields old-corpus + corrected-labels, which is the
 missing cell. With it you get a proper 2x2 and can attribute the movement to the corpus
 rather than to the relabeling. Not run tonight: it needs a second database and it would
-have contended with the arms (concurrent CPU passes measured 8x slower, `SESSION.md` §4).
+have contended with the arms (concurrent CPU passes measured 8x slower).
 
 Cost: one 652 MB restore, then two CPU eval passes. No GPU, no API spend.
 

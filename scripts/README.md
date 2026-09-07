@@ -4,7 +4,8 @@ Three folders, three jobs. **`pipeline/`** is the reproduction path: seven numbe
 in order, plus the two scripts that run on a GPU cluster. **`checks/`** is twelve guards —
 each one locks a property that a real bug broke; five fail CI and one fails the container
 build. **`archive/`** is thirty one-off measurements whose findings are already recorded in
-[`DECISIONS.md`](../DECISIONS.md); nothing in the pipeline imports them.
+[`DECISIONS.md`](../DECISIONS.md), plus the producer for the README's chart; nothing in the
+pipeline imports them.
 
 For the design reasoning behind any choice below, read the phase file's own docstring — it
 carries the full "produces / reads / traps" record. This file is only the order and the map.
@@ -166,7 +167,8 @@ Everything else — every `score`, every `analyze`, all of `checks/` bar that on
 Two standing operating rules for phase 07, both learned the hard way: **run serial**
 (`--concurrency` above 1 is refused; concurrent MPS model construction segfaults with no
 traceback and zero rows written — `AGENT-10`, `AGENT-17`) and **run on mains power** (battery
-throttling moves the per-stage latencies `spec.md` publishes — `AGENT-20`, `AGENT-24`).
+throttling moves the per-stage p50/p95 latencies this project publishes — `AGENT-20`,
+`AGENT-24`).
 
 ---
 
@@ -181,7 +183,7 @@ not pytest, to match the rest of `scripts/`.
 | `candidate_sql.py` | the SQL and parameter order `rag_sec.candidates` emits, transcribed from the seven pre-`RETR-36` copies | **CI** |
 | `static_ranking_order.py` | static rankings are score-descending at point of use (`AGENT-16`: 0/1235 cells were) | **CI** |
 | `tracing_offline.py` | `rag_sec.tracing` no-ops with no `LANGFUSE_*` keys — runs keyless on purpose | **CI** |
-| `retrieval_gate.py` | replays `data/ci_retrieval_fixture.jsonl` with `eval.py`'s own metric functions; fails on regression past `spec.md` 2.4's thresholds | **CI** |
+| `retrieval_gate.py` | replays `data/ci_retrieval_fixture.jsonl` with `eval.py`'s own metric functions; fails if recall@10 or nDCG@10 falls more than 2.0 points below `data/ci_retrieval_baseline.json` (0.7854 / 0.6593 on 400 dev questions), or if the fixture's question count no longer matches the baseline's n=400 | **CI** |
 | `container_wordlist.py` | `RETR-11`'s English-word guard is on and reading the right wordlist — silent failure otherwise (`DEPLOY-5`) | **Dockerfile, at build *and* at startup** |
 | `ci_fixture_build.py` | builds the committed fixture the gate scores. Run rarely, by hand | — |
 | `heading_fix.py` | `RETR-7`/`RETR-8` acceptance: reversible with flags off, chunk boundaries preserved, bug actually fixed. Local-only — it reads gitignored `data/chunks/` | — |
@@ -205,7 +207,7 @@ a reader can walk back from a number to the script that produced it.
 | Script | Backs |
 |---|---|
 | `answer_ab_prepare.py` | `COST-13`, `COST-20`, `COST-23`, `COST-27` |
-| `answer_ab_run.py` | `COST-13`, `COST-19`, `COST-29`, `AGENT-3` |
+| `answer_ab_run.py` | `COST-13`, `COST-29`, `OBS-10` |
 | `answer_ab_score.py` | `COST-13`, `COST-20`, `COST-31` |
 | `answer_batch_run.py` | `COST-29` |
 | `arm4_rerank_hpc.py` | `ARM3-2`, `ARM3-3`, `INFRA-6` — the record of Arm 4's three GPU passes; three lines off the Arm 3 twin, so it was not promoted to `pipeline/hpc/` |
@@ -226,10 +228,11 @@ a reader can walk back from a number to the script that produced it.
 | `ort_fp32_latency.py` | `DEPLOY-8`, `DEPLOY-11` |
 | `pack_variants.py` | `COST-25`, `COST-26`, `RETR-24` |
 | `rescore_labels.py` | `RETR-35` |
+| `results_chart.py` | `RETR-39` — no finding of its own; renders that table's recall@10 column as `images/results_chart.png`. Needs `uv run --with matplotlib`; matplotlib is not a project dependency |
 | `slice_budget_sweep.py` | `COST-6`, `COST-7`, `COST-11`, `COST-25`, `RETR-29` |
 | `slice_floor.py` | `COST-7` |
 | `slice_prepare.py` | `COST-5`, `COST-7`, `COST-8`, `COST-17`, `RETR-16`, `RETR-29` |
 | `slice_rerank_hpc.py`, `slice_rerank_hpc.sbatch` | `COST-7`, `COST-11` |
 | `stratum_b_channel.py` | `COST-23`, `COST-25`, `COST-26` |
 | `unanswerable_run.py` | `COST-34`, `AGENT-10`, `AGENT-17` |
-| `worst_failures.py` | `COST-21`, `spec.md` 2.2 rule 5 |
+| `worst_failures.py` | `COST-21` — the standing rule that each arm keeps its 20 worst failures in a file |

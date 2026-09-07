@@ -32,7 +32,8 @@ THREE LEGS, one scores format
 
 DECISIONS.md ROWS THIS BACKS
     ARM3-1    bge-reranker-v2-m3, one forward pass per pair, not an autoregressive
-              reranker -- spec.md measures nDCG gain against latency cost.
+              reranker. The arm is judged on nDCG gain against latency cost, so the
+              cheaper architecture wins over the higher leaderboard score.
     ARM3-2    why reranking is a split job: laptop CPU plateaued at ~110s/question
               (~25h for dev) and a live SSH tunnel to the laptop's DB dies with the
               connection. `local` below is that abandoned laptop route, rebuilt on the

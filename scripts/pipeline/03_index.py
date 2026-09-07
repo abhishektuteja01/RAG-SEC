@@ -37,8 +37,8 @@ on local MPS, ~8x (INFRA-13).
 DECISIONS.md ROWS THIS BACKS
     ARM3-2 / INFRA-6   why GPU work is split out to the cluster and why embed_hpc.py
                        imports nothing from rag_sec.
-    INFRA-4 / ARM2-1   real BM25 via pg_search, not tsvector/ts_rank (spec.md's explicit
-                       trap: no length normalization or term saturation).
+    INFRA-4 / ARM2-1   real BM25 via pg_search, not tsvector/ts_rank, which has no
+                       length normalization or term saturation.
     RETR-7 / RETR-8    the heading fix that made 47.5% of chunks need a new vector.
     INFRA-12           that re-index is INCREMENTAL, not a full pass: chunk count
                        identical at 99,654 across all 799 filings, 52,342 (52.5%) keep

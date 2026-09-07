@@ -1,8 +1,10 @@
 """Define the Day 10 Langfuse dashboard as code and push it to the project.
 
-Writes one dashboard ("RAG-SEC -- Arm 6 loop vs static") whose widgets answer spec.md:112-121:
-per-arm cost, per-question and per-stage latency (p50/p95, the numbers Day 13 gates on),
-loop trajectory, judge verdicts, prefix-cache share (AGENT-8) and error level.
+Writes one dashboard ("RAG-SEC -- Arm 6 loop vs static") whose widgets answer the published
+trajectory and operational metrics -- retrieval calls, tokens and dollars, wall clock, judge
+accuracy, and p50/p95 latency per stage: per-arm cost, per-question and per-stage latency
+(the numbers Day 13 gates on), loop trajectory, judge verdicts, prefix-cache share (AGENT-8)
+and error level.
 
 Idempotent by name: widgets and the dashboard are looked up by name and PATCHed, so re-running
 never duplicates. Nothing is deleted unless --prune (stale placements) or --delete (the whole
@@ -28,7 +30,7 @@ API_SNAPSHOT = "4.16.0"
 DASHBOARD = "RAG-SEC -- Arm 6 loop vs static"
 DESCRIPTION = "Day 10 operational view of the agentic loop against its paired static baseline."
 
-# Names of the stages spec.md:121 publishes. embed/search/rerank are the retriever legs;
+# The stages whose p50/p95 are published. embed/search/rerank are the retriever legs;
 # plan/judge/generate are the three LLM calls.
 STAGES = [
     "embed-query",
@@ -144,7 +146,7 @@ WIDGETS = [
     },
     {
         "name": "Stage latency p50/p95 (ms), loop arm",
-        "description": "spec.md:121 stages. Day 13's budget is gated on the p95 column.",
+        "description": "Per-stage latency. Day 13's budget is gated on the p95 column.",
         "view": "observations",
         "chartType": "PIVOT_TABLE",
         "dimensions": [{"field": "name"}],

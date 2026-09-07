@@ -14,7 +14,7 @@ trajectory (each iteration's search query, top retrieved chunk stems, judge verd
 a human can eyeball whether the loop is doing something sensible before Day 9's full run.
 
 Since run end-to-end on 3 dev questions with a live key and DB: all 3 answered correctly,
-none looped (AGENT-3, which priced the loop off that sample). No Gemini spend on the graph
+none looped (OBS-10, which priced the loop off that sample). No Gemini spend on the graph
 since. The full dev pass it was written to precede has never been run -- Day 8 turned into
 retrieval work instead.
 """
@@ -61,7 +61,8 @@ def main() -> None:
     # finqa_dev_0's checkpoint history to double and its trajectory to include a stray,
     # never-judged extra query). The real eval script must NOT do this -- it needs thread_id
     # == question id exactly, unchanged across runs, so a killed full-dev-set pass can
-    # resume via Postgres checkpointing instead of restarting (spec.md Day 8's whole point).
+    # resume via Postgres checkpointing instead of restarting -- the whole point of
+    # checkpointing the loop at all.
     run_id = uuid.uuid4().hex[:8]
 
     with PostgresSaver.from_conn_string(get_conn_string()) as checkpointer:

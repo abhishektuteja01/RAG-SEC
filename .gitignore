@@ -12,9 +12,10 @@ wheels/
 # Local secrets
 .env
 
-# Personal working notes, kept local and purged from history (2026-09-06). Nothing in
-# the repo reads them -- the many spec.md/SESSION.md citations in docs and scripts are
-# prose references only. DECISIONS.md and INVENTORY.md stay tracked.
+# Personal working notes, kept local and purged from history (2026-09-06). No tracked
+# file cites them: every reference was inlined or dropped on 2026-09-07, so a stranger
+# with only the clone can still follow every claim. DECISIONS.md and INVENTORY.md stay
+# tracked. Do not reintroduce a citation to any file listed below.
 #   CLAUDE.local.md    the owner's working rules, renamed from CLAUDE.md on 2026-09-07.
 #                      The tracked CLAUDE.md is now newcomer orientation instead.
 #   DECISIONS.local.md the personal/process/housekeeping rows pruned out of DECISIONS.md

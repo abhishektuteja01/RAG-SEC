@@ -1,4 +1,4 @@
-"""The 20 worst failures per arm from the Arm 6 run (spec.md:2.2 rule 5), written as
+"""The 20 worst failures per arm from the Arm 6 run, written as
 markdown to be read cold. Reads only -- no API call, no retrieval, no Postgres -- so it is
 free and safe to re-run while `agent_run.py` is still appending rows.
 
@@ -21,7 +21,7 @@ compute burned for the same nothing), then id ascending so the file does not chu
 runs. Any other defensible ordering would produce a different list; this one is picked because
 its top entries are the ones we can act on.
 
-Two files, one per arm, per spec.md's "per arm" -- a merged file would sort a loop failure
+Two files, one per arm -- a merged file would sort a loop failure
 against a static failure on a key that means different things in each arm's pipeline.
 """
 
