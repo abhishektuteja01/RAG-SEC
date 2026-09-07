@@ -76,6 +76,7 @@ from rag_sec.eval import (  # noqa: E402
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
+    load_ranking,
     ndcg_at_k,
     recall_at_k,
 )

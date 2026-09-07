@@ -15,3 +15,6 @@ __pycache__
 *.pyc
 .DS_Store
 ._*
+
+# 4.8 GB of model weights, gitignored but otherwise streamed to the daemon every build.
+models

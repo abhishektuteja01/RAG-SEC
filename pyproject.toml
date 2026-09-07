@@ -21,9 +21,14 @@ dependencies = [
     "langgraph==1.2.11",
     "langgraph-checkpoint-postgres==3.1.2",
     "numpy>=2.0.0,<3.0.0",
+    # Imported directly by the offline tracing guard, which CI runs. Declared so a langfuse
+    # patch release cannot drop it out of the lock and break the build.
+    "opentelemetry-sdk>=1.30.0",
     "pandas>=2.2.2,<3.0.0",
     "pgvector>=0.5.0",
     "psycopg[binary]>=3.3.4",
+    # Arm 6's checkpointer opens a pool directly; psycopg[binary] does not include it.
+    "psycopg-pool>=3.2.0",
     "python-dotenv>=1.2.3",
     "sec-parser==0.58.1",
     # The three that decide what the search models actually compute: pinned exactly so a
@@ -42,6 +47,9 @@ dependencies = [
 [project.optional-dependencies]
 serve = [
     "fastapi>=0.120.0",
+    # api.py imports BaseModel/Field directly; fastapi happens to pull it, but the import
+    # is ours, so the dependency is declared rather than inherited.
+    "pydantic>=2.9.0",
     "uvicorn[standard]>=0.40.0",
 ]
 # Reranker ONNX/int8 export and inference (DEPLOY-6-RESOLVED). Optional for the same reason

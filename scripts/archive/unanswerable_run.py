@@ -1,5 +1,5 @@
-"""Runs the unanswerable set through the shipped arm and scores refusal correctness
-(spec.md 2.2 / section 6's `refusal correctness` row).
+"""Runs the unanswerable set through the shipped arm and scores refusal correctness:
+when the answer genuinely is not in the corpus, does the system say so instead of guessing?
 
 WHAT IS BEING MEASURED. Every question in T2-RAGBench has an answer in the corpus, so
 nothing in this project has ever tested the opposite case: evidence that genuinely is not
@@ -21,9 +21,13 @@ whereas `out_of_scope_metric` retrieves perfectly well and can only be caught by
 model. A high aggregate refusal rate carried entirely by the first group would say nothing
 about the second.
 
-Cost: one answer call per question, ~$0.012 each at COST-34's medium rates -- roughly $0.60
-for all 48. Retrieval is local (GPU/CPU), so run it serially on a quiet machine like any
+Cost: one answer call per question, ~$0.012 each at COST-34's medium rates -- roughly $0.55
+for all 47. Retrieval is local (GPU/CPU), so run it serially on a quiet machine like any
 other pass here (AGENT-10/AGENT-17).
+
+The live set is 47. `data/unanswerable_results.jsonl` still has 48 rows because it predates
+retiring `unans_034` to `data/archive/unans_034_retired.jsonl`; the stored run was never
+re-paid. Filter by the live question ids rather than trusting the row count.
 
 Usage:
     uv run scripts/archive/unanswerable_run.py

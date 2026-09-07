@@ -2179,9 +2179,11 @@ dependencies = [
     { name = "langgraph" },
     { name = "langgraph-checkpoint-postgres" },
     { name = "numpy" },
+    { name = "opentelemetry-sdk" },
     { name = "pandas" },
     { name = "pgvector" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "psycopg-pool" },
     { name = "python-dotenv" },
     { name = "sec-parser" },
     { name = "sentence-transformers" },
@@ -2198,6 +2200,7 @@ onnx = [
 ]
 serve = [
     { name = "fastapi" },
+    { name = "pydantic" },
     { name = "uvicorn", extra = ["standard"] },
 ]
 
@@ -2218,9 +2221,12 @@ requires-dist = [
     { name = "onnx", marker = "extra == 'onnx'", specifier = ">=1.17.0" },
     { name = "onnxruntime", marker = "extra == 'onnx'", specifier = ">=1.20.0" },
     { name = "onnxscript", marker = "extra == 'onnx'", specifier = ">=0.5.0" },
+    { name = "opentelemetry-sdk", specifier = ">=1.30.0" },
     { name = "pandas", specifier = ">=2.2.2,<3.0.0" },
     { name = "pgvector", specifier = ">=0.5.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4" },
+    { name = "psycopg-pool", specifier = ">=3.2.0" },
+    { name = "pydantic", marker = "extra == 'serve'", specifier = ">=2.9.0" },
     { name = "python-dotenv", specifier = ">=1.2.3" },
     { name = "sec-parser", specifier = "==0.58.1" },
     { name = "sentence-transformers", specifier = "==6.0.0" },
