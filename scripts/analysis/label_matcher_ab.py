@@ -50,13 +50,7 @@ def legacy_table_row_relevant_chunks(cells, candidates):
 
 
 def load_order(path: Path):
-    order = {}
-    for line in open(path):
-        if line.strip():
-            r = json.loads(line)
-            if CELL in r.get("cells", {}):
-                order[r["id"]] = [(s, i) for s, i, _ in sorted(r["cells"][CELL], key=lambda x: -x[2])]
-    return order
+    return E.load_ranking(path, CELL)
 
 
 def main() -> None:

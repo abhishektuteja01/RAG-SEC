@@ -116,12 +116,9 @@ def _kendall_tau(a: list, b: list) -> float:
 def _load_rows(n: int) -> list[dict]:
     """The question sample. Deterministic in `n` and SEED alone, so every phase -- running in
     its own process -- reconstructs byte-identical rows without passing them between processes."""
-    published = {}
-    with open(SCORES) as f:
-        for line in f:
-            if line.strip():
-                r = json.loads(line)
-                published[r["id"]] = r["cells"][CELL]
+    # sort=False: this script re-scores the candidates itself and compares its own ordering
+    # against the published fp32 one, so it needs the stored candidates and their scores.
+    published = load_ranking(SCORES, CELL, with_score=True, sort=False)
 
     df = load_matched_questions()
     split = df[df["split"] == "dev"].reset_index(drop=True)

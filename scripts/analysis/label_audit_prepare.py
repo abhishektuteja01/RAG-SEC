@@ -53,6 +53,7 @@ from rag_sec.eval import (  # noqa: E402
     _load_chunks,
     gold_relevant_chunk_evidence,
     load_matched_questions,
+    load_ranking,
 )
 
 DEV_SCORES = Path("data/day8_retr16v2_dev_scores.jsonl")
@@ -82,16 +83,7 @@ def figures(text: str) -> set[str]:
 
 
 def load_order(path: Path) -> dict[str, list[tuple[str, int]]]:
-    order = {}
-    with open(path) as f:
-        for line in f:
-            if line.strip():
-                rec = json.loads(line)
-                if CELL in rec.get("cells", {}):
-                    order[rec["id"]] = [
-                        (s, i) for s, i, _ in sorted(rec["cells"][CELL], key=lambda x: -x[2])
-                    ]
-    return order
+    return load_ranking(path, CELL)
 
 
 def bucket_of(gold: set, cand: list) -> str:

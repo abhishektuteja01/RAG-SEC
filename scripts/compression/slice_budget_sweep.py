@@ -57,6 +57,7 @@ from rag_sec.eval import (  # noqa: E402
     _gold_evidence_resolved,
     _relevance_evidence,
     load_matched_questions,
+    load_ranking,
 )
 
 BUDGETS = (500, 1000, 1500, 2000, 3000)
@@ -73,26 +74,20 @@ def _survives(text: str, resolved, context: str) -> bool:
 
 
 def _load_chunk_order(path: Path, cell: str) -> dict[str, list[tuple[str, int]]]:
-    """Two on-disk shapes. The old Arm 3/4 file holds one already-sorted ranking per
-    question under `reranked`; the RETR-16 file holds several cells per question, each an
-    unsorted [stem, idx, score] list, so the cell has to be named and sorted here."""
-    order: dict[str, list[tuple[str, int]]] = {}
-    cells_seen: set[str] = set()
+    """This caller genuinely takes either shape: --chunk-scores may point at the modern
+    cells file or at an old Arm 3/4 `reranked` file, and both yield the same `{id: ranking}`
+    here. So sniff the first record and dispatch explicitly -- a cell name for the modern
+    shape, `cell=None` for the legacy no-cells one; never ALL_CELLS, which would return a
+    dict of cells instead of a ranking. A wrong sniff raises in the loader rather than
+    passing silently. Failing loudly on an empty result is kept: the loader raises when the
+    named cell matched no record, and the check below still covers a file that yielded
+    nothing at all.
+    """
     with open(path) as f:
-        for line in f:
-            if not line.strip():
-                continue
-            rec = json.loads(line)
-            if "reranked" in rec:
-                order[rec["id"]] = [(s, i) for s, i, _v in rec["reranked"]]
-            else:
-                cells_seen |= set(rec["cells"])
-                if cell in rec["cells"]:
-                    order[rec["id"]] = [
-                        (s, i) for s, i, _sc in sorted(rec["cells"][cell], key=lambda x: -x[2])
-                    ]
+        first = next((json.loads(ln) for ln in f if ln.strip()), {})
+    order = load_ranking(path, cell if "cells" in first else None)
     if not order:
-        raise SystemExit(f"no rankings in {path} for cell {cell!r}; file has {sorted(cells_seen)}")
+        raise SystemExit(f"no rankings in {path} for cell {cell!r}")
     return order
 
 
