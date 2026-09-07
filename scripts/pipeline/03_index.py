@@ -50,17 +50,10 @@ DECISIONS.md ROWS THIS BACKS
     ARM4-3             only variant 'A' is live; B/C are a dropped experiment and are
                        never touched here.
 
-WHEN THIS ACTUALLY RAN
-    on or before 2026-08-27   first local embed + BM25 build. Exact date not established;
-                              the bound is that Arm 1 ran 2026-08-27 and needs both.
-    2026-08-27 -> 08-28       corpus growth to 799, then the cluster round trip for the
-                              new filings. data/day5_embed_payload.json (108 MB, 26,737
-                              chunks) is that payload, written 2026-08-28 17:20.
-    2026-09-04                the RETR-7/RETR-8 re-index via `changed-chunks`: HPC job
-                              9949705, allocated 05:07:11 -> 06:23:31, all 47,312 chunks
-                              written by 06:21 (~72 min of embedding).
-    "day5_" in the payload filename is a plan number, not a date — that file was written
-    on 08-28, and the `changed-chunks` artifacts are named retr7_* instead.
+WHEN THIS RAN: see the phase 03 row of scripts/README.md. The RETR-7/RETR-8 re-index was
+HPC job 9949705 — all 47,312 chunks embedded in ~72 min. "day5_" in
+data/day5_embed_payload.json is a plan number, not a date (written 08-28); the
+`changed-chunks` artifacts are named retr7_* instead.
 
 TRAPS
   * `local` and `new-filings` are INSERT-only and skip any filing_stem already present, so
@@ -93,7 +86,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 load_dotenv()
 
-from rag_sec.config import EMBED_MODEL_NAME  # noqa: E402
+from rag_sec.config import EMBED_MODEL_NAME, pick_device  # noqa: E402
 from rag_sec.store import (  # noqa: E402
     BM25_INDEX_SQL,
     HNSW_INDEX_SQL,
@@ -165,7 +158,7 @@ def run_local() -> None:
     from sentence_transformers import SentenceTransformer
 
     init_schema()
-    model = SentenceTransformer(EMBED_MODEL_NAME)
+    model = SentenceTransformer(EMBED_MODEL_NAME, device=pick_device())
 
     paths = sorted(CHUNKS_DIR.glob("*.json"))
     print(f"Embedding chunks from {len(paths)} filings")
@@ -399,8 +392,8 @@ def changed_load(results_path: Path, baseline: Path, keep_indexes: bool) -> None
 
 
 def _add_stage_flags(p: argparse.ArgumentParser, prepare_default: Path | None) -> None:
-    """The --prepare/--load split, as reembed_changed.py defined it: mutually exclusive and
-    required, so a stage is always named rather than inferred."""
+    """The --prepare/--load split, as the pre-reorg reembed_changed.py defined it (now the
+    `new-filings --prepare/--load` legs): mutually exclusive and required, so a stage is always named rather than inferred."""
     g = p.add_mutually_exclusive_group(required=True)
     g.add_argument("--prepare", metavar="PAYLOAD", nargs="?" if prepare_default else None,
                    const=str(prepare_default) if prepare_default else None,

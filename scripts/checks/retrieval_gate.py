@@ -74,6 +74,11 @@ def main() -> int:
     failures = []
     print(f"{'metric':<12} {'baseline':>9} {'now':>9} {'delta':>8}")
     for k in sorted(want):
+        # A baselined metric this replay cannot compute -- numeric_match needs a generation
+        # pass, not a stored ranking. Reported as ungated rather than raising KeyError.
+        if k not in got:
+            print(f"{k:<12} {want[k]:>9.4f} {'n/a':>9} {'n/a':>8}  not scored here")
+            continue
         delta = got[k] - want[k]
         flag = ""
         if delta < -args.tolerance:

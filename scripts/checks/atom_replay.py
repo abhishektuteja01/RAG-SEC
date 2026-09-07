@@ -69,6 +69,11 @@ def main() -> None:
     print(f"byte-identical replay: {n_match} ({100 * n_match / max(n_chunks, 1):.2f}%)")
     if bad:
         print("  first mismatches:", bad[:5])
+    if not atom_counts or not atom_tokens:
+        # data/parsed and data/chunks are gitignored, so a fresh clone lands here with
+        # nothing to compare rather than with a result.
+        print("no chunk was comparable -- nothing to summarize")
+        return
     print(
         f"atoms/chunk : mean {s.mean(atom_counts):.1f} median {q(atom_counts, 0.5)} "
         f"p90 {q(atom_counts, 0.9)} max {max(atom_counts)}"

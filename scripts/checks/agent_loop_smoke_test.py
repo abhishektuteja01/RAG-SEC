@@ -4,9 +4,9 @@ Postgres database. There is no dry-run flag and no confirmation prompt -- import
 calling it does the spending. Read the numbers below before you run it.
 
 Filed here, not with the compression scripts, because it exercises the deferred agentic
-loop (`src/rag_sec/agent.py`, `AGENT-*`), not the cost/compression work everything in
-`scripts/compression/` is about. It was previously filed with the compression scripts,
-next to seven unrelated files.
+loop (`src/rag_sec/agent.py`, `AGENT-*`), not the cost/compression work those are about.
+It was previously filed next to them in the since-removed `scripts/compression/`, among
+seven unrelated files; they now live in `scripts/archive/` as the `slice_*` scripts.
 
 Manual smoke test for Day 8's agentic loop (src/rag_sec/agent.py) -- runs a handful
 of dev-split questions through the compiled graph, one thread_id each, and prints the
@@ -81,6 +81,10 @@ def main() -> None:
                 "judge_verdicts": [],
                 "final_answer": "",
                 "usage": [],
+                # every key AgentState declares, matching 07_arm6_loop.run_one exactly: two
+                # entry points building different initial states is how a node ends up
+                # reading a key one of them never seeded.
+                "retrieval_stats": [],
             }
             start = time.perf_counter()
             result = graph.invoke(initial_state, config)

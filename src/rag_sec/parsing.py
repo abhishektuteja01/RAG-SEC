@@ -117,12 +117,8 @@ def _table_to_rows(table_element: TableElement) -> list[list[str]]:
 
 
 def parse_filing(html: str) -> list[Block]:
-    """Parses a 10-K's raw HTML into an ordered list of text/table blocks.
-
-    Filters out page numbers, running headers, empty elements, and the
-    boilerplate table-of-contents table -- these are all noise for chunking,
-    not content.
-    """
+    """A 10-K's raw HTML into an ordered list of text/table blocks, dropping page numbers,
+    running headers, empty elements and the table-of-contents table as chunking noise."""
     parser = _without_10q_section_classification()
     elements = parser.parse(html)
 

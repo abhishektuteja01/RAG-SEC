@@ -85,17 +85,12 @@ def ready() -> dict:
 def ask(req: AskRequest) -> AskResponse:
     t0 = time.perf_counter()
     chunks = _dedupe_chunks(retrieve(req.question, k=req.k))
-    # `_s` keys only: last_call_stats() also carries the full candidate list, which is the
-    # retriever's internals and would be several hundred KB on a k=50 response.
-    # Read out of ["timings"], NOT off the top level: the top-level keys are `timings`,
-    # `rerank_query`, `tickers`, `candidates`, `reranked`, none of which ends in `_s`, so
-    # filtering there returned {} on every request and `stage_latency` was always empty.
-    # Day 13 gates a p95 taken from this field (DEPLOY-1), so it would have gated nothing.
-    # An explicit whitelist, not `endswith("_s")`: that matched nine keys, and three of them
-    # double-count. `embed_lock_wait_s`/`rerank_lock_wait_s` are already INSIDE embed_s and
-    # rerank_s, and `model_init_s` is one-off warm-up, not per-question work. A p95 gate
-    # summing the filtered dict (DEPLOY-1 reads its p95 from this field) would have counted
-    # rerank twice and failed a system that passes. Same class as the `{}` bug this replaced.
+    # Timings only: last_call_stats() also carries the full candidate list, several hundred KB
+    # on a k=50 response. An explicit whitelist read out of ["timings"], because DEPLOY-1's p95
+    # gate reads this field and both cheaper spellings were wrong: filtering `_s` off the TOP
+    # level matched nothing (`stage_latency` was always empty, gating nothing), and
+    # `endswith("_s")` inside timings double-counts -- embed/rerank_lock_wait_s are already
+    # inside embed_s/rerank_s, and model_init_s is one-off warm-up.
     _timings = last_call_stats().get("timings", {})
     stages = {k: _timings[k] for k in
               ("embed_s", "resolve_s", "search_s", "rerank_s", "mps_empty_cache_s", "total_s")

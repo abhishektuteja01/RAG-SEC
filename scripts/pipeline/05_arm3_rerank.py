@@ -56,14 +56,9 @@ DECISIONS.md ROWS THIS BACKS
               flat ~32.6s instead of climbing to ~48s. `local` inherits it from
               `rag_sec.retrieve.retrieve()`. Do not remove or bypass it.
 
-WHEN THIS ACTUALLY RAN (calendar dates, not "Day N")
-    2026-08-28   the Arm 3 cross-encoder HPC pass (its Day-5/6 ancestor,
-                 the arm3_rerank_* scripts, deleted in the pipeline reorg; see git history)
-    2026-08-30   those results rescored on the laptop
-    2026-09-04   the RETR-7/RETR-8 re-index and the current retr7_* dev+test passes;
-                 data/retr7_arm3_{dev,test}_results.json are 09-04 09:39 and 11:22
-    The `local` leg is NEW in this consolidation and has never produced a published
-    number. It exists so someone without a cluster can reproduce one.
+WHEN THIS RAN: see the phase 05 row of scripts/README.md. The `local` leg is NEW in this
+consolidation and has never produced a published number; it exists so someone without a
+cluster can reproduce one.
 
 TRAPS
   * STALE DEFAULTS, PRESERVED ON PURPOSE. `prepare --out` still defaults to
@@ -114,7 +109,7 @@ from tqdm import tqdm  # noqa: E402
 from rag_sec.candidates import LIVE_VARIANT, bm25, chunk_texts, dense, rrf_fuse  # noqa: E402
 from rag_sec.company import resolve as resolve_companies  # noqa: E402
 from rag_sec.company import strip_entity_framing  # noqa: E402
-from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME  # noqa: E402
+from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
     ALL_CELLS,
     _filing_stem,
@@ -126,17 +121,14 @@ from rag_sec.eval import (  # noqa: E402
     ndcg_at_k,
     recall_at_k,
 )
-from rag_sec.retrieve import last_call_stats, retrieve  # noqa: E402
+# CANDIDATE_K imported, not re-declared: the 2x2's cells differ ONLY in the filter and the
+# query text, so a pool size of its own here would make `local` and the cluster leg
+# incomparable and would silently move recall@50, which is a pool property.
+from rag_sec.retrieve import CANDIDATE_K, last_call_stats, retrieve  # noqa: E402
 from rag_sec.store import get_conn  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
 DATA_DIR = _ROOT / "data"
-
-# First-stage pool size handed to the reranker. 50, matching rag_sec.retrieve.CANDIDATE_K,
-# because the whole point of the 2x2 is that the rerank cells differ ONLY in the filter and
-# the query text -- a different pool size here would make `local` and the cluster leg
-# incomparable, and would silently move recall@50, which is a pool property.
-CANDIDATE_K = 50
 
 # The four cells, in the order the published table prints them. `unfiltered_raw` must come
 # first: `score` reads it as the baseline row that every other row's delta is against.
@@ -179,7 +171,7 @@ RERANK_S_DEPLOY_HOST = 156.9
 # Transfer/allocation recipe printed by `prepare`. Constants, not buried strings, because
 # ARM3-2 is explicit that the xfer host is mandatory: the interactive login node
 # throttles or kills a 100MB+ payload mid-copy.
-XFER_HOST = "tuteja.a@xfer.discovery.neu.edu"
+XFER_HOST = "<user>@xfer.discovery.neu.edu"
 SRUN_RECIPE = (
     "  srun --partition=gpu --gres=gpu:v100-sxm2:1 --cpus-per-task=4 \\\n"
     "       --mem=48G --time=08:00:00 --pty /bin/bash\n"
@@ -215,7 +207,7 @@ def cmd_prepare(args: argparse.Namespace) -> None:
     rows = df[df["split"].isin(wanted)].reset_index(drop=True)
     if args.n:
         rows = rows.head(args.n)
-    model = SentenceTransformer(EMBED_MODEL_NAME)
+    model = SentenceTransformer(EMBED_MODEL_NAME, device=pick_device())
 
     questions: list[dict] = []
     texts: dict[str, str] = {}

@@ -1,12 +1,13 @@
-"""Locks the one property `agent_run.static_baseline` assumes about its input: the static
+"""Locks the one property `07_arm6_loop.static_baseline` assumes about its input: the static
 rankings it slices `[:TOP_K]` from are in DESCENDING rerank-score order at the point of use.
 
 Checks `rag_sec.eval.load_ranking`, the single loader every caller now shares, rather than
 importing a script by filename -- so this gate no longer breaks when scripts move.
 
-Nothing in the pipeline guarantees this. `rerank_hpc.py:132-135` writes each cell by zipping
-scores onto the FIRST-STAGE RRF candidate order, so the score is merely attached; the
-published scorer sorts on load (`rerank_score.py:62`) and `agent_run.py` did not. Measured
+Nothing in the pipeline guarantees this. `hpc/rerank_hpc.py`'s `main()` builds each cell in
+its `cells_by_q` loop, zipping scores onto the FIRST-STAGE RRF candidate order, so the score
+is merely attached (named, not line-cited: the range moved once already). The published
+scorer sorts on load (`05_arm3_rerank.py score`) and `07_arm6_loop.py` did not. Measured
 before the fix: 0/1235 dev cells were in score order, and Arm 6's own baseline scored
 recall@10 0.552 instead of 0.739 on the 197-question sample.
 
@@ -30,7 +31,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 from rag_sec.eval import SHIPPED_CELL as STATIC_CELL  # noqa: E402
 from rag_sec.eval import load_ranking  # noqa: E402
 
-# The exact call agent_run.py makes. Locking the flags, not a wrapper, keeps this the only
+# The exact call 07_arm6_loop.py makes. Locking the flags, not a wrapper, keeps this the only
 # implementation -- a wrapper here would just be a tenth copy of the thing being checked.
 def _load(path: str) -> dict:
     return load_ranking(path, STATIC_CELL, with_score=True, with_latency=True)

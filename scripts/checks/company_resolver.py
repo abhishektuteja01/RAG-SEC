@@ -91,9 +91,9 @@ def run_splits() -> None:
                 if len(misses) < 5:
                     misses.append((r["company_symbol"], got, r["question"][:90]))
         print(f"\n{split}  n={n}")
-        print(f"  resolved              {resolved:5} ({100 * resolved / n:5.1f}% coverage)")
+        print(f"  resolved              {resolved:5} ({100 * resolved / max(n, 1):5.1f}% coverage)")
         print(f"  correct ticker in set {right:5} ({100 * right / max(resolved, 1):5.1f}% precision)")
-        print(f"  WRONG -> deletes gold {wrong:5} ({100 * wrong / n:5.2f}% of all questions)")
+        print(f"  WRONG -> deletes gold {wrong:5} ({100 * wrong / max(n, 1):5.2f}% of all questions)")
         print(f"  tickers per resolved: {dict(sorted(per.items()))}")
         # The residual failure mode is a question naming an acquired business or a
         # counterparty rather than the filer -- "the FIS Gaming Business" inside a Global

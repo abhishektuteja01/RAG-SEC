@@ -205,9 +205,7 @@ one word: "sufficient" or "insufficient"."""
 def judge_node(state: AgentState) -> dict:
     deduped = _dedupe_chunks(state["retrieved_chunks"])
     prompt = _JUDGE_PROMPT.format(question=state["question"], evidence=_evidence_text(deduped))
-    # `generation`, not the semantically closer `evaluator`: only generation and embedding
-    # observations carry model/usage_details, and these calls are ~22% of the arm's spend --
-    # typing them as evaluator would delete that from every per-node cost figure.
+    # `generation`, not the semantically closer `evaluator` -- see tracing._ObsType for why.
     # `iteration` alongside the verdict: without both on the same observation Langfuse cannot
     # join them, and cap-termination rate and per-iteration judge accuracy stop being
     # expressible as dashboard widgets at all.

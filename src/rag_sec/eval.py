@@ -212,8 +212,14 @@ def _chunk_file_index(chunks_dir: str = CHUNKS_DIR) -> dict[tuple[int, int], str
     for fname in os.listdir(chunks_dir):
         if not fname.endswith(".json"):  # .DS_Store and friends would crash the unpack
             continue
-        ticker, year, cik = fname[:-5].rsplit("_", 2)
-        index[(int(cik), int(year))] = fname
+        try:
+            _ticker, year, cik = fname[:-5].rsplit("_", 2)
+            index[(int(cik), int(year))] = fname
+        except ValueError:
+            # Not TICKER_YEAR_CIK: macOS AppleDouble `._X.json` sidecars and hand-made
+            # `.bak`-ish copies both land here. Skipped rather than raised, as
+            # rag_sec.preflight does -- a stray file in the directory is not a corpus.
+            continue
     return index
 
 
@@ -242,21 +248,23 @@ def load_matched_questions(chunks_dir: str = CHUNKS_DIR) -> pd.DataFrame:
 @lru_cache(maxsize=None)
 def _gold_evidence_resolved() -> dict:
     """question id -> {"table_rows": [[cell, ...], ...], "sentences": [str, ...]},
-    resolved from the original FinQA/ConvFinQA `gold_inds` by `scripts/eval/
-    resolve_gold_evidence.py` (DECISIONS.md GOLD-1). Empty dict (not an error) if
+    resolved from the original FinQA/ConvFinQA `gold_inds` by
+    `scripts/pipeline/02_gold_labels.py evidence` (DECISIONS.md GOLD-1). Empty dict (not an error) if
     the file hasn't been built yet -- every question then falls through to Layer 3."""
     if not os.path.exists(GOLD_EVIDENCE_RESOLVED_PATH):
         return {}
-    return json.loads(open(GOLD_EVIDENCE_RESOLVED_PATH).read())
+    with open(GOLD_EVIDENCE_RESOLVED_PATH) as f:
+        return json.load(f)
 
 
 @lru_cache(maxsize=None)
 def _gold_table_indices_by_question() -> dict:
-    """question_id -> set of gold table_index values, from arm4_identify_gold_tables.py's
+    """question_id -> set of gold table_index values, from `02_gold_labels.py tables`'
     own table-vs-table shingle match (independent of this module's chunk-vs-question one)."""
     if not os.path.exists(DAY6_GOLD_TABLES_PATH):
         return {}
-    records = json.loads(open(DAY6_GOLD_TABLES_PATH).read())
+    with open(DAY6_GOLD_TABLES_PATH) as f:
+        records = json.load(f)
     out: dict = {}
     for r in records:
         out.setdefault(r["question_id"], set()).add(r["table_index"])
@@ -268,7 +276,8 @@ def _table_summaries() -> dict:
     """'{filing_stem}:{table_index}' -> Arm 4 Strategy C's cached LLM summary text."""
     if not os.path.exists(DAY6_SUMMARIES_PATH):
         return {}
-    return json.loads(open(DAY6_SUMMARIES_PATH).read())
+    with open(DAY6_SUMMARIES_PATH) as f:
+        return json.load(f)
 
 
 def _filing_stem(row: pd.Series) -> str:
@@ -411,10 +420,43 @@ def mean_and_stderr(values: list[float]) -> tuple[float, float]:
     gold chunk). ddof=1 because these are a sample of questions, not the population."""
     values = [v for v in values if not math.isnan(v)]
     n = len(values)
+    if n == 0:  # every question NaN, e.g. a metric scored on a split with no gold labels
+        return float("nan"), float("nan")
     mean = sum(values) / n
     variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
-    stderr = math.sqrt(variance / n) if n > 0 else float("nan")
-    return mean, stderr
+    return mean, math.sqrt(variance / n)
+
+
+def percentile(values: Sequence[float], q: float) -> float:
+    """Nearest-rank percentile. Deliberately not statistics.quantiles: these samples are
+    small and per-stage, and an interpolated p95 would invent a latency no question had.
+    NaN on an empty sample, matching mean_and_stderr rather than raising mid-report."""
+    v = sorted(values)
+    if not v:
+        return float("nan")
+    return v[min(int(q * len(v)), len(v) - 1)]
+
+
+# Rows in the worst-failures markdown. 20 is enough to read in one sitting and is what the
+# published *_failures.md files contain.
+N_WORST = 20
+
+
+def write_worst_failures(path, title: str, per_question: list[dict], filing_key: str) -> None:
+    """The N_WORST questions by recall@10, as markdown -- one writer, because phases 04 and
+    06 published byte-identical files from two copies of it. NaN sorts as 0 rather than
+    being dropped, so a question with no gold label can appear in the list."""
+    worst = sorted(
+        per_question,
+        key=lambda q: (q["recall_10"] if not math.isnan(q["recall_10"]) else 0),
+    )[:N_WORST]
+    with open(path, "w") as f:
+        f.write(f"# {title} — {N_WORST} worst failures on dev split\n\n")
+        for w in worst:
+            f.write(f"## {w['id']} (recall@10={w['recall_10']:.2f}, "
+                    f"filing={w[filing_key]})\n")
+            f.write(f"Q: {w['question']}\n\n")
+            f.write(f"Top 5 retrieved: {w['top_5_retrieved']}\n\n")
 
 
 # The shipped arm's cell name in the rerank score files. Lives here rather than in a script
@@ -449,6 +491,7 @@ def load_ranking(
     *,
     with_score: bool = False,
     with_latency: bool = False,
+    with_variant: bool = False,
     sort: bool = True,
 ) -> dict:
     """Load a `*_scores.jsonl` rerank file into `{question_id: ranking}`.
@@ -477,11 +520,12 @@ def load_ranking(
                                                `day6_arm4_{A,B,C}_rerank_scores.jsonl`.
           Only 2 and 3 are accepted; any other width raises, naming the file and the width,
           rather than being coerced into a guess about what the extra field means.
+          `with_variant=True` keeps that tag, giving (stem, idx, variant) back: Arm 4 numbers
+          chunks per (stem, variant), so there the pair alone is an ambiguous id.
 
-    Dispatching on the record is the fix for the copy that keyed on `cell is None`: passing
-    a cell name against a legacy-shaped file returned `{}` there, with no error.
-
-    `cell` distinguishes the two intents that `None` alone used to conflate:
+    Dispatch is on the RECORD, never on `cell` -- the copy that keyed on `cell is None`
+    returned `{}` for a cell name against a legacy file, with no error. `cell` names the
+    intent (see ALL_CELLS above for the bug that split it out):
       ALL_CELLS  -> every cell of a modern file, as {id: {cell_name: [...]}}
       None       -> a legacy no-cells file, as {id: [...]}; raises on a modern record
       "name"     -> that one cell of a modern file; raises on a legacy record
@@ -492,6 +536,11 @@ def load_ranking(
     """
     if cell is ALL_CELLS and with_score:
         raise ValueError("with_score needs an explicit cell; ALL_CELLS mode returns ids only")
+    if with_variant and cell is not None:
+        raise ValueError(
+            "with_variant only exists for legacy 'reranked' files, whose third field is the "
+            f"variant tag; cell={cell!r} names a modern cells-shaped file, which has none"
+        )
 
     out: dict = {}
     cell_seen = False
@@ -535,12 +584,9 @@ def load_ranking(
                         "where present, is a variant tag -- so with_score is "
                         "meaningless here"
                     )
-                # Already ranked -- see the docstring; `sort` is deliberately ignored.
-                # Two real widths on disk (2-wide pre-Arm-4, 3-wide Day 6 per-variant), and
-                # only the first two fields are ever used, so both project the same way. The
-                # width is still checked instead of sliced blind: a 4-wide entry would mean a
-                # producer we have never seen, and guessing at its field order is exactly the
-                # habit that produced this project's recurring bug.
+                # Already ranked, so `sort` is deliberately ignored; widths per the docstring.
+                # Checked, not sliced blind: a 4-wide entry means a producer we have never seen,
+                # and guessing at its field order is this project's recurring bug.
                 entries = []
                 for e in rec["reranked"]:
                     if len(e) not in (2, 3):
@@ -549,7 +595,15 @@ def load_ranking(
                             f"{len(e)}-wide entry {e!r}; only 2-wide [stem, idx] and "
                             "3-wide [stem, idx, variant_tag] are known shapes"
                         )
-                    entries.append((e[0], e[1]))
+                    if not with_variant:
+                        entries.append((e[0], e[1]))
+                    elif len(e) == 3:
+                        entries.append((e[0], e[1], e[2]))
+                    else:
+                        raise ValueError(
+                            f"{path}: with_variant was requested but record {rec['id']!r} "
+                            f"has a 2-wide entry {e!r} carrying no variant tag"
+                        )
                 value = entries
 
             else:

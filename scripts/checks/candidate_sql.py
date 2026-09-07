@@ -3,7 +3,12 @@ before `RETR-36` consolidated them.
 
 The expectations below are the fully-bound queries, transcribed from the pre-refactor call
 sites in `retrieve.py`, `arm1_dense.py`, `arm2_hybrid.py`, `company_filter_ab.py` and
-`rerank_prepare.py`. They are the point of the check: a shared helper is only a safe
+`rerank_prepare.py`. Only two of those five still exist as files: `retrieve.py`, and
+`company_filter_ab.py` in `scripts/archive/`. The other three were deleted in the pipeline
+reorg ("Retire the superseded scripts, archive the one-offs, repoint everything") and are
+readable from git history -- `git show 38a3936^:scripts/retrieval/arm1_dense.py`. The
+transcription is therefore still checkable against its sources, just not against the
+worktree. They are the point of the check: a shared helper is only a safe
 refactor if it is behaviour-preserving, and "behaviour" here is the exact query text plus
 the exact parameter order, since a reordered `%s` binds the wrong value silently.
 

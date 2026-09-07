@@ -40,13 +40,9 @@ DECISIONS.md ROWS THIS BACKS
     ARM4-3    scoping B/C to gold tables only — why the `tables` leg exists.
     DATA-7/8/9  the IDF-weighted shingle + numeric overlap matching method itself.
 
-WHEN THIS ACTUALLY RAN
-    2026-08-29 00:44   data/day6_gold_tables.json written (`tables` leg).
-    2026-08-30 17:31   data/day7_gold_inds_matched_full.json — the frozen input, by the
-                       uncommitted GOLD-7 join, NOT by this script.
-    2026-08-30 18:53   data/day7_gold_evidence_resolved.json written (`evidence` leg).
-    Both committed 2026-08-30. There is no calendar "Day 6" or "Day 7" — the dayN_
-    prefixes are plan numbers and the `day6_` file predates the `day7_` ones by a day.
+WHEN THIS RAN: see the phase 02 row of scripts/README.md. The one fact not obvious from
+there: data/day7_gold_inds_matched_full.json was written by the uncommitted GOLD-7 join,
+NOT by this script, which is why the `evidence` leg cannot run end to end (INFRA-15).
 
 TRAPS
   * The `tables` leg OVERWRITES data/day6_gold_tables.json, which two live consumers read.
@@ -81,6 +77,8 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 from rag_sec.chunking import _table_to_text  # noqa: E402
 from rag_sec.dataset import load_t2_ragbench  # noqa: E402
+from rag_sec.eval import _filing_stem  # noqa: E402
+from rag_sec.parsing import TableBlock, load_parsed_blocks  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
 DATA_DIR = _ROOT / "data"
@@ -250,8 +248,8 @@ def run_evidence(force: bool) -> None:
 
 
 def filing_tables(stem: str) -> list[list[list[str]]]:
-    blocks = json.loads((PARSED_DIR / f"{stem}.json").read_text())
-    return [b["rows"] for b in blocks if "rows" in b]
+    blocks = load_parsed_blocks(PARSED_DIR / f"{stem}.json")
+    return [b.rows for b in blocks if isinstance(b, TableBlock)]
 
 
 def gold_table_matches(gold_table_text: str, tables: list[list[list[str]]]) -> list[dict]:
@@ -303,7 +301,7 @@ def run_tables() -> None:
     results, unmatched = [], 0
     table_cache: dict[str, list[list[list[str]]]] = {}
     for _, row in dev.iterrows():
-        stem = f"{row['company_symbol']}_{int(row['report_year'])}_{int(row['company_cik'])}"
+        stem = _filing_stem(row)
         if stem not in table_cache:
             table_cache[stem] = filing_tables(stem)
         matches = gold_table_matches(row["table"], table_cache[stem])

@@ -58,13 +58,8 @@ DECISIONS.md ROWS THIS BACKS
     GOLD-5    B/C were rescored offline under the new labeler from the saved orderings.
     RETR-22 / RETR-29 / RETR-31   consume `score --variant A`'s output as the control.
 
-WHEN THIS ACTUALLY RAN (calendar dates, not "Day N")
-    2026-08-29   gold tables identified; variant-C summaries fetched (data/
-                 day6_table_summaries.json, 498 entries)
-    2026-08-30   the whole A/B/C run — variants built, three cluster passes scored, and
-                 every day6_*/day7_* artifact written. The published
-                 data/day6_arm4_{A,B,C}_dev_results.json are 08-30 19:09-19:12.
-    NOT 2026-09-04. The RETR-7/RETR-8 re-index touched variant A only.
+WHEN THIS RAN: see the phase 06 row of scripts/README.md. Note it was NOT re-run on
+2026-09-04 — the RETR-7/RETR-8 re-index touched variant A only, so B and C are pre-re-index.
 
 TRAPS
   * `variants` WRITES TO THE LIVE INDEX. It is not gated, because the merged script
@@ -95,7 +90,6 @@ TRAPS
 
 import argparse
 import json
-import math
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -111,16 +105,21 @@ from tqdm import tqdm  # noqa: E402
 
 from rag_sec.candidates import rrf_fuse  # noqa: E402
 from rag_sec.chunking import Chunk, chunk_blocks_with_variant  # noqa: E402
-from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME  # noqa: E402
+from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
+    _filing_stem,
     gold_relevant_chunk_ids_db,
     load_matched_questions,
+    load_ranking,
     mean_and_stderr,
     mrr,
     ndcg_at_k,
+    percentile,
     recall_at_k,
+    write_worst_failures,
 )
-from rag_sec.parsing import Block, TableBlock, TextBlock  # noqa: E402
+from rag_sec.parsing import Block, load_parsed_blocks  # noqa: E402
+from rag_sec.retrieve import CANDIDATE_K  # noqa: E402
 from rag_sec.store import get_conn, init_schema  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
@@ -141,10 +140,12 @@ EXPECTED_SUMMARIES = 498  # ARM4-3's table count == the number of paid calls C e
 # tiny and the batch never dominates, so a bigger number buys nothing and risks memory.
 EMBED_BATCH_SIZE = 32
 
-# Arm 4's pool sizes, kept at Arm 3's values so the two arms' numbers sit on one scale.
-# TOP_K is the fused pool handed to the cluster, CANDIDATE_K each leg's own depth.
-TOP_K = 50
-CANDIDATE_K = 50
+# Arm 4's fused pool, handed to the cluster. Kept at Arm 3's value so the two arms' numbers
+# sit on one scale. Named FIRST_STAGE_K, not TOP_K: rag_sec.retrieve.TOP_K is the shipped
+# path's final depth of 10, and one identifier meaning both 10 and 50 across files that
+# import from each other is a trap. Each leg's own depth is rag_sec.retrieve.CANDIDATE_K,
+# imported rather than re-declared.
+FIRST_STAGE_K = 50
 
 VARIANTS = ("A", "B", "C")
 
@@ -158,9 +159,6 @@ VARIANTS = ("A", "B", "C")
 # string is treated as fact and neither is deleted.
 RERANK_DEVICE_UNVERIFIED = "Tesla V100-SXM2-32GB (Northeastern Explorer HPC)"
 
-# Worst-failure listing length, matching Arm 3's so the two failure files read the same.
-N_WORST = 20
-
 
 # ─── STEP 1: build the B and C chunk variants (COSTS MONEY, WRITES THE INDEX) ───
 def load_targets() -> dict[str, set[int]]:
@@ -169,17 +167,6 @@ def load_targets() -> dict[str, set[int]]:
     for r in records:
         targets[r["filing_stem"]].add(r["table_index"])
     return targets
-
-
-def load_blocks(stem: str) -> list[Block]:
-    data = json.loads((PARSED_DIR / f"{stem}.json").read_text())
-    blocks: list[Block] = []
-    for d in data:
-        if "rows" in d:
-            blocks.append(TableBlock(rows=d["rows"]))
-        else:
-            blocks.append(TextBlock(text=d["text"], is_title=d["is_title"]))
-    return blocks
 
 
 def load_summary_cache() -> dict[str, str]:
@@ -355,7 +342,7 @@ def cmd_variants(args: argparse.Namespace) -> None:
     from sentence_transformers import SentenceTransformer
 
     init_schema()
-    model = SentenceTransformer(EMBED_MODEL_NAME)
+    model = SentenceTransformer(EMBED_MODEL_NAME, device=pick_device())
 
     with get_conn(check=False) as conn:  # build-time: this step moves the counts
         done = {
@@ -367,7 +354,7 @@ def cmd_variants(args: argparse.Namespace) -> None:
         print(f"{len(done)} (filing, variant) pairs already built, skipping those")
 
         for i, (stem, table_idxs) in enumerate(sorted(targets.items()), 1):
-            blocks = load_blocks(stem)
+            blocks: list[Block] = load_parsed_blocks(PARSED_DIR / f"{stem}.json")
             idxs = sorted(table_idxs)
             print(f"[{i}/{len(targets)}] {stem}: {len(idxs)} gold table(s)")
 
@@ -454,7 +441,7 @@ def cmd_prepare(args: argparse.Namespace) -> None:
         dev = dev.head(args.n)
     print(f"Preparing Arm 4 variant={variant} rerank payload for {len(dev)} dev questions")
 
-    embed_model = SentenceTransformer(EMBED_MODEL_NAME)
+    embed_model = SentenceTransformer(EMBED_MODEL_NAME, device=pick_device())
     payload = []
 
     with get_conn() as conn:
@@ -462,14 +449,13 @@ def cmd_prepare(args: argparse.Namespace) -> None:
             query_emb = embed_model.encode(row["question"], normalize_embeddings=True)
             dense = retrieve_dense(conn, query_emb, variant, CANDIDATE_K)
             bm25 = retrieve_bm25(conn, row["question"], variant, CANDIDATE_K)
-            fused = rrf_fuse([dense, bm25])[:TOP_K]
+            fused = rrf_fuse([dense, bm25])[:FIRST_STAGE_K]
             texts = fetch_texts(conn, fused)
 
             payload.append({
                 "id": row["id"],
                 "question": row["question"],
-                "filing_stem": (f"{row['company_symbol']}_{int(row['report_year'])}"
-                                f"_{int(row['company_cik'])}"),
+                "filing_stem": _filing_stem(row),
                 "candidates": [
                     [stem, idx, v, texts[(stem, idx, v)]]
                     for stem, idx, v in fused if (stem, idx, v) in texts
@@ -489,17 +475,6 @@ def cmd_prepare(args: argparse.Namespace) -> None:
 
 
 # ─── STEP 4: score one variant against variant-aware gold labels ───────────────
-def load_scores(path: Path) -> dict[str, dict]:
-    scores = {}
-    with open(path) as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                row = json.loads(line)
-                scores[row["id"]] = row
-    return scores
-
-
 def cmd_score(args: argparse.Namespace) -> None:
     """Join the cluster's orderings with variant-aware gold labels (ARM4-5). Needs Postgres.
 
@@ -539,7 +514,10 @@ def cmd_score(args: argparse.Namespace) -> None:
         print(f"  Variant {variant} was never re-embedded after RETR-7/RETR-8 (ARM4-10), so")
         print("  this number compares two different corpora.")
 
-    scores = load_scores(scores_path)
+    # Through rag_sec.eval.load_ranking, never a raw json.loads: one loader, because nine
+    # hand-copied ones is what produced AGENT-16. with_variant keeps the third field, which
+    # in these files is the variant TAG -- Arm 4 ids are (stem, index, variant) triples.
+    scores = load_ranking(scores_path, None, with_variant=True, with_latency=True)
 
     df = load_matched_questions()
     dev = df[df["split"] == "dev"].reset_index(drop=True)
@@ -549,11 +527,8 @@ def cmd_score(args: argparse.Namespace) -> None:
     per_question = []
     with get_conn() as conn:
         for _, row in dev.iterrows():
-            s = scores[row["id"]]
-            retrieved = [tuple(c) for c in s["reranked"]]
-
-            filing_stem = (f"{row['company_symbol']}_{int(row['report_year'])}"
-                           f"_{int(row['company_cik'])}")
+            retrieved, latency_s = scores[row["id"]]
+            filing_stem = _filing_stem(row)
             relevant = [(filing_stem, ci, v)
                         for ci, v in gold_relevant_chunk_ids_db(row, conn, variant)]
 
@@ -566,7 +541,7 @@ def cmd_score(args: argparse.Namespace) -> None:
                 "recall_50": recall_at_k(retrieved, relevant, 50),
                 "ndcg_10": ndcg_at_k(retrieved, relevant, 10),
                 "mrr": mrr(retrieved, relevant),
-                "rerank_latency_s": s["latency_s"],
+                "rerank_latency_s": latency_s,
                 "top_5_retrieved": retrieved[:5],
             })
 
@@ -576,9 +551,9 @@ def cmd_score(args: argparse.Namespace) -> None:
         metrics[key] = {"mean": mean, "stderr": stderr}
         print(f"{key}: {mean:.3f} +/- {stderr:.3f}")
 
-    latencies = sorted(q["rerank_latency_s"] for q in per_question)
-    p50 = latencies[len(latencies) // 2]
-    p95 = latencies[int(len(latencies) * 0.95)]
+    latencies = [q["rerank_latency_s"] for q in per_question]
+    p50 = percentile(latencies, 0.5)
+    p95 = percentile(latencies, 0.95)
     print(f"rerank latency (top-50 candidates, V100): p50={p50*1000:.0f}ms, "
           f"p95={p95*1000:.0f}ms")
 
@@ -586,7 +561,7 @@ def cmd_score(args: argparse.Namespace) -> None:
         "variant": variant,
         "rerank_model": RERANK_MODEL_NAME,
         "rerank_device": RERANK_DEVICE_UNVERIFIED,
-        "top_k": TOP_K,
+        "top_k": FIRST_STAGE_K,
         "n": len(dev),
         "metrics": metrics,
         "rerank_latency_ms": {"p50": p50 * 1000, "p95": p95 * 1000},
@@ -594,18 +569,12 @@ def cmd_score(args: argparse.Namespace) -> None:
     }, indent=2))
     print(f"Results written to {results_path}")
 
-    worst = sorted(
+    write_worst_failures(
+        failures_path,
+        f"Arm 4 variant={variant} (Arm 2 hybrid + HPC cross-encoder rerank)",
         per_question,
-        key=lambda q: (q["recall_10"] if not math.isnan(q["recall_10"]) else 0),
-    )[:N_WORST]
-    with open(failures_path, "w") as f:
-        f.write(f"# Arm 4 variant={variant} (Arm 2 hybrid + HPC cross-encoder rerank) — "
-                f"{N_WORST} worst failures on dev split\n\n")
-        for w in worst:
-            f.write(f"## {w['id']} (recall@10={w['recall_10']:.2f}, "
-                    f"filing={w['filing_stem']})\n")
-            f.write(f"Q: {w['question']}\n\n")
-            f.write(f"Top 5 retrieved: {w['top_5_retrieved']}\n\n")
+        "filing_stem",
+    )
     print(f"Worst failures written to {failures_path}")
 
 

@@ -37,6 +37,7 @@ load_dotenv()
 from tqdm import tqdm  # noqa: E402
 
 from rag_sec.eval import (  # noqa: E402
+    SHIPPED_CELL,
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
@@ -47,7 +48,9 @@ from rag_sec.eval import (  # noqa: E402
 )
 
 SCORES = _ROOT / "data" / "retr7_rr_dev_scores.jsonl"
-CELL = "filtered_stripped"  # the shipped arm; the gate protects what ships, not the ablations
+# Imported, never re-spelled: this script BUILDS the artifact retrieval_gate.py scores, so a
+# second copy of the name would desync fixture from guard the moment the constant moved.
+CELL = SHIPPED_CELL
 FIXTURE = _ROOT / "data" / "ci_retrieval_fixture.jsonl"
 BASELINE = _ROOT / "data" / "ci_retrieval_baseline.json"
 # Fixed so the slice is identical on every rebuild. A slice that resampled would move the
@@ -83,7 +86,7 @@ def main() -> int:
             continue
         stem = _filing_stem(row)
         gold = [(stem, i) for i in gold_relevant_chunk_ids(row)]
-        if not gold:  # unscoreable, and rerank_score.py drops these too -- stay identical
+        if not gold:  # unscoreable, and 05_arm3_rerank.py score drops these too -- stay identical
             continue
         rows.append({"id": qid, "gold": gold, "ranked": ranked[qid][:50]})
 

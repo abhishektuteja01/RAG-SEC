@@ -9,15 +9,32 @@ bounded by chunk packing instead of by a parser of our own.
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
 
-from rag_sec.chunking import Atom, Chunk, chunk_blocks_with_atoms, count_tokens
+from rag_sec.chunking import (
+    MULTI_HEADING,
+    STRIP_TITLE_FURNITURE,
+    Atom,
+    Chunk,
+    chunk_blocks_with_atoms,
+    count_tokens,
+)
 from rag_sec.parsing import load_parsed_blocks
 
 PARSED_DIR = Path("data/parsed")
+CHUNKS_DIR = Path("data/chunks")
+
+# Named in every replay failure below, because the two flags ARE the failure: set differently
+# from the corpus on disk they reproduce only 52.5% of chunks (chunking.py, RETR-7/RETR-8).
+_FLAG_STATE = (
+    f"RAG_SEC_MULTI_HEADING={MULTI_HEADING}, "
+    f"RAG_SEC_STRIP_TITLE_FURNITURE={STRIP_TITLE_FURNITURE}; both must match the corpus "
+    "that was embedded (RETR-7/RETR-8)."
+)
 
 
 @lru_cache(maxsize=1024)
@@ -30,8 +47,35 @@ def _packed(stem: str) -> tuple[tuple[Chunk, tuple[Atom, ...]], ...]:
     return tuple((chunk, tuple(atoms)) for chunk, atoms in chunk_blocks_with_atoms(blocks))
 
 
+@lru_cache(maxsize=1024)
+def _stored_texts(stem: str) -> tuple[str, ...]:
+    """The chunk texts that were actually embedded and retrieved -- what the replay above
+    has to reproduce to be talking about the same document."""
+    with open(CHUNKS_DIR / f"{stem}.json") as f:
+        return tuple(c["text"] for c in json.load(f))
+
+
 def chunk_atoms(stem: str, chunk_index: int) -> tuple[Chunk, tuple[Atom, ...]]:
-    return _packed(stem)[chunk_index]
+    """Atoms of one STORED chunk, by replay -- and the replay is checked, not trusted.
+    `chunk_index` comes from the `chunks` table while the atoms come from re-running the
+    packer over data/parsed/, and nothing else ties the two together: under mismatched
+    chunking flags the packer emits a different chunk list and this would silently hand back
+    another chunk's atoms. That is the project's recurring bug class, so it raises here."""
+    packed = _packed(stem)
+    stored = _stored_texts(stem)
+    if not 0 <= chunk_index < min(len(packed), len(stored)):
+        raise ValueError(
+            f"chunk {chunk_index} is out of range for {stem}: replaying "
+            f"{PARSED_DIR}/{stem}.json gave {len(packed)} chunks and "
+            f"{CHUNKS_DIR}/{stem}.json holds {len(stored)}. {_FLAG_STATE}"
+        )
+    if packed[chunk_index][0].text != stored[chunk_index]:
+        raise ValueError(
+            f"replaying {PARSED_DIR}/{stem}.json does not reproduce chunk {chunk_index} of "
+            f"{CHUNKS_DIR}/{stem}.json, so its atoms belong to a different chunk than the "
+            f"one that was embedded and retrieved. {_FLAG_STATE}"
+        )
+    return packed[chunk_index]
 
 
 def compress(atoms: list[Atom], scores: list[float], budget: int, heading: str | None) -> str:

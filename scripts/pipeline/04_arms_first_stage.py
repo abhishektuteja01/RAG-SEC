@@ -3,9 +3,9 @@
 TWO ARMS, one argument apart. They are deliberately one change apart (spec.md 2.2: change
 one thing per arm), which is why they belong in one file:
 
-    arm1   dense only. BGE-M3 query embedding -> pgvector cosine, TOP_K back.
+    arm1   dense only. BGE-M3 query embedding -> pgvector cosine, FIRST_STAGE_K back.
     arm2   hybrid. The same dense list PLUS a pg_search BM25 list, fused with Reciprocal
-           Rank Fusion, then truncated to the same TOP_K. Nothing else differs, so the two
+           Rank Fusion, then truncated to the same FIRST_STAGE_K. Nothing else differs, so the two
            results are directly comparable.
 
 PRODUCES  (suffixes stack: _companyfilter from --company-filter, _limitN from --limit)
@@ -62,7 +62,6 @@ TRAPS
 
 import argparse
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -75,7 +74,7 @@ load_dotenv()
 
 from rag_sec.candidates import LIVE_VARIANT, RRF_K, bm25, dense, rrf_fuse  # noqa: E402
 from rag_sec.company import resolve as resolve_companies  # noqa: E402
-from rag_sec.config import EMBED_MODEL_NAME  # noqa: E402
+from rag_sec.config import EMBED_MODEL_NAME, pick_device  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
     gold_relevant_chunk_ids,
     load_matched_questions,
@@ -83,29 +82,28 @@ from rag_sec.eval import (  # noqa: E402
     mrr,
     ndcg_at_k,
     recall_at_k,
+    write_worst_failures,
 )
+# How many each of dense/BM25 contributes to arm2's fused pool. Imported, not re-declared,
+# so the offline arms and the shipping path cannot drift. It equals FIRST_STAGE_K below, so
+# the fused list is drawn from two lists of the same depth — an asymmetric pair would bias
+# RRF toward whichever list was allowed to be longer.
+from rag_sec.retrieve import CANDIDATE_K  # noqa: E402
 from rag_sec.store import get_conn  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
 DATA_DIR = _ROOT / "data"
 
 # 50 for both arms, and it must stay equal across them: it is the ranked-list depth the
-# metrics are computed over, so a different TOP_K would make arm1 and arm2 incomparable.
-# It is also the pool the later reranker arms consume.
-TOP_K = 50
-
-# How many each of dense/BM25 contributes to arm2's fused pool. Equal to TOP_K so the
-# fused list is drawn from two lists of the same depth — an asymmetric pair would bias RRF
-# toward whichever list was allowed to be longer.
-CANDIDATE_K = 50
+# metrics are computed over, so a different depth would make arm1 and arm2 incomparable.
+# It is also the pool the later reranker arms consume. Named FIRST_STAGE_K, not TOP_K:
+# rag_sec.retrieve.TOP_K is the shipped path's final depth of 10, and one identifier
+# meaning both 10 and 50 across files that import from each other is a trap.
+FIRST_STAGE_K = 50
 
 # Metric columns, in the order they are printed and stored. recall@10 is the headline;
 # recall@50 is the ceiling the reranker arms can reach from this pool.
 METRIC_KEYS = ["recall_10", "recall_50", "ndcg_10", "mrr"]
-
-# Rows in the failures markdown. 20 is enough to read in one sitting and is what the
-# published *_failures.md files contain.
-N_WORST = 20
 
 # Per-arm output stems and titles. The dayN_ prefixes are plan numbers kept because live
 # consumers and DECISIONS rows reference these exact filenames.
@@ -133,10 +131,10 @@ def _retrieve(arm: str, conn, model, question: str, tickers: list[str]):
     """The one line of difference between the two arms."""
     query_emb = model.encode(question, normalize_embeddings=True)
     if arm == "arm1":
-        return dense(conn, query_emb, TOP_K, LIVE_VARIANT, tickers)
+        return dense(conn, query_emb, FIRST_STAGE_K, LIVE_VARIANT, tickers)
     dense_hits = dense(conn, query_emb, CANDIDATE_K, LIVE_VARIANT, tickers)
     bm25_hits = bm25(conn, question, CANDIDATE_K, LIVE_VARIANT, tickers)
-    return rrf_fuse([dense_hits, bm25_hits])[:TOP_K]
+    return rrf_fuse([dense_hits, bm25_hits])[:FIRST_STAGE_K]
 
 
 def main() -> None:
@@ -171,7 +169,7 @@ def main() -> None:
     # ─── STEP 2: retrieve and score, one question at a time ───────────────────
     from sentence_transformers import SentenceTransformer
 
-    model = SentenceTransformer(EMBED_MODEL_NAME)
+    model = SentenceTransformer(EMBED_MODEL_NAME, device=pick_device())
     per_question = []
 
     with get_conn() as conn:
@@ -206,23 +204,13 @@ def main() -> None:
     payload = {"model": EMBED_MODEL_NAME}
     if arm == "arm2":  # arm1 has no fusion config to record
         payload |= {"candidate_k": CANDIDATE_K, "rrf_k": RRF_K}
-    payload |= {"top_k": TOP_K, "n": len(dev), "metrics": metrics,
+    payload |= {"top_k": FIRST_STAGE_K, "n": len(dev), "metrics": metrics,
                 "per_question": per_question}
     results_path.write_text(json.dumps(payload, indent=2))
     print(f"Results written to {results_path}")
 
     # ─── STEP 5: write the 20 worst failures ──────────────────────────────────
-    worst = sorted(
-        per_question,
-        key=lambda q: (q["recall_10"] if not math.isnan(q["recall_10"]) else 0),
-    )[:N_WORST]
-    with open(failures_path, "w") as f:
-        f.write(f"# {cfg['title']} — {N_WORST} worst failures on dev split\n\n")
-        for w in worst:
-            f.write(f"## {w['id']} (recall@10={w['recall_10']:.2f}, "
-                    f"filing={w['chunk_file']})\n")
-            f.write(f"Q: {w['question']}\n\n")
-            f.write(f"Top 5 retrieved: {w['top_5_retrieved']}\n\n")
+    write_worst_failures(failures_path, cfg["title"], per_question, "chunk_file")
     print(f"Worst failures written to {failures_path}")
 
 

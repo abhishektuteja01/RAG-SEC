@@ -26,11 +26,9 @@ CANDIDATE_K = 50
 # reranking then drops. Thread-local because the Day 9 runner drives questions concurrently.
 _last = threading.local()
 
-# Torch's MPS backend is NOT thread-safe: two workers calling the embedder/reranker at once
-# segfault the process (SIGSEGV in MetalShaderLibrary::exec_unary_kernel, reproduced 2026-09-04
-# at concurrency 2 -- silent death, no traceback, zero rows written). Every local model call
-# goes through this lock. Concurrency is still worth having: retrieval is ~2s of GPU against
-# LLM calls of ~3-15s, and those stay parallel.
+# Torch's MPS backend is NOT thread-safe -- full account in config.pick_device(). Every local
+# model call goes through this lock. Concurrency is still worth having: retrieval is ~2s of
+# GPU against LLM calls of ~3-15s, and those stay parallel.
 _gpu_lock = threading.Lock()
 
 
@@ -126,7 +124,7 @@ def _drain_on_error(device: str):
 
     The success path drains inline and times it into `mps_empty_cache_s`. An exception --
     from `cross_encoder.predict`, `chunk_texts`, or the DB -- would otherwise skip the drain
-    entirely, and `agent_run.py` catches per-question errors and keeps going, so one
+    entirely, and `07_arm6_loop.py` catches per-question errors and keeps going, so one
     transient failure mid-pass silently restores the saturation curve for every question
     after it, inflating the stage latencies that pass then publishes. No timing is recorded
     here: a failed call has no per-question latency worth publishing.

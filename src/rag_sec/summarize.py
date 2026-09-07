@@ -6,7 +6,14 @@ import os
 import re
 import time
 
-from anthropic import Anthropic
+from anthropic import (
+    Anthropic,
+    APIConnectionError,
+    APITimeoutError,
+    InternalServerError,
+    OverloadedError,
+    RateLimitError,
+)
 
 # A bare dash in a value cell is a filing's convention for zero, not "no data" (a
 # rollforward's opening balance shown as "$-"). Prompting the model to read it that way
@@ -19,6 +26,13 @@ MODEL_NAME = "claude-haiku-4-5-20251001"
 MIN_CALL_INTERVAL_S = 0.3
 MAX_RETRIES = 4
 MAX_TOKENS = 1200  # room for the structural pre-analysis plus the final summary
+
+# The only failures worth paying for a second time. A bad key, a malformed request or a
+# response with no SUMMARY: line all fail the same way on every attempt, so retrying them
+# just bills MAX_RETRIES calls for one deterministic error on a paid path.
+_TRANSIENT = (
+    RateLimitError, APIConnectionError, APITimeoutError, InternalServerError, OverloadedError,
+)
 
 
 def _normalize_dash_cells(rows: list[list[str]]) -> list[list[str]]:
@@ -93,18 +107,23 @@ def summarize_table(rows: list[list[str]]) -> str:
                 max_tokens=MAX_TOKENS,
                 messages=[{"role": "user", "content": _PROMPT_TEMPLATE.format(table_text=table_text)}],
             )
+        except _TRANSIENT:
+            # Stamped on the failed attempt too: a call that errored still hit the API, so
+            # the next one has to respect MIN_CALL_INTERVAL_S from here, not from the last
+            # SUCCESS.
             _last_call_time = time.monotonic()
-            full_text = "".join(block.text for block in resp.content if block.type == "text").strip()
-            if not full_text:
-                raise RuntimeError(f"empty response, stop_reason={resp.stop_reason}")
-            if "SUMMARY:" not in full_text:
-                raise RuntimeError(f"no SUMMARY: line in response: {full_text!r}")
-            summary = full_text.rsplit("SUMMARY:", 1)[1].strip()
-            if not summary:
-                raise RuntimeError(f"empty summary after SUMMARY: marker, stop_reason={resp.stop_reason}")
-            return summary
-        except Exception:
             if attempt == MAX_RETRIES - 1:
                 raise
             time.sleep(2**attempt * 5)
+            continue
+        _last_call_time = time.monotonic()
+        full_text = "".join(block.text for block in resp.content if block.type == "text").strip()
+        if not full_text:
+            raise RuntimeError(f"empty response, stop_reason={resp.stop_reason}")
+        if "SUMMARY:" not in full_text:
+            raise RuntimeError(f"no SUMMARY: line in response: {full_text!r}")
+        summary = full_text.rsplit("SUMMARY:", 1)[1].strip()
+        if not summary:
+            raise RuntimeError(f"empty summary after SUMMARY: marker, stop_reason={resp.stop_reason}")
+        return summary
     raise RuntimeError("unreachable")

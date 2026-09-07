@@ -1,4 +1,4 @@
-"""Checks that the unanswerable set is actually unanswerable, for the 30 of 48 questions
+"""Checks that the unanswerable set is actually unanswerable, for the 30 of 47 questions
 where that claim is machine-checkable.
 
 WHY THIS EXISTS. A refusal benchmark is worthless if a question turns out to be answerable:
@@ -18,7 +18,7 @@ RETR-3 blames for retrieval failures. So a 2010 filing puts 2005-2010 in reach, 
 about Apple's 2009 revenue would have been answerable from the 2010 10-K. A year is only safe
 if it is LATER than the company's last filing, or at least SPAN years EARLIER than its first.
 
-NOT CHECKED, and deliberately: out_of_scope_metric and underspecified (18 questions) rest on
+NOT CHECKED, and deliberately: out_of_scope_metric (11) and underspecified (6) -- 17 questions -- rest on
 what a 10-K contains rather than on what is in the corpus. No structural check can settle
 them. They are marked `verifiable: false` in the data file and need a human read.
 

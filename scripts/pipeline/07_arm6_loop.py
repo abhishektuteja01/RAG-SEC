@@ -72,16 +72,13 @@ DECISIONS.md ROWS THIS BACKS
     OBS-13    the Langfuse dashboard only agrees with this file inside the run's own
               window: 2026-09-04 20:10 -> 2026-09-05 02:00.
 
-WHEN THIS ACTUALLY RAN (calendar dates, not "Day N")
-    2026-09-04 20:10   the paid Arm 6 pass started (after AGENT-16 stopped an earlier
-                       attempt 18 questions in, and AGENT-17's audit)
-    2026-09-05 01:55   finished: 200/200 questions, 0 errors, 339.6 min, serial, on mains
-                       power. data/day9_arm6_dev_results.jsonl carries that timestamp.
-    EVERY FIGURE FROM THAT RUN PREDATES THE AGENT-25 COMPANY-FILTER FIX. The filter was
-    off for 59.6% of the loop's later-iteration queries, so the loop was retrieving with
-    less than it now has. **69.2% answer accuracy is a FLOOR for the loop, not its
-    ceiling** -- and AGENT-21's yes/no replay (71.5%) says the same thing from the
-    scoring side. Do not quote 69.2% as what the loop can do.
+WHEN THIS RAN: see the phase 07 row of scripts/README.md.
+
+EVERY FIGURE IN data/day9_arm6_dev_results.jsonl PREDATES THE AGENT-25 COMPANY-FILTER FIX.
+The filter was off for 59.6% of the loop's later-iteration queries, so the loop was
+retrieving with less than it now has. **69.2% answer accuracy is a FLOOR for the loop, not
+its ceiling** -- and AGENT-21's yes/no replay (71.5%) says the same thing from the scoring
+side. Do not quote 69.2% as what the loop can do.
 
 TRAPS
   * MONEY. `run` needs `--allow-paid-run` or it refuses before constructing a model, a
@@ -159,6 +156,7 @@ from rag_sec.eval import (  # noqa: E402
     load_ranking,
     mrr,
     ndcg_at_k,
+    percentile,
     recall_at_k,
 )
 from rag_sec.retrieve import CANDIDATE_K, TOP_K  # noqa: E402
@@ -272,9 +270,9 @@ def _refuse_unless_opted_in(args: argparse.Namespace) -> None:
 
 
 def _refuse_unless_serial(concurrency: int) -> None:
-    """Refused, not warned. AGENT-10's failure mode is SIGSEGV inside torch's Metal shader
-    library: the process dies rather than raising, so no retry or except can catch it and a
-    paid pass loses every row it had not yet flushed. A warning cannot prevent that.
+    """Refused, not warned. AGENT-10 (full account in `rag_sec.config.pick_device`) kills the
+    process rather than raising, so no retry or except can catch it and a paid pass loses
+    every row it had not yet flushed. A warning cannot prevent that.
     """
     if concurrency == 1:
         return
@@ -342,8 +340,9 @@ def load_static_rankings(path: Path = STATIC_SCORES) -> dict:
     """Published Arm 3 + filter + strip rankings, id -> (candidates sorted by DESCENDING
     rerank score, retrieval latency).
 
-    The file is NOT stored in rank order: `rerank_hpc.py:132-135` zips the rerank scores
-    onto the FIRST-STAGE RRF candidate order, so the score is merely attached (0/1235 dev
+    The file is NOT stored in rank order: `hpc/rerank_hpc.py`'s `main()` (the `cells_by_q`
+    loop) zips the rerank scores onto the FIRST-STAGE RRF candidate order, so the score is
+    merely attached (0/1235 dev
     cells are in descending order). `load_ranking` sorts on load, which is what published
     RETR-39; reading the file as stored made this baseline a first-stage ranking instead --
     recall@10 0.552 vs 0.739 on the 197-question sample (AGENT-16).
@@ -609,13 +608,6 @@ def pct(x, n) -> str:
     return f"{x}/{n} = {x / n:.1%}" if n else "n/a"
 
 
-def _percentile(values, q) -> float:
-    """Nearest-rank percentile. Deliberately not statistics.quantiles: these samples are
-    small and per-stage, and an interpolated p95 would invent a latency no question had."""
-    v = sorted(values)
-    return v[min(int(q * len(v)), len(v) - 1)]
-
-
 def _pred(text: str, yesno: bool) -> float | None:
     v, _ = parse_reason(text)
     if v is not None or not yesno:
@@ -653,14 +645,22 @@ def _answer_accuracy(rows, yesno: bool) -> None:
 
 def cmd_analyze(args: argparse.Namespace) -> None:
     """Day 9's metrics for a results file. Reads only -- free, and safe on a partial file."""
-    rows = [json.loads(line) for line in open(args.results) if line.strip()]
+    with open(args.results) as f:
+        rows = [json.loads(line) for line in f if line.strip()]
     rows = [r for r in rows if "error" not in r]
-    df = load_matched_questions().set_index("id")
+    n = len(rows)
+    if not n:
+        print(f"=== Arm 6, 0 questions, {args.results} ===")
+        print("nothing scoreable in this file yet")
+        return
+    df = load_matched_questions()
     # gold chunk ids are indices WITHIN the gold filing, so a retrieved (stem, idx) only
     # counts when the stem matches -- the convention arm1/arm2/rerank_score all use. The
     # stem is recovered by joining on id rather than stored, so the results file stays small.
-    stem_of = {r["id"]: Path(df.loc[r["id"], "chunk_file"]).stem for r in rows}
-    n = len(rows)
+    # Built as a dict, not df.loc per row: `id` is not a declared key of that frame, and
+    # .loc on a duplicated one returns a Series where this needs a path.
+    chunk_file_of = dict(zip(df["id"], df["chunk_file"]))
+    stem_of = {r["id"]: Path(chunk_file_of[r["id"]]).stem for r in rows}
     print(f"=== Arm 6, {n} questions, {args.results} ===")
     cfg = rows[0]["config"]
     print(f"device={cfg['device']} max_iter={cfg['max_iterations']} "
@@ -671,7 +671,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     # ---- 1. trajectory (spec.md:112) ----
     iters = [r["iterations"] for r in rows]
     caps = sum(r["hit_iteration_cap"] for r in rows)
-    first_loop = sum(1 for r in rows if r["judge_verdicts"][0] == "loop")
+    first_loop = sum(1 for r in rows if r["judge_verdicts"][:1] == ["loop"])
     dist = ", ".join(f"{k}:{iters.count(k)}" for k in sorted(set(iters)))
     print("-- trajectory --")
     print(f"iterations: mean {st.mean(iters):.2f}  dist {{{dist}}}")
@@ -708,14 +708,14 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     print("\n-- latency per stage (s) --")
     for k in STAGE_KEYS:
         if k in stages:
-            print(f"  {k:<10} p50 {_percentile(stages[k], .5):>6.2f}  "
-                  f"p95 {_percentile(stages[k], .95):>6.2f}")
+            print(f"  {k:<10} p50 {percentile(stages[k], .5):>6.2f}  "
+                  f"p95 {percentile(stages[k], .95):>6.2f}")
     for k in sorted(llm):
-        print(f"  {k:<10} p50 {_percentile(llm[k], .5):>6.2f}  "
-              f"p95 {_percentile(llm[k], .95):>6.2f}   (LLM)")
+        print(f"  {k:<10} p50 {percentile(llm[k], .5):>6.2f}  "
+              f"p95 {percentile(llm[k], .95):>6.2f}   (LLM)")
     w = [r["wall_clock_s"] for r in rows]
-    print(f"  {'question':<10} p50 {_percentile(w, .5):>6.1f}  "
-          f"p95 {_percentile(w, .95):>6.1f}")
+    print(f"  {'question':<10} p50 {percentile(w, .5):>6.1f}  "
+          f"p95 {percentile(w, .95):>6.1f}")
 
     # ---- 4. sufficiency-judge accuracy (spec.md:115) ----
     print("\n-- sufficiency-judge accuracy --")
@@ -778,6 +778,10 @@ def cmd_analyze(args: argparse.Namespace) -> None:
             r10.append(recall_at_k(got, rel, k))
             nd.append(ndcg_at_k(got, rel, 10))
             mr.append(mrr(got, rel))
+        if not r10:  # every row lacked a gold label -- reachable on a partial file
+            means[key] = float("nan")
+            print(f"  {label:<24} no question with a gold label (n=0)")
+            continue
         means[key] = st.mean(r10)
         kdesc = "10" if key != "union" else f"len(got), max {max(ks)}"
         print(f"  {label:<24} recall {st.mean(r10):.3f} (k={kdesc})   "
