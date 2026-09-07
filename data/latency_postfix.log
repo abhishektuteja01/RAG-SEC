@@ -1,16 +1,0 @@
-retrieving:   0%|          | 0/15 [00:00<?, ?it/s]
-Loading weights:   0%|          | 0/391 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 391/391 [00:00<00:00, 71862.45it/s]
-
-Loading weights:   0%|          | 0/393 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 393/393 [00:00<00:00, 9002.23it/s]
-retrieving:   7%|▋         | 1/15 [00:39<09:06, 39.07s/it]retrieving:  13%|█▎        | 2/15 [01:02<06:31, 30.10s/it]retrieving:  20%|██        | 3/15 [01:27<05:33, 27.80s/it]retrieving:  27%|██▋       | 4/15 [01:57<05:11, 28.32s/it]retrieving:  33%|███▎      | 5/15 [02:30<05:00, 30.02s/it]retrieving:  40%|████      | 6/15 [03:04<04:42, 31.44s/it]retrieving:  47%|████▋     | 7/15 [03:37<04:15, 31.94s/it]retrieving:  53%|█████▎    | 8/15 [04:09<03:43, 32.00s/it]retrieving:  60%|██████    | 9/15 [04:44<03:16, 32.83s/it]retrieving:  67%|██████▋   | 10/15 [05:15<02:41, 32.38s/it]retrieving:  73%|███████▎  | 11/15 [05:51<02:14, 33.66s/it]retrieving:  80%|████████  | 12/15 [06:27<01:42, 34.21s/it]retrieving:  87%|████████▋ | 13/15 [06:59<01:07, 33.69s/it]retrieving:  93%|█████████▎| 14/15 [07:31<00:33, 33.16s/it]retrieving: 100%|██████████| 15/15 [08:06<00:00, 33.60s/it]retrieving: 100%|██████████| 15/15 [08:06<00:00, 32.43s/it]
-
-n=14 steady-state (1 warm-up dropped)
-swap used: 1832.12 MB before -> 1824.12 MB after
-model construction (excluded from every figure below): 14.06s
-
-stage             p50      p95     mean      max
-embed_s         0.075    0.094    0.076    0.094
-resolve_s       0.001    0.001    0.001    0.001
-search_s        0.241    0.334    0.247    0.334
-rerank_s       32.604   36.173   31.582   36.173
-total_s        32.965   36.528   31.939   36.528

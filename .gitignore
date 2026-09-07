@@ -94,10 +94,10 @@ data/retr7_embed_results.jsonl
 data/ingest_log.jsonl
 .DS_Store
 models/
-# Resume state for the two ONNX/ORT archive probes. Both are partial progress, not
-# records -- the results they produce are the tracked onnx_parity_results.json and
-# ort_fp32_latency.json. ort_fp32_partial/ was committed before this rule existed and
-# stays tracked; `git rm --cached -r data/ort_fp32_partial` if you want them symmetric.
+# Resume state for the two ONNX/ORT archive probes -- partial progress, not records.
+# The results they produce are the tracked onnx_parity_results.json and
+# ort_fp32_latency.json. ort_fp32_partial/ was tracked by accident until 2026-09-07;
+# its three files were byte-identical to the legs already inside ort_fp32_latency.json.
 data/onnx_parity_partial/
 data/ort_fp32_partial/
 

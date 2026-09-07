@@ -1,22 +1,0 @@
-asking:   0%|          | 0/48 [00:00<?, ?it/s]
-Loading weights:   0%|          | 0/391 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 391/391 [00:00<00:00, 60235.54it/s]
-
-Loading weights:   0%|          | 0/393 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 393/393 [00:00<00:00, 7456.05it/s]
-Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
-asking:  12%|█▎        | 6/48 [00:44<05:10,  7.38s/it]asking:  15%|█▍        | 7/48 [01:16<08:17, 12.14s/it]asking:  17%|█▋        | 8/48 [01:57<12:13, 18.34s/it]asking:  19%|█▉        | 9/48 [02:32<14:32, 22.37s/it]asking:  21%|██        | 10/48 [03:08<16:20, 25.80s/it]asking:  23%|██▎       | 11/48 [03:44<17:36, 28.54s/it]asking:  25%|██▌       | 12/48 [04:18<17:52, 29.80s/it]asking:  27%|██▋       | 13/48 [04:52<18:11, 31.20s/it]asking:  29%|██▉       | 14/48 [05:27<18:12, 32.15s/it]asking:  31%|███▏      | 15/48 [06:01<17:55, 32.60s/it]asking:  33%|███▎      | 16/48 [06:37<17:56, 33.64s/it]asking:  35%|███▌      | 17/48 [07:10<17:19, 33.52s/it]asking:  38%|███▊      | 18/48 [07:42<16:28, 32.96s/it]asking:  40%|███▉      | 19/48 [08:16<16:08, 33.40s/it]asking:  42%|████▏     | 20/48 [08:50<15:44, 33.72s/it]asking:  44%|████▍     | 21/48 [09:23<15:01, 33.40s/it]asking:  46%|████▌     | 22/48 [10:00<14:54, 34.40s/it]asking:  48%|████▊     | 23/48 [10:36<14:29, 34.77s/it]asking:  50%|█████     | 24/48 [11:09<13:46, 34.42s/it]asking:  52%|█████▏    | 25/48 [11:45<13:23, 34.93s/it]asking:  54%|█████▍    | 26/48 [12:19<12:38, 34.46s/it]asking:  56%|█████▋    | 27/48 [12:52<11:57, 34.18s/it]asking:  58%|█████▊    | 28/48 [13:26<11:20, 34.00s/it]asking:  60%|██████    | 29/48 [14:01<10:52, 34.34s/it]asking:  62%|██████▎   | 30/48 [14:35<10:16, 34.27s/it]asking:  65%|██████▍   | 31/48 [15:12<09:55, 35.05s/it]asking:  67%|██████▋   | 32/48 [15:44<09:07, 34.24s/it]asking:  69%|██████▉   | 33/48 [16:16<08:25, 33.67s/it]asking:  71%|███████   | 34/48 [16:50<07:49, 33.56s/it]asking:  73%|███████▎  | 35/48 [17:24<07:17, 33.66s/it]asking:  75%|███████▌  | 36/48 [17:57<06:43, 33.61s/it]asking:  77%|███████▋  | 37/48 [18:31<06:09, 33.58s/it]asking:  79%|███████▉  | 38/48 [19:02<05:30, 33.04s/it]asking:  81%|████████▏ | 39/48 [19:37<05:00, 33.41s/it]asking:  83%|████████▎ | 40/48 [20:08<04:21, 32.72s/it]asking:  85%|████████▌ | 41/48 [20:42<03:51, 33.06s/it]asking:  88%|████████▊ | 42/48 [21:15<03:19, 33.23s/it]asking:  90%|████████▉ | 43/48 [21:52<02:51, 34.23s/it]asking:  92%|█████████▏| 44/48 [22:23<02:13, 33.37s/it]asking:  94%|█████████▍| 45/48 [23:00<01:43, 34.47s/it]asking:  96%|█████████▌| 46/48 [23:32<01:07, 33.74s/it]asking:  98%|█████████▊| 47/48 [24:06<00:33, 33.73s/it]asking: 100%|██████████| 48/48 [24:37<00:00, 32.90s/it]asking: 100%|██████████| 48/48 [24:37<00:00, 30.78s/it]
-
-refusal correctness: 47/48 = 97.9%
-
-category                   n  refused    rate  hallucinated
-cross_company_premise      8        8   100%             0
-out_of_corpus_company     12       12   100%             0
-out_of_corpus_year        10       10   100%             0
-out_of_scope_metric       12       11    92%             1
-underspecified             6        6   100%             0
-
-reasons: {'refused': 47, 'ok': 1}
-
-questions whose company resolved to nothing: 18, 18 refused -- these are the ones a retrieval-side guard could catch before any LLM call
-
-HALLUCINATION unans_034 [out_of_scope_metric] -> 53.0
-  What was the age of Philip Morris International's chief financial officer in 2017?
