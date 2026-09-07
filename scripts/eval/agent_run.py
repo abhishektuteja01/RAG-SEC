@@ -41,7 +41,12 @@ from rag_sec.agent import (
     MAX_ITERATIONS,
     build_graph,
 )
-from rag_sec.eval import gold_relevant_chunk_ids, load_matched_questions
+from rag_sec.eval import (
+    SHIPPED_CELL,
+    gold_relevant_chunk_ids,
+    load_matched_questions,
+    load_ranking,
+)
 from rag_sec.config import pick_device
 from rag_sec.candidates import LIVE_VARIANT, chunk_texts
 from rag_sec.retrieve import CANDIDATE_K, TOP_K
@@ -106,7 +111,7 @@ def _trajectory(result: dict) -> list[dict]:
 
 
 STATIC_SCORES = "data/retr7_rr_dev_scores.jsonl"
-STATIC_CELL = "filtered_stripped"
+STATIC_CELL = SHIPPED_CELL  # defined in rag_sec.eval so the CI guard cannot drift from it
 
 
 def load_static_rankings(path: str = STATIC_SCORES) -> dict:
@@ -119,13 +124,7 @@ def load_static_rankings(path: str = STATIC_SCORES) -> dict:
     published RETR-39; reading the file as stored made this baseline a first-stage ranking
     instead -- recall@10 0.552 vs 0.739 on the 197-question sample. Keep the two in step.
     """
-    out = {}
-    with open(path) as f:
-        for line in f:
-            r = json.loads(line)
-            ranked = sorted(r["cells"][STATIC_CELL], key=lambda x: -x[2])
-            out[r["id"]] = (ranked, r.get("latency_s"))
-    return out
+    return load_ranking(path, STATIC_CELL, with_score=True, with_latency=True)
 
 
 def static_baseline(row, rankings) -> dict:

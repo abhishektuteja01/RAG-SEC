@@ -415,3 +415,105 @@ def mean_and_stderr(values: list[float]) -> tuple[float, float]:
     variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
     stderr = math.sqrt(variance / n) if n > 0 else float("nan")
     return mean, stderr
+
+
+# The shipped arm's cell name in the rerank score files. Lives here rather than in a script
+# so the CI guard and the agent run cannot drift apart on which cell they mean.
+SHIPPED_CELL = "filtered_stripped"
+
+
+def load_ranking(
+    path,
+    cell: str | None = None,
+    *,
+    with_score: bool = False,
+    with_latency: bool = False,
+    sort: bool = True,
+) -> dict:
+    """Load a `*_scores.jsonl` rerank file into `{question_id: ranking}`.
+
+    ONE loader, because there were nine near-copies of this and AGENT-16 was one of them
+    silently omitting the sort -- which turned Arm 6's own baseline into a first-stage
+    ranking and cost recall@10 0.552 against 0.739.
+
+    TWO ON-DISK SHAPES, and the dispatch is on the RECORD, never on an argument:
+
+      {"id":.., "cells": {name: [[stem, idx, rerank_score], ..]}}
+          Written by `rerank_hpc.py`, which zips rerank scores onto the FIRST-STAGE RRF
+          candidate order -- so the score is attached, not applied. 0/1235 dev cells are
+          in score order as stored. This shape MUST be sorted on load.
+
+      {"id":.., "reranked": [[stem, idx, variant_tag], ..]}
+          The Day 6 file. Already ranked, and its third field is the variant tag, NOT a
+          score. Sorting it would order by a string. This shape is never sorted.
+
+    Dispatching on the record is the fix for the copy that keyed on `cell is None`: passing
+    a cell name against a legacy-shaped file returned `{}` there, with no error.
+
+    `sort=False` is for the two callers that legitimately want stored order -- slicing the
+    first K candidates in first-stage order before re-sorting (`candidate_k_curve.py`,
+    DEPLOY-13) and re-scoring the candidates from scratch (`onnx_rerank_parity.py`).
+    """
+    if cell is None and with_score:
+        raise ValueError("with_score needs an explicit cell; all-cells mode returns ids only")
+
+    out: dict = {}
+    cell_seen = False
+    cells_available: set[str] = set()
+
+    with open(path) as f:
+        for line in f:
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+
+            if "cells" in rec:
+                cells_available.update(rec["cells"])
+                if cell is None:
+                    value = {
+                        name: _project(entries, sort=sort, with_score=False)
+                        for name, entries in rec["cells"].items()
+                    }
+                elif cell in rec["cells"]:
+                    cell_seen = True
+                    value = _project(rec["cells"][cell], sort=sort, with_score=with_score)
+                else:
+                    continue
+
+            elif "reranked" in rec:
+                if cell is not None:
+                    raise ValueError(
+                        f"{path}: legacy 'reranked' record {rec['id']!r} has no cells, but "
+                        f"cell={cell!r} was requested. Pass cell=None for this file."
+                    )
+                if with_score:
+                    raise ValueError(
+                        f"{path}: legacy 'reranked' third field is a variant tag, not a "
+                        "score, so with_score is meaningless here"
+                    )
+                # Already ranked -- see the docstring; `sort` is deliberately ignored.
+                value = [(s, i) for s, i, _tag in rec["reranked"]]
+
+            else:
+                raise ValueError(
+                    f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
+                    f"keys were {sorted(rec)}. A 'scores' key means this is a SLICE file "
+                    "(5-tuples of slice positions, not chunk rankings) -- different unit, "
+                    "not loadable here."
+                )
+
+            out[rec["id"]] = (value, rec.get("latency_s")) if with_latency else value
+
+    if cell is not None and not cell_seen:
+        raise ValueError(
+            f"{path}: cell {cell!r} appears in no record. Available: "
+            f"{sorted(cells_available) or 'none'}"
+        )
+    return out
+
+
+def _project(entries, *, sort: bool, with_score: bool) -> list[tuple]:
+    ordered = sorted(entries, key=lambda e: -e[2]) if sort else list(entries)
+    if with_score:
+        return [(s, i, score) for s, i, score in ordered]
+    return [(s, i) for s, i, _score in ordered]
