@@ -67,11 +67,12 @@ WHEN THIS ACTUALLY RAN (calendar dates, not "Day N")
     NOT 2026-09-04. The RETR-7/RETR-8 re-index touched variant A only.
 
 TRAPS
-  * `variants` WRITES TO THE LIVE INDEX and `score --variant A` OVERWRITES a published
-    results file. Neither is gated, because both merged scripts behaved that way and this
-    consolidation is behaviour-preserving -- but `variants` skips (filing, variant) pairs
-    already present, so on a built index it inserts nothing. Money is the one thing that
-    IS gated; see the next bullet.
+  * `variants` WRITES TO THE LIVE INDEX. It is not gated, because the merged script
+    behaved that way -- but it skips (filing, variant) pairs already present, so on a
+    built index it inserts nothing. `score --variant A` OVERWRITES a published results
+    file and IS gated: it needs --overwrite, because that one file is the `unfiltered_raw`
+    control RETR-22/29/31 quote. B and C are ungated (dead end, nothing cites them).
+    Money is gated too; see the next bullet.
   * `variants` COSTS MONEY. Strategy C calls the Anthropic API (claude-haiku-4-5,
     498 calls) once per gold table. All 498 are already cached on disk, so a normal run
     spends nothing — but a lost or partial cache would silently re-spend. An uncached
@@ -98,7 +99,6 @@ import math
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Callable
 
 from dotenv import load_dotenv
 
@@ -188,13 +188,24 @@ def load_summary_cache() -> dict[str, str]:
     return {}
 
 
-def make_cached_summarizer(
-    stem: str, target_idxs: list[int], cache: dict[str, str], allow_paid: bool
-) -> Callable:
-    """chunk_blocks calls the summarizer once per target table, in ascending table_index
-    order (blocks are iterated in document order) -- so a plain iterator over the sorted
-    target indices tells us which table each call corresponds to, without changing the
-    summarize_table(rows) callback signature.
+class CachedSummarizer:
+    """The `summarize_table(rows)` callback for one filing, with a call counter.
+
+    WHICH TABLE IS THIS? The callback only ever receives `rows`, so the table index is
+    recovered positionally, from an iterator over the sorted target indices. That is only
+    correct if the producer calls this exactly once per target, in ascending index order.
+    `rag_sec.chunking.chunk_blocks_with_variant` (~449-459) calls it from inside a loop
+    over per-chunk atom GROUPS, gated by `already_replaced`, and only for targets that
+    actually materialize as an atom group -- so a target that never shows up (an index past
+    the filing's table count, a table whose atoms were dropped) is NOT called, the iterator
+    slips by one, and every later summary in that filing is attached AND CACHED under the
+    wrong table index. Silently, and permanently, since the cache is written to disk.
+
+    So the positional assumption is checked instead of trusted, twice:
+      * `__call__` raises on an exhausted iterator rather than reusing a stale index;
+      * `assert_fully_consumed()` is called by cmd_variants AFTER the chunking call and
+        fails the run if the producer made fewer calls than there are targets.
+    This is the project's recurring bug class -- see INFRA-17.
 
     `allow_paid` is the money gate. A cache hit is free; a MISS is a live
     claude-haiku-4-5 call, and 498 of them is the whole of Arm 4's API bill. Since all 498
@@ -202,14 +213,36 @@ def make_cached_summarizer(
     the situation where silently re-spending is worst. So a miss raises unless the operator
     said so on the command line.
     """
-    idx_iter = iter(sorted(target_idxs))
 
-    def wrapped(rows: list[list[str]]) -> str:
-        idx = next(idx_iter)
-        key = f"{stem}:{idx}"
-        if key in cache:
-            return cache[key]
-        if not allow_paid:
+    def __init__(
+        self, stem: str, target_idxs: list[int], cache: dict[str, str], allow_paid: bool
+    ) -> None:
+        self.stem = stem
+        self.target_idxs = sorted(target_idxs)
+        self.cache = cache
+        self.allow_paid = allow_paid
+        self.consumed: list[int] = []
+        self._idx_iter = iter(self.target_idxs)
+
+    def __call__(self, rows: list[list[str]]) -> str:
+        try:
+            idx = next(self._idx_iter)
+        except StopIteration:
+            raise SystemExit(
+                f"INDEX DESYNC: {self.stem} -- the summarizer was called more than "
+                f"{len(self.target_idxs)} time(s)\n"
+                f"  (targets {self.target_idxs}, already consumed {self.consumed}).\n"
+                "  A call past the last target means the positional table-index recovery "
+                "in CachedSummarizer\n"
+                "  is wrong for this filing, so any summary written now would be cached "
+                "under the WRONG\n"
+                "  table index. Refusing rather than reusing a stale index (INFRA-17)."
+            ) from None
+        self.consumed.append(idx)
+        key = f"{self.stem}:{idx}"
+        if key in self.cache:
+            return self.cache[key]
+        if not self.allow_paid:
             raise SystemExit(
                 f"REFUSING TO SPEND: no cached summary for {key} in {SUMMARY_CACHE_PATH}\n"
                 f"  All {EXPECTED_SUMMARIES} variant-C summaries are supposed to be cached "
@@ -227,11 +260,29 @@ def make_cached_summarizer(
         from rag_sec.summarize import summarize_table
 
         summary = summarize_table(rows)
-        cache[key] = summary
-        SUMMARY_CACHE_PATH.write_text(json.dumps(cache, indent=2))
+        self.cache[key] = summary
+        SUMMARY_CACHE_PATH.write_text(json.dumps(self.cache, indent=2))
         return summary
 
-    return wrapped
+    def assert_fully_consumed(self) -> None:
+        """Fail loudly if the producer skipped a target. Call after the chunking call."""
+        if len(self.consumed) != len(self.target_idxs):
+            missing = [i for i in self.target_idxs if i not in self.consumed]
+            raise SystemExit(
+                f"INDEX DESYNC: {self.stem} -- expected {len(self.target_idxs)} summarizer "
+                f"call(s), got {len(self.consumed)}\n"
+                f"  targets  {self.target_idxs}\n"
+                f"  consumed {self.consumed}\n"
+                f"  never called for {missing}\n"
+                "  chunk_blocks_with_variant did not materialize an atom group for every "
+                "target table, so\n"
+                "  the positional index recovery slipped: summaries after the first skipped "
+                "target are\n"
+                "  attached -- and cached -- under the WRONG table index. Nothing was "
+                "inserted for this\n"
+                "  filing. Fix the target list or the chunker, do not bypass this "
+                "(INFRA-17)."
+            )
 
 
 def fetch_baseline_chunks(conn, stem: str) -> dict[str, int]:
@@ -295,7 +346,7 @@ def cmd_variants(args: argparse.Namespace) -> None:
 
     # Loud, but NOT a gate: the (filing_stem, variant) skip below means a re-run on a
     # fully-built index inserts nothing, so the original script's behaviour is preserved.
-    # The only thing gated is SPEND -- see make_cached_summarizer.
+    # The only thing gated is SPEND -- see CachedSummarizer.
     print("\nNOTE: this INSERTS variant B/C rows into the live `chunks` table and sets")
     print("`excluded_by_variant` on existing 'A' rows. B and C LOST (ARM4-10) and were")
     print("deliberately left un-re-embedded after RETR-7/RETR-8, so anything rebuilt now")
@@ -326,11 +377,14 @@ def cmd_variants(args: argparse.Namespace) -> None:
                 load_variant_delta(conn, model, stem, "B", chunks_b)
 
             if (stem, "C") not in done:
-                summarizer = make_cached_summarizer(
+                summarizer = CachedSummarizer(
                     stem, idxs, summary_cache, args.allow_paid_summaries)
                 chunks_c = chunk_blocks_with_variant(
                     blocks, table_variant_map={idx: "C" for idx in idxs},
                     summarize_table=summarizer)
+                # Before the insert, not after: a desync means the summaries just attached
+                # belong to other tables, so nothing about this filing should be indexed.
+                summarizer.assert_fully_consumed()
                 load_variant_delta(conn, model, stem, "C", chunks_c)
 
     print("Done.")
@@ -450,15 +504,33 @@ def cmd_score(args: argparse.Namespace) -> None:
     """Join the cluster's orderings with variant-aware gold labels (ARM4-5). Needs Postgres.
 
     For --variant A this is a LIVE number, the `unfiltered_raw` control every Day 8 gain is
-    measured against. It overwrites a published file, unconditionally, as it always has.
+    measured against, so overwriting its results file needs an explicit --overwrite. B and
+    C lost (ARM4-10) and nothing quotes them, so they stay freely writable.
     """
     variant = args.variant
     scores_path = args.scores or DATA_DIR / f"day6_arm4_{variant}_rerank_scores.jsonl"
     results_path = DATA_DIR / f"day6_arm4_{variant}_dev_results.json"
     failures_path = DATA_DIR / f"day6_arm4_{variant}_dev_failures.md"
 
-    # No gate here: the merged script wrote unconditionally and this is behaviour-
-    # preserving. It IS destructive, so it says so before doing it.
+    # Gated for variant A ONLY, and before anything is printed about overwriting. B and C
+    # are dead-end artifacts (they lost in ARM4-10 and were never re-embedded), so
+    # overwriting them destroys nothing anyone quotes.
+    if variant == "A" and not args.overwrite and results_path.exists():
+        raise SystemExit(
+            f"REFUSING TO OVERWRITE {results_path.name}\n"
+            "  Variant A is the only LIVE variant, and this file IS the `unfiltered_raw` "
+            "control that\n"
+            "  RETR-22 / RETR-29 / RETR-31 quote -- a published number, not a scratch "
+            "artifact. A run\n"
+            "  against a different --scores file silently moves the baseline every Day 8 "
+            "retrieval gain\n"
+            "  is measured against, and the old file is not recoverable from anything on "
+            "disk.\n"
+            "  (Variants B and C are ungated: they lost in ARM4-10 and nothing cites "
+            "them.)\n"
+            "  Pass --overwrite if you mean to republish the control."
+        )
+
     print(f"variant={variant}: will overwrite {results_path.name} and {failures_path.name}")
     if variant == "A":
         print("  Variant A is the LIVE unfiltered_raw control (RETR-22/29/31) -- a different")
@@ -584,11 +656,15 @@ def main() -> None:
                      "RETR-29 / RETR-31 are measured against; B and C are a dead end "
                      "(ARM4-10) and are no longer text-comparable with A. Either way this "
                      "OVERWRITES data/day6_arm4_{variant}_dev_results.json and _failures.md "
-                     "in place.\n\nFree: reads only, no GPU and no API."),
+                     "in place -- which for A is a published file, so A needs --overwrite "
+                     "and B/C do not.\n\nFree: reads only, no GPU and no API."),
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--variant", required=True, choices=VARIANTS)
     p.add_argument("--scores", type=Path, default=None,
                    help="default data/day6_arm4_{variant}_rerank_scores.jsonl")
+    p.add_argument("--overwrite", action="store_true",
+                   help="required for --variant A, whose results file is the published "
+                        "unfiltered_raw control (RETR-22/29/31). B and C need no flag")
     p.set_defaults(fn=cmd_score)
 
     args = ap.parse_args()
