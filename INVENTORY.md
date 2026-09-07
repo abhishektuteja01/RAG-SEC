@@ -1,11 +1,15 @@
 # Inventory
 
 Every folder and every file in this project: what it is, where it came from, what uses it,
-and whether you still need it. Written 2026-09-02, last checked 2026-09-04, by reading the
-files, not by running them. Scripts sections rewritten 2026-09-06 for the `pipeline/` reorg:
-20 scripts became 7 numbered phases plus 2 cluster legs, 5 dead scripts were deleted, and 28
-one-off measurements moved to `archive/`. The `data/` sections were re-checked against disk
-on 2026-09-07 (counts, sizes, and five wrong Keep/Delete calls corrected).
+and whether you still need it. Written 2026-09-02, by reading the files, not by running them.
+Scripts sections rewritten 2026-09-06 for the `pipeline/` reorg: 20 scripts became 7 numbered
+phases plus 2 cluster legs, 5 dead scripts were deleted, and 28 one-off measurements moved to
+`archive/`.
+
+**Fully re-measured against disk on 2026-09-07**, after the commit that dropped 486 MB of dead
+`data/` artifacts from the tree. Every count, size and line count below was taken that day with
+`ls`/`wc`/`du`/`git ls-files`; the tracked file list was diffed against what this doc describes,
+so the coverage is complete as of that date. Sizes drift; the judgements last longer.
 
 Words used throughout:
 
@@ -32,53 +36,39 @@ The top level is documents, setup files, two environment files, and folders — 
 
 ### Documents
 
-**`spec.md`** — 27 KB, **not in git** (purged from history and gitignored, 2026-09-06).
-The original plan, written before any code. Covers why the project exists, how a number is
-allowed to count as real, and a day-by-day schedule for fourteen days.
-**Status: Keep.** It's the plan you're still working against.
-Note: it's about a week behind reality. Day 8 is one line in it but became a whole phase of
-retrieval work, one planned experiment was dropped, and days 9-14 haven't started.
+The root also holds a handful of **untracked, gitignored personal working notes** — a plan, a
+running status file, and the owner's private working rules. They are deliberately not in git and
+**nothing tracked in this repo may cite them**, so they are listed here as things you will see on
+the owner's machine and nowhere else. A fresh clone has none of them and needs none of them.
 
-**`DECISIONS.md`** — 163 KB, in git.
+**`DECISIONS.md`** — 158 KB, in git.
 The log of every choice made and what it measured. Starts with the results tables, then rows
 tagged by phase. If a number appears anywhere else in this project, this file is the one that's right.
 **Status: Keep.** The most current file here and the main thing you'd show someone.
 
-**`CLAUDE.md`** — 5 KB, in git (since 2026-09-07).
+**`CLAUDE.md`** — 3.1 KB, in git (since 2026-09-07).
 Newcomer orientation: what an "arm" is, how to replay the headline number, the glossary, which
 doc answers what, and the traps that bite people who don't know the history yet.
 **Status: Keep.**
+Three more sit next to the code they describe — `scripts/CLAUDE.md` (1.9 KB, phase-vs-arm table
+and what spends money), `src/rag_sec/CLAUDE.md` (1.8 KB, what ships and the library's traps) and
+`data/CLAUDE.md` (1.3 KB, artifact naming and "read the file before trusting its shape"). All
+three are new on 2026-09-07 and all three are in git. **Keep.**
 
-**`CLAUDE.local.md`** — 6 KB, **not in git** (deliberately).
-The owner's working rules and a running snapshot of where things stand. Was `CLAUDE.md` until
-2026-09-07, when the tracked name was given to the orientation file above.
-**Status: Keep.**
-
-**`DECISIONS.local.md`** — 8 KB, **not in git** (deliberately).
-Six personal/housekeeping rows pruned out of `DECISIONS.md`. No tracked file cites an ID in
-it, by construction.
-**Status: Keep.**
-
-**`SESSION.md`** — 19 KB, **not in git** (purged from history and gitignored, 2026-09-06).
-Where things stand and what to do next, with open work sorted by what it costs to try.
-**Status: Keep.** The only file that ranks what's next.
-Note: its first section repeats the results tables from `DECISIONS.md`. The housekeeping list in
-section 4 is genuinely unique — that part is worth protecting.
-
-**`README.md`** — 3.3 KB, in git.
+**`README.md`** — 4.7 KB, in git.
 The front door: what this is, how to set it up, and the commands to rebuild the corpus in order.
-**Status: Keep.** It now carries a results table and names `SESSION.md`; the only thing still
-stale is the chart, made before several corrections and showing numbers you've since withdrawn.
-(Re-checked 2026-09-07.)
+**Status: Keep.** It carries the results table and the chart.
+Sizes for `README.md`, `CLAUDE.md`, `DECISIONS.md` and `scripts/README.md` were taken at 12:37 on
+2026-09-07 while all four were being rewritten — treat them as approximate.
 
-**`RUNBOOK.md`** — in git.
+**`RUNBOOK.md`** — 7.0 KB, in git.
 The step-by-step for running a GPU job on Northeastern's Explorer cluster: transfer
 through the `xfer` host, allocate with `srun` inside tmux, run, copy back, verify. Includes the
 full `RETR-7`/`RETR-8` re-index procedure with its backup step.
 **Status: Keep.** It is the only place the cluster hostnames and module/venv setup are written
 as commands rather than buried in a decision row — and `ARM3-2`'s copy is stale (Discovery, not Explorer).
 
-**`INVENTORY.md`** — this file.
+**`INVENTORY.md`** — this file, 61 KB.
 What every folder and file is, where it came from, and whether it's still needed.
 **Status: Keep.** Written by reading the files, so it goes stale as they change — the file
 counts and sizes are a snapshot, the judgements last longer.
@@ -89,7 +79,7 @@ counts and sizes are a snapshot, the judgements last longer.
 **Status: Keep.**
 Still open: there is no test or linting setup at all.
 
-**`uv.lock`** — 489 KB, in git. The exact resolved versions, 129 packages. This is what actually makes the setup reproducible. **Status: Keep.**
+**`uv.lock`** — 588 KB, in git. The exact resolved versions, 152 packages. This is what actually makes the setup reproducible. **Status: Keep.**
 
 **`.python-version`** — says 3.12, matches what's installed. **Status: Keep.**
 
@@ -128,8 +118,11 @@ in the corpus, for the 30 of 47 where that can be checked by machine. **Keep.** 
 non-obvious case: a year with no filing of its own can still be answerable, because annual
 reports reprint several earlier years.
 
-**`scripts/archive/unanswerable_run.py`** — asks all 48 and reports how often the system correctly
-says it does not know, broken down by kind of question. **Keep, not yet run.** Costs about $0.60.
+**`scripts/archive/unanswerable_run.py`** — asks every unanswerable question and reports how often
+the system correctly says it does not know, broken down by kind of question. **Keep — it has been
+run**, and `data/unanswerable_results.jsonl` is the output. Costs about $0.60 to re-run.
+Note: its docstring still says "all 48". The set is **47** now — `unans_034` was retired to
+`data/archive/`, and the 48-row results file predates that retirement.
 
 ### Environment and settings
 
@@ -139,42 +132,66 @@ service. Dead credential, worth removing.
 
 **`.env.example`** — the template others copy. **Status: Keep.**
 
-**`.gitignore`** — 2.7 KB, in git.
-Unusually careful: it explains, per file, *why* each exclusion is safe. **Status: Keep.**
+**`.gitignore`** — 5.4 KB, in git.
+Unusually careful: it explains, per file, *why* each exclusion is safe, and carries `!` overrides
+for the handful of `data/` artifacts that must ship. **Status: Keep.**
 
-**`.claude/settings.json`** — three permission entries, no secrets. **Status: Keep.**
+**`.claude/settings.json`** — three permission entries, no secrets. In git. **Status: Keep.**
 
-**`.claude/settings.local.json`** — your personal permissions, no secrets. **Status: Keep.**
+**`.claude/settings.local.json`** — your personal permissions, no secrets. Not in git. **Status: Keep.**
+
+**`.claude/skills/explain-arm/SKILL.md`** (4.2 KB, 72 lines) and
+**`.claude/skills/walkthrough/SKILL.md`** (3.2 KB, 69 lines) — both in git, added 2026-09-07.
+`explain-arm` walks any arm 1-6: what it adds, which files, what it scored, the verdict.
+`walkthrough` is the "I just cloned this and I'm lost" tour. They are the executable half of
+`CLAUDE.md`'s orientation. **Status: Keep.** They quote numbers, so they go stale like any doc —
+`DECISIONS.md` stays the source of truth.
 
 ### Other folders
 
-**`images/results_chart.png`** — 25 KB, the chart on the README.
-**Status: Replaced in content.** Made before three separate corrections, so the front page of the
-project shows numbers you've withdrawn. **No script makes it** — it's hand-made, which is exactly
-why it went stale.
+**`images/`** — five PNGs, all in git, ~960 KB total.
+
+**`results_chart.png`** (166 KB) — the arm-progression chart on the README.
+**Status: Keep, and it now has a producer.** `scripts/archive/results_chart.py` makes it and
+**re-derives every plotted number at generation time** rather than taking any of them on trust:
+Arms 1-2 are aggregated from their per-question recall vectors (the file's own summary block is
+only cross-checked, never used as the value), and the two Arm 3 rows are produced by running
+`05_arm3_rerank.py score` as a subprocess, so the chart cannot drift from the published scorer.
+Every derived value is then compared against `DECISIONS.md`'s current-baseline table and the run
+**aborts** on a mismatch. That inverts the old failure: the chart used to be hand-made, which is
+why it silently went stale, and why the pre-`RETR-35` version could only be deleted rather than
+corrected. ~3-4 min, no GPU, no database, no spend; `--reuse-scored` skips the two replays.
+
+**`langfuse_dashboard_{1_cost_latency,2_loop_iterations,3_verdicts_tokens}.png`** (286 / 159 /
+200 KB) and **`langfuse_trace_loop_graph.png`** (158 KB) — screenshots of the Day 10 Langfuse
+dashboard and of one Arm 6 trace. **Keep — these cannot be regenerated.** The dashboard itself is
+code (`scripts/archive/build_langfuse_dashboard.py`), but the Langfuse Hobby tier drops traces
+after a short retention window, so the rendered views behind these are already gone. They are the
+only surviving evidence that the observability work ran on real traffic.
 
 **`.venv/`** — 1.2 GB, not in git. Rebuilt any time with `uv sync`. **Status: Rebuildable.**
 
-**`.git/`** — 442 MB. Large for a project whose text is under a megabyte. Something bulky was
-probably committed early, before the ignore rules matured. Worth a look someday, not urgent.
+**`.git/`** — **26 MB**, measured 2026-09-07 at 12:37. It was 1.2 GB earlier the same day: large
+`data/` artifacts had been committed before the ignore rules matured, and the 2026-09-06 history
+rewrite left those objects unreferenced but not yet reclaimed. A `git gc` collected them. The
+repo is now small enough to clone quickly, and the old SHAs are gone for good.
 
 ### What could be tidied at the root
 
-- Cut the snapshot in `CLAUDE.md` down to a few pointing lines so numbers live in one place only.
-- Keep `SESSION.md` about the future and `DECISIONS.md` about the past — that's a clean split, but section 1 currently blurs it.
-- Fix the README chart (the results table it lacked has since been added).
-- The clearest doc order for someone new: README to set up, `spec.md` for what was promised, `DECISIONS.md` for what happened, `SESSION.md` for what's next, `CLAUDE.md` for how to work here.
+- The clearest doc order for someone new: `README.md` to set up, `CLAUDE.md` for how to work here
+  and what the traps are, `DECISIONS.md` for what happened and why, this file for what's on disk.
+- There is still no test or linting setup; `scripts/checks/` is doing that job by hand.
 
 ---
 
 ## `src/rag_sec/` — the shared library
 
-Seventeen files, about 3,280 lines. This is the code that the scripts all borrow from. Nothing here
-runs on its own; everything here gets imported.
+Eighteen Python files, 3,767 lines (counted 2026-09-07), plus a `CLAUDE.md`. This is the code that
+the scripts all borrow from. Nothing here runs on its own; everything here gets imported.
 
 **`__init__.py`** — empty, marks the folder as importable. **Keep.**
 
-**`config.py`** — 23 lines. Names the two models used, and picks the accelerator, in one place, so the piece that counts words
+**`config.py`** — 41 lines. Names the two models used, and picks the accelerator, in one place, so the piece that counts words
 and the piece that does the search never disagree. **Keep** — small but load-bearing.
 
 **`dataset.py`** — downloads the question set and splits it into train/dev/test. The split is
@@ -209,7 +226,7 @@ where the wrong table layout's chunks were being scored as if they were the real
 **Keep.** It runs before connecting, so it works even with the database down.
 Its limit: it stops a bad run from starting, it cannot check a result already written to disk.
 
-**`company.py`** — 338 lines. Works out which company a question is about, from the question text
+**`company.py`** — 335 lines. Works out which company a question is about, from the question text
 alone, and strips the company name back out before searching. Together these are the **biggest
 measured win in the project.** **Keep.**
 
@@ -229,7 +246,7 @@ measured setup and returns the answer with the chunks it cited. Reuses the answe
 **Keep, parked.** Verified working on 3 questions, then deferred on cost evidence. One prompt
 inside it is still used by the current cost work.
 
-**`eval.py`** — 341 lines. Decides which chunks count as correct answers, and computes the scores.
+**`eval.py`** — 631 lines. Decides which chunks count as correct answers, and computes the scores.
 **Every published retrieval number in this project comes from this file. Keep.**
 Note: its thresholds were tuned on a 200-row hand sample, so the numbers are only as good as that
 tuning — roughly 15% of one failure category is still thought to be mislabelled.
@@ -272,6 +289,11 @@ could find it. The day tags live in `DECISIONS.md`, where they belong.
 | `pipeline/hpc/` | the two cluster legs, plus their sbatch job files |
 | `checks/` | guards and regression tests, not investigations |
 | `archive/` | one-off measurements whose findings are already in `DECISIONS.md`, and superseded scripts kept as the record of how a number was made |
+
+Two docs sit at this level, both in git: **`scripts/README.md`** (~16 KB) — the run order, the
+real calendar dates and what each command costs — and **`scripts/CLAUDE.md`** (1.9 KB), the short
+version: the phase-to-arm table, the two things that spend money, and the fact that phase 02
+cannot be rebuilt. **Keep both.**
 
 Every `*_hpc.*` file is deliberately self-contained: it runs on the cluster where the
 `rag_sec` package isn't installed, so it must never import from it (`ARM3-2`, `INFRA-6`).
@@ -330,9 +352,10 @@ project's real passes were actually run.
   update. See `RUNBOOK.md` for the full cycle.
 
 **`04_arms_first_stage.py`** — Arms 1 and 2, one positional argument apart, which is why they
-belong in one file (`spec.md` 2.2: change one thing per arm). Absorbed `retrieval/arm1_dense.py`
-and `arm2_hybrid.py`, which differed by 12 lines. **Keep, active.** `--company-filter` is what
-produced Arm 1's 0.329 -> 0.384.
+belong in one file — the project's rule is that an arm changes exactly one thing. Absorbed `retrieval/arm1_dense.py`
+and `arm2_hybrid.py`, which differed by 12 lines. **Keep, active.** `--company-filter` is the flag behind
+the company-filter gain on Arm 1; the numbers are in `DECISIONS.md`, and the ones published
+before the `RETR-7` re-index have been superseded.
 
 **`05_arm3_rerank.py`** — Arm 3, the headline arm. Absorbed `retrieval/rerank_prepare.py`,
 `rerank_score.py` and the abandoned `archive/arm3_*` trio. Because the reranker can't run on a
@@ -399,7 +422,7 @@ Both import nothing from `rag_sec`; do not add an import.
 
 ## `scripts/checks/` — guards and regression tests
 
-Twelve files. Not investigations — each has an ongoing obligation, which is exactly what filing
+Twelve Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
 them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
 reproduces a behaviour rather than asserting one, so nothing should gate on it.
 
@@ -435,14 +458,14 @@ unchanged, heading misattribution goes 45.9% -> 0.0%, and (with `--labels 300`) 
 moves. **Keep — this is what makes the fix safe to ship dark**, and it must pass before the
 re-index cycle flips the flags on. Read-only, no GPU, no API calls.
 
-**`tracing_offline.py`** — 462 lines, **nine checks** over `src/rag_sec/tracing.py`.
+**`tracing_offline.py`** — 473 lines, **nine checks** over `src/rag_sec/tracing.py`.
 **No keys, no network, no GPU, no cost** — the enabled cases point the SDK at a port that is
 never listening, so the failure paths are exercised for real rather than mocked. Each case runs
 in its own subprocess, because the module latches its enabled/disabled decision once per
 process. **Keep — this is what makes `OBS-4`'s "tracing can never kill the run" a checked claim
 instead of a comment**, and it exits non-zero on the first failure so it can go in CI.
 
-**`static_ranking_order.py`** — 81 lines. Fails if the static rankings `agent_run.py` slices
+**`static_ranking_order.py`** — 92 lines. Fails if the static rankings `agent_run.py` slices
 `[:TOP_K]` from are not in descending rerank-score order **at the point of use**. Read-only, no
 GPU, no API. **Keep** — this is `AGENT-16`'s guard: `rerank_hpc.py` attaches the score to the
 first-stage RRF order and promises nothing about ordering, the published scorer sorts on load
@@ -459,7 +482,7 @@ the cost warning.
 
 ## `scripts/archive/` — one-offs and superseded scripts
 
-Thirty files, in two groups. Every one carries a docstring header saying what it did, which
+Thirty-one files, in two groups. Every one carries a docstring header saying what it did, which
 `DECISIONS.md` IDs and `data/` files came from it, what replaced it, and whether it is safe to
 run today. **Archived does not mean dead data** — several of these produced files that live code
 still reads. **Delete nothing here:** each is either the only way to regenerate a published
@@ -539,7 +562,8 @@ exists a re-run is free; delete or move it and it costs money again.** `--limit`
 check, **not a sample**: the payload is stratum-sorted, so any limit under 89 is 100%
 `A_gold_lost` (`COST-33`).
 
-**`latency_measure.py`** — the per-stage latency pass behind the figures `spec.md` publishes.
+**`latency_measure.py`** — the per-stage latency pass behind the published per-stage latency
+figures (search vs embed vs rerank).
 Shares its sampling seed with phase 07 and `mps_leak_probe.py`, so all three see the same
 questions. Run on mains power: battery throttling moves the very numbers it measures.
 
@@ -558,15 +582,30 @@ backend at exit — three backends resident at once on 16 GiB is what killed `DE
 `ort_fp32_latency.py` imports its helpers from `onnx_rerank_parity.py` as a **sibling module**,
 so the two must stay in the same directory.
 
-**`unanswerable_run.py`** — the abstention pass; `checks/unanswerable_validate.py` is the guard
-half and stays in `checks/`.
+**`unanswerable_run.py`** — the abstention pass, over the 47 hand-written unanswerable
+questions; `checks/unanswerable_validate.py` is the guard half and stays in `checks/`. It has run
+— `data/unanswerable_results.jsonl` is the output, 48 rows from before `unans_034` was retired.
 
-**`worst_failures.py`** — writes the 20 worst failures per arm as markdown (`spec.md` 2.2 rule 5)
-to `data/day9_worst_failures_{arm6,static}.md`. **Free, read-only**, safe on a partial file. Its
+**`results_chart.py`** — the producer for `images/results_chart.png`, new 2026-09-07. It exists
+because the old chart had none, so a chart made under superseded labels could only be deleted,
+never corrected. **Nothing in it is typed in:** Arms 1-2 are aggregated from their per-question
+recall vectors (the file's own summary block is cross-checked against that recomputation, not
+used as the value), the two Arm 3 rows are produced by running `05_arm3_rerank.py score` as a
+**subprocess** so the chart cannot drift from the published scorer, and every derived value is
+compared against `DECISIONS.md`'s current-baseline table with the run **aborting** on a mismatch.
+The `DECISIONS.md` parse is deliberately strict — it asserts it found all five expected rows and
+dies otherwise, so a reformatted table breaks the build loudly rather than yielding a plausible
+wrong bar. ~3-4 min, no GPU, no database, no spend; `--reuse-scored` skips the two replays for a
+layout-only edit. matplotlib is deliberately not a project dependency: run it with
+`uv run --with matplotlib`.
+
+**`worst_failures.py`** — writes the 20 worst failures per arm as markdown to
+`data/day9_worst_failures_{arm6,static}.md`. **Free, read-only**, safe on a partial file. Its
 ordering is a stated choice, not a measurement: failures are ranked by how close the gold
 evidence got to the answer model — reasoning, then rerank, then retrieval — because every wrong
-number is equally wrong. Note: **regenerate it from the finished run**; the two pre-`AGENT-16`
-files were deleted rather than kept, since a stale worst-failures list reads as current.
+number is equally wrong. Note: both output files are **on disk and tracked in git** (checked
+2026-09-07), and they are what `day9_failure_diagnosis_ANALYSIS.md` was written from. Regenerate
+them from the finished run before quoting: a stale worst-failures list reads as a current one.
 
 **`build_langfuse_dashboard.py`** — builds the Day 10 dashboard ("RAG-SEC -- Arm 6 loop vs
 static") and its **12 widgets** by pushing them to Langfuse. **This is why the dashboard is
@@ -613,203 +652,302 @@ gone or still on disk and still read, and the scripts themselves are in git hist
 
 ---
 
-## `data/` — 4.9 GB, 121 top-level entries (counted 2026-09-07)
+## `data/` — 4.4 GB, 93 top-level entries (measured 2026-09-07)
 
-The biggest source of confusion, and the biggest cleanup opportunity. Roughly **1 GB is dead weight.**
+Was 4.9 GB and 121 entries until commit `64de14e` dropped 486 MB of dead artifacts: GPU and API
+payloads whose expensive *outputs* are all still here, files with a named successor, and 15 logs
+nothing referenced. Nothing on the reproduce path was touched. Almost everything below is
+gitignored; the ~100 tracked files are the ones that make a number reproducible without the
+corpus. `data/CLAUDE.md` (1.3 KB, in git) is the short version of this section, kept next to the
+files.
 
 ### The bulk folders
 
-**`filings/`** — 2.9 GB, 799 files. Raw filing HTML downloaded from the SEC, named
+**`filings/`** — 2.9 GB, 799 files, not in git. Raw filing HTML from the SEC, named
 `TICKER_YEAR_CIK.htm`. Nothing reads it at runtime; it's the audit trail behind everything else.
-Re-downloading is free but slow, and the SEC can change what it serves — so treat it as
-effectively irreplaceable. **Keep, but it belongs in an archive folder, not next to live files.**
+Re-downloading is free but slow (~1 h), and the SEC can change what it serves — so treat it as
+effectively irreplaceable. **Keep.**
 
-**`parsed/`** — 389 MB, 799 files. Each filing broken into paragraphs and tables.
+**`parsed/`** — 389 MB, 799 files, not in git. Each filing broken into paragraphs and tables.
 **Keep — actively read** during compression.
 
-**`chunks/`** — 377 MB, 799 files. The ~900-word chunks. **Keep — actively read.**
-Scoring reads these directly, and every chunk number in every results file is meaningless without them.
+**`chunks/`** — 382 MB, 799 files, not in git. The ~900-word chunks. **Keep — actively read.**
+Scoring resolves gold labels through these, so **the cheap no-GPU replay does not work without
+them** — a fresh clone must run `01_corpus.py` first. Every chunk number in every results file is
+meaningless without this folder.
+
+**`label_audit/`** — 38 MB, not in git. The blind label audit's shards, cases and answer key
+(`KEY_do_not_give_to_auditors.json`). Replays from `scripts/archive/label_audit_prepare.py` at a
+fixed seed. **Rebuildable**, and the audit is closed — its rates are written up in `DECISIONS.md`.
+
+**`onnx_parity_partial/`** — 12 KB, not in git. Resume state for the ONNX parity run, not a
+record. **Rebuildable.**
+
+**`archive/`** — 536 KB, **6 files**, all in git. Five `.bak` files the Day 9 restarts left
+behind, kept as provenance for `AGENT-9` (19 rows whose answer prompt asked for the wrong format,
+so both arms scored zero) and `AGENT-16` (the 21 rows plus log from before the static-ordering bug
+stopped the run), plus the 5-question CPU pilot behind `AGENT-13`. The sixth is
+`unans_034_retired.jsonl` (275 B) — one unanswerable question pulled out of the live set because
+officer ages live in the proxy, incorporated by reference, so it is not honestly unanswerable from
+a 10-K. **Keep as archive.** The `.bak` trajectories and `usage` are valid — only the answers are
+unscoreable — and several `DECISIONS.md` rows cite them by path.
 
 ### Logs from building the corpus
 
-| File | Verdict |
-|---|---|
-| `day2_ingest_log.jsonl` (23 KB) | **Keep** — small, and it's the evidence behind a recorded decision |
-| `day2_ingest_log_docling.jsonl` (16 KB) | **Keep** — the only surviving proof of the parser comparison; the code that made it is gone |
-| `day2_chunk_log.jsonl` (12 KB) | **Decide** — nothing reads it and, since `INFRA-8`, nothing writes it; tracked in git, and the rule that used to contradict that is gone |
-| `day4_ingest_log.jsonl` (128 KB) | **Keep** — the record of the corpus growing to 799 |
-| `day4_ingest_stdout.log`, `day4b_...`, `day5_...` (25 KB) | **Delete** — three copies of the same library warning, no results |
-| `day5_prepare_payload_stdout.log` (77 KB) | **Delete** — a progress bar; its one useful line is already in the script |
-| `day5_arm3_stdout.log` (1.5 KB) | **Keep** — the timing evidence for moving reranking to the cluster |
-| `day2_findings.md` (2.4 KB) | **Keep**, but it's writing, not data — it belongs in a docs folder. It also points at a folder that no longer exists |
+| File | In git | Verdict |
+|---|---|---|
+| `day2_ingest_log.jsonl` (22 KB) | yes | **Keep** — small, and it's the evidence behind a recorded decision |
+| `day2_ingest_log_docling.jsonl` (16 KB) | yes | **Keep** — the only surviving proof of the parser comparison; the code that made it is gone |
+| `day2_chunk_log.jsonl` (12 KB) | yes | **Keep** — nothing reads it and, since `INFRA-8`, nothing writes it, but it is tiny and it is the Day 2 chunking record |
+| `day4_ingest_log.jsonl` (125 KB) | yes | **Keep** — the record of the corpus growing to 799 |
+| `day5_arm3_stdout.log` (1.5 KB) | yes | **Keep** — the timing evidence for moving reranking to the cluster |
+| `ingest_log.jsonl` (202 KB) | no | **Rebuildable** — the current `01_corpus.py` run log, one row per filing with per-stage timings and block/table counts. Rewritten by any re-run |
+| `day2_findings.md` (2.3 KB) | yes | **Keep**, but it's writing, not data. It points at a folder that no longer exists |
+
+The three ingest `stdout.log` files and `day5_prepare_payload_stdout.log` are **gone** as of
+`64de14e` — they were progress bars and repeated library warnings, with no result in them.
 
 ### Results from Arms 1-3
 
-All are small, tracked in git, and rebuildable in minutes. **Keep all of them.**
+All small, all tracked in git, all rebuildable in minutes given a database.
+**Keep all of them.** The numbers are in `DECISIONS.md`; this file does not repeat them.
 
-`day3_arm1_dev_results.json` and its failures list (Arm 1: 0.329 / 0.466), the same pair with
-`_companyfilter` (0.384 / 0.607), `day4_arm2_...` (Arm 2: 0.495 / 0.687) and its filtered pair
-(0.520 / 0.776), and `day5_arm3_...` (Arm 3: 0.609 / 0.685).
+`day3_arm1_dev_results.json` and its failures list, the same pair with `_companyfilter`,
+`day4_arm2_*` and its filtered pair, and `day5_arm3_*`.
 
-**`rerank_scores.jsonl`** (1.6 MB) — **Keep.** This one is not rebuildable cheaply — it took a GPU
-pass — yet `.gitignore` classes it as disposable. That rule is wrong for this file.
+**`rerank_scores.jsonl`** (1.6 MB, tracked) — **Keep.** The original Arm 3 GPU pass
+(`ARM3-1`..`3`), not cheaply rebuildable. The broad `data/rerank_scores*.jsonl` ignore rule is
+overridden by an explicit `!data/rerank_scores.jsonl` negation, so it is in git despite how the
+first rule reads. Verified with `git check-ignore` and `git ls-files`, 2026-09-07.
 
-**`rerank_scores_603filings.jsonl`** (1.1 MB) — **Delete.** From when the corpus was 603 filings
-and the question set was 837. Nothing reads it and it can't be compared to anything current.
+`rerank_scores_603filings.jsonl` is **gone** (`64de14e`) — it was from a 603-filing corpus and a
+different question set, so nothing current could be compared to it.
 
-### The table-layout experiment
+### The current headline artifacts (post-`RETR-7` re-index)
 
-| File | Verdict |
-|---|---|
-| `day6_gold_tables.json` (208 KB) | **Keep — actively read** by scoring |
-| `day6_table_summaries.json` (228 KB) | **Keep — this cost money** (498 model calls) |
-| `day6_arm4_{A,B,C}_dev_results.json` + failures (~3 MB) | **Keep** — the published result: A beat both |
-| `day6_arm4_{A,B,C}_rerank_scores.jsonl` (5.8 MB) | **Keep — three GPU passes.** The A file is still read by two current scripts |
-| `day6_arm4_A_rerank_payload.json` (**230 MB**) | **Delete** — cluster input, rebuilt in minutes. B and C were already deleted; this one was missed |
-| `day6_arm4_{A,B,C}_cpu_dev_*` (6 files, 21 KB) | **Delete** — 5-question warm-ups. Three of them report a score of 0.9 and are genuinely dangerous if mistaken for real results |
+These are the ones the published result is replayed from. **Keep all.**
+
+| File | Size | In git | What it is |
+|---|---|---|---|
+| `retr7_rr_dev_scores.jsonl` | 11 MB | yes | 4.4 GPU-hours. Per question, all 50 candidates in **first-stage (RRF) order** with the reranker's score attached — *not* rank order |
+| `retr7_rr_test_scores.jsonl` | 14 MB | yes | 7.2 GPU-hours, held-out split. **This is what the ~90 s no-GPU replay reads** |
+| `retr7_arm3_dev_results.json` | 1.6 KB | yes | the scored table `05_arm3_rerank.py score --out` writes |
+| `retr7_arm3_test_results.json` | 1.6 KB | yes | same, test split — the `RETR-39` headline as a file rather than as prose (`INFRA-10`) |
+| `retr7_ANALYSIS.md` | 8.2 KB | yes | **read this before quoting an Arm 1 / Arm 2 delta.** The corpus and the labels both moved at the re-index, so the Arm 1↔Arm 2 comparison is confounded: quote each arm's level, never the difference |
+
+**Trap:** a `*_scores.jsonl` is not stored in rank order. Read it through `rag_sec.eval.load_ranking`,
+which sorts on load (`AGENT-16`).
+
+### The table-layout experiment (Arm 4)
+
+| File | Size | In git | Verdict |
+|---|---|---|---|
+| `day6_gold_tables.json` | 208 KB | yes | **Keep — actively read** by scoring and by phase 06 |
+| `day6_table_summaries.json` | 228 KB | yes | **Keep — this cost money** (498 model calls) |
+| `day6_arm4_{A,B,C}_dev_results.json` + failures | ~3 MB | yes | **Keep** — the published result: A beat both |
+| `day6_arm4_{A,B,C}_rerank_scores.jsonl` | 5.6 MB | yes | **Keep — three GPU passes.** The A file is still read by live code, as phase 05's `unfiltered_raw` baseline and as `failure_triage.py`'s input |
+
+`day6_arm4_A_rerank_payload.json` (230 MB) and the six `day6_arm4_*_cpu_dev_*` warm-up files are
+**gone** (`64de14e`). The payload rebuilds in minutes; the warm-ups were 5-question runs whose
+inflated scores were dangerous if mistaken for results.
 
 ### Ground truth and labelling
 
-**`day7_gold_inds_matched_full.json`** (4.8 MB) — **Keep. The highest-risk file here.**
-Nothing in this project creates it. Everything you can measure depends on it.
+**`day7_gold_inds_matched_full.json`** (4.8 MB, in git) — **Keep. The highest-risk file here.**
+Nothing in this project creates it; the matching was done by hand and never saved. Everything you
+can measure depends on it. It is frozen: reproduce against it, never regenerate it.
 
-**`day7_gold_evidence_resolved.json`** (2.4 MB) — **Keep.** Rebuildable only from the file above
-plus raw dataset files that aren't present.
+**`day7_gold_evidence_resolved.json`** (2.4 MB, in git) — **Keep.** Rebuildable only from the file
+above plus raw dataset files that are not present on this machine.
 
-**`day6_gold_labeling_audit.txt`** (1.5 MB) — **Delete**, replaced by the v2 file.
+**`day6_gold_labeling_audit_v2.txt`** (1.2 MB, in git) — **Keep as archive.** A hand audit, so it
+cannot be regenerated, but nothing reads it. Its superseded v1 is **gone** (`64de14e`).
 
-**`day6_gold_labeling_audit_v2.txt`** (1.2 MB) — **Keep as archive.** A hand audit, so it can't be regenerated, but nothing reads it.
+**`day8_matcher_ab_dev.json`** (175 KB) / **`day8_matcher_ab_test.json`** (220 KB), both in git —
+`RETR-34`/`RETR-35`'s A/B: the legacy threshold matcher against the coverage-based one, run over
+the same questions and the same on-disk ordering, so only the labels differ. Written by
+`scripts/archive/label_matcher_ab.py --out`. **Keep** — this is the evidence that the label change
+is attributable, and it is why every pre-`RETR-35` number is not comparable to a current one.
 
-**`*.bak_old_labeler`** (12 files, 5.9 MB) — **Keep as archive.** These are every arm's numbers
-under the *old* labelling method — the "before" half of a comparison `DECISIONS.md` explicitly
-wants kept. They double the length of every listing though; a subfolder would fix that.
+**`day8_rescore_labels.json`** (3.8 KB, in git) — `scripts/archive/rescore_labels.py`'s output:
+every ordering still on disk, re-graded under both label rules side by side, so the size of the
+correction is known per arm rather than assumed uniform. **Keep.** Note what it *cannot* cover:
+Arm 1 and Arm 2's results files persist only the top 5 per question, so their recall@10/@50 needed
+a genuine retrieval re-run and are reported there as blocked, not silently skipped.
 
-### Day 8 search results
+**`*.bak_old_labeler`** (12 files, 5.8 MB, all in git) — every arm's numbers under the *old*
+labelling method: the "before" half of a comparison `DECISIONS.md` explicitly wants kept.
+**Keep as archive, and never quote one.** They double the length of every listing; a subfolder
+would fix that.
 
-**`day8_retr16v2_dev_scores.jsonl`** (8.6 MB) — **Keep.** 4.4 GPU-hours. The most-read scores file
-in the project and the source of your current best numbers.
+### Day 8 search and failure analysis
 
-**`day8_retr18_test_scores.jsonl`** (14 MB) — **Keep.** 7.2 GPU-hours, on the untouched test split.
-This is the evidence that your improvement isn't just fitted to the data you tuned on.
+**`day8_retr16v2_dev_scores.jsonl`** (8.6 MB, in git) — **Keep.** 4.4 GPU-hours, the pre-re-index
+dev scores. Superseded for quoting by `retr7_rr_dev_scores.jsonl`, but still the input several
+archive scripts default to.
 
-**`day8_retr16v2_dev_results.json`** (1.7 KB) and **`retr35_test_scores.json`** (1.7 KB) —
-**Keep.** The scored tables behind the headline, dev and test. Tiny, and they are what stops the
-best number in the project from living only in prose (`INFRA-10`).
+**`day8_retr18_test_scores.jsonl`** (14 MB, in git) — **Keep.** 7.2 GPU-hours on the untouched
+test split, same generation as the file above.
 
-**`day8_retr16_rerank_payload.json`** (**113 MB**) — **Delete.** The input to a run you've formally withdrawn.
+**`day8_retr16v2_dev_results.json`** (1.6 KB) and **`retr35_test_scores.json`** (1.6 KB), both in
+git — **Keep.** The scored tables from that generation, as files rather than as terminal output
+(`INFRA-10`).
 
-**`day8_failure_cases.json`** (15 MB) — **Delete.** Free to regenerate; the conclusions are already written down.
-
-**`day8_failure_slices/`** (5 files, 556 KB) — **Delete.** A finished reading queue.
+**`day8_failure_cases_retr16v2.json`** (7.5 MB, **not** in git, explicitly ignored) — the
+per-question failure dump `failure_triage.py` writes. **Rebuildable for free**, and its
+conclusions are already `DECISIONS.md` rows. The older `day8_failure_cases.json` and the
+`day8_failure_slices/` reading queue are **gone** (`64de14e`), as is
+`day8_retr16_rerank_payload.json` (113 MB), the input to a run that was formally withdrawn.
 
 ### Day 8 compression
 
-**`day8_slice_scores_t150_filtered_stripped.jsonl`** (28 MB) — **Keep.** Nearly two GPU-hours, and
-it's about to be re-read for the next round of fixes.
+**`day8_slice_scores_t150_filtered_stripped.jsonl`** (28 MB, tracked) — **Keep.** Nearly two
+GPU-hours of slice scoring. `.gitignore:71` ignores the older `day8_slice_scores_t150.jsonl`
+it superseded, not this file.
 
-**`day8_survival_flags.json`** (296 KB) — **Keep**, but flagged: these were built with the loose
-measure that has since been shown to over-report. Anything built on them inherits that.
+**`day8_survival_flags.json`** (296 KB, tracked) — **Keep**, but flagged: built with the loose
+survival measure that has since been shown to over-report. Anything built on them inherits that.
 
-**`day8_cost13_payload.json`** (6.5 MB) — **Keep, upgraded from "delete or archive" by
-`COST-34`.** It is no longer just a record: it is the fixed prompt set that both the medium and
-low arms share, and that shared-ness is the whole reason their delta is clean. It is also
-*not* cheaply rebuildable now — regenerating it post-`RETR-7` needs the slice-rerank GPU job,
-and rebuilding it would silently change the prompts underneath both stored arms. Deleting it
-makes `COST-34` unreproducible.
+**`day8_pack_variants.json`** (169 KB, in git) — `scripts/archive/pack_variants.py`'s output: six
+ways of assembling the compressed prompt, each differing from the one before by exactly one rule,
+scored offline on the strict "are all the gold figures literally in the prompt" measure rather
+than the loose one. **Keep** — this is the record behind `COST-27`/`COST-28`, and it is free to
+regenerate only because every input it needs is still on disk.
 
-**`day8_cost13_responses.jsonl`** (144 KB) — **Keep. You paid for this.** It's also what makes
-re-running free instead of paid. Note it holds *two* reasoning levels — 278 medium rows from
+**`day8_cost13_payload.json`** (6.5 MB, in git) — **Keep, upgraded from "delete or archive" by
+`COST-34`.** It is the fixed prompt set both the medium and low arms share, and that shared-ness
+is the whole reason their delta is clean. It is also *not* cheaply rebuildable now: regenerating
+it post-`RETR-7` needs the slice-rerank GPU job, and rebuilding it would silently change the
+prompts underneath both stored arms.
+
+**`day8_cost13_responses.jsonl`** (144 KB, in git) — **Keep. You paid for this**, and it is what
+makes a re-run free instead of paid. It holds *two* reasoning levels — 278 medium rows from
 2026-09-02 plus `COST-33`'s 10-row low pilot — so it must be read with
 `answer_ab_score.py --thinking`, which is why that flag exists (`COST-34`).
 
-**`cost31_thinking_medium.jsonl`** and **`cost31_thinking_low.jsonl`** (~170 KB each) —
-**Keep. You paid for these, ~$2.09 of batch.** `COST-34`'s two arms, 278 rows each, 0 failed,
-both run 2026-09-04 on the payload above. The medium file is *not* redundant with the older
-278 medium rows: re-running it same-day is what retired the drift confound, and comparing the
-two is the only record of how small that drift was.
+**`cost31_thinking_medium.jsonl`** / **`cost31_thinking_low.jsonl`** (~170 KB each, in git) —
+**Keep. You paid for these.** `COST-34`'s two arms, 278 rows each, both run 2026-09-04 on the
+payload above. The medium file is *not* redundant with the older medium rows: re-running it
+same-day is what retired the drift confound, and comparing the two is the only record of how
+small that drift was.
 
-**`cost34_thinking_{medium,low}_results.json`** (17 KB each) — **Keep.** Per-question verdicts
-at each level; the printed tables cannot be recovered from the marginals alone.
+**`cost34_thinking_{medium,low}_results.json`** (17 KB each, in git) — **Keep.** Per-question
+verdicts at each level; the printed tables cannot be recovered from the marginals alone.
 
-**`day8_slice_budget_dev_results.json`** (1.9 KB) and **`day8_cost13_dev_results.json`** (17 KB) —
-**Keep.** The survival sweep and the paired answer result, as files rather than as terminal output
-(`INFRA-10`). The second one carries the per-question verdicts, which the printed table cannot be
-recovered from. Both regenerate for free from the score files above.
+**`day8_slice_budget_dev_results.json`** (1.9 KB) and **`day8_cost13_dev_results.json`** (17 KB),
+both in git — **Keep.** The survival sweep and the paired answer result as files (`INFRA-10`).
+Both regenerate for free from the score files above.
+
+Compression was measured and **never shipped** (`COST-36`): `agent.py` sends uncompressed.
 
 ### Day 9 agentic loop
 
-**`day9_arm6_dev_results.jsonl`** — **Keep. You are paying for this**, one row per question with
-both arms, their trajectories, usage and per-stage latencies. Growing while the run is in
-flight; `agent_run.py` resumes off it, so **deleting it re-spends the money.** Everything Days
-9-13 publish about the loop is read from this file by `agent_analyze.py` and `worst_failures.py`.
+**`day9_arm6_dev_results.jsonl`** (2.1 MB, in git) — **Keep. You paid for this**, one row per
+question with both arms, their trajectories, usage and per-stage latencies. `07_arm6_loop.py run`
+resumes off it, so **deleting it re-spends the money.** Everything published about the loop is
+read from this file.
 
-**`day9_run.log`** — **Keep while the run is live**, then decide: it is the run's stdout, and its
-timing evidence is also in the JSONL. Nothing reads it.
+**`day9_run.log`** (16 KB, in git) — the run's stdout. Nothing reads it; its timing evidence is
+also in the JSONL. **Keep as record.**
 
-**`day9_multidoc_negative_ANALYSIS.md`** — 12 KB. **Keep.** The `AGENT-15` write-up of Day 9's
-negative: `spec.md`'s multi-document subset is empty, so the loop's published best case cannot be
-tested on this benchmark, and this is where the check, the 10-K comparatives trap, and what the
-run still establishes are written down. Writing rather than data, like `day2_findings.md`.
+**`day9_latency_clean.jsonl`** (12 KB, in git) — `scripts/archive/latency_measure.py`'s per-stage
+pass on a quiet machine and on mains power. **Keep** — battery throttling moves the very numbers
+it measures, so this is not casually re-runnable to the same standard.
 
-**`archive/`** — 572 KB, **5 files.** The `.bak` rows the Day 9 restarts left behind, kept as
-provenance for `AGENT-9` (19 rows whose answer prompt asked for the wrong format, so both arms
-scored 0.0%) and `AGENT-16` (the 21 rows plus log from before the static-ordering bug stopped the
-run), and the 5-question CPU pilot behind `AGENT-13`.
-**Keep as archive.** Their trajectories and `usage` are valid — only the answers are unscoreable
-— and several `DECISIONS.md` rows cite them by path.
+**`mps_leak_empty_cache.jsonl`** (4.7 KB, in git) — one arm of `mps_leak_probe.py`'s diagnostic:
+per question, wall/embed/rerank seconds alongside `torch.mps.current_allocated_memory()` and swap.
+**Keep** — it is the evidence behind `AGENT-24`, and it is what showed RSS cannot see MPS growth
+(0.1 GB reported against 7 GB of swap). A diagnostic, not a guard.
 
-### Leftover cluster inputs and other
+**`day9_multidoc_negative_ANALYSIS.md`** (12 KB, in git) — **Keep.** The `AGENT-15` write-up:
+every question in both splits maps to one filing, so the multi-document subset the Arm 6
+experiment was specced against is empty and the loop's best case cannot be tested on this
+benchmark. That negative is the published finding. Writing, not data.
 
-**`day5_embed_payload.json`** (**103 MB**) — **Delete.** Rebuilt in minutes.
+**`day9_failure_diagnosis_ANALYSIS.md`** (20 KB, in git) — **Keep.** The ten worst Arm 6 failures,
+read off the chunk files and the results file. Labelled a draft, but `AGENT-28` verified all 38 of
+its claims against disk: 34 confirmed, 1 refuted, 3 corrected in place.
 
-**`embed_results.jsonl`** (**582 MB**) — **Decide.** Already loaded into the database. It covers
-only **196 of 799 filings**, so it is *not* a usable backup. If the database is backed up, delete
-it. If it isn't, the right fix is to back up the database, not to keep this.
+**`day9_worst_failures_arm6.md`** (39 KB) and **`day9_worst_failures_static.md`** (29 KB), both in
+git — the 20 worst failures per arm, from `scripts/archive/worst_failures.py`. **Both are on disk
+and both are tracked.** They are the input `day9_failure_diagnosis_ANALYSIS.md` was written from.
+Regenerate them from the finished run before quoting them: their ordering is a stated choice, not
+a measurement — failures are ranked by how close the gold evidence got to the answer model.
 
-**`company_lexicon.json`** (10 KB) — **Keep — actively read** on the search path.
-Careful: it's committed to git *and* rebuilds itself only when missing. A stale committed copy will
-silently win over a corpus change. If the corpus grows, delete this file to force a rebuild.
+### Deployment measurements
 
-**`unanswerable_questions.jsonl`** (47 questions) — trick questions with no answer in the corpus,
-used to test whether the system says "I don't know" instead of inventing a number. Five kinds;
-30 of them are checkable by machine, the other 17 rest on what an annual report contains and say
-so in the file. **Keep — hand-written, not regeneratable.**
+**`onnx_parity_results.json`** (753 B, in git) — `DEPLOY-6`'s gating measurement: does int8
+quantisation reorder the reranker's top 10? int8 re-scores the exact candidate sets in
+`retr7_rr_dev_scores.jsonl`, so first stage, candidate pool, labels and query text are all held
+fixed and only the arithmetic differs. **Keep** — without it, the deployed box cannot claim
+`RETR-39`'s figures.
 
-**`ci_retrieval_fixture.jsonl` / `ci_retrieval_baseline.json`** — the small committed slice the
-automatic quality check scores, plus the numbers it compares against. **Keep once built** — they
-are what lets the check run without a database or a GPU. **Both exist** (built 2026-09-05), and
+**`ort_fp32_latency.json`** (968 B, in git) — the missing cell `DEPLOY-11` never measured. It
+compared torch-fp32 against ORT-int8 and read the gap as a *precision* result, but that changed
+two variables: torch reaches Apple's AMX through Accelerate, ORT's MLAS gets plain NEON. This
+file adds ORT-fp32, so the two are separable. **Keep — it is the correction to a published
+reading.**
+
+**`deploy14_candidate_k_curve.json`** (5.0 KB, in git) — what cutting `CANDIDATE_K` actually costs
+in recall, both splits, k from 50 down to 10. A **replay, not an estimate**: the scores file
+stores all 50 candidates in first-stage order with rerank scores attached, so slicing at k' and
+re-sorting reproduces the served ranking bit for bit. **Keep** — it prices the latency lever with
+no model and no GPU.
+
+**`wordlist_web2.txt`** (2.4 MB, in git) — the English dictionary the company resolver uses to
+avoid treating ordinary words as tickers. **Force-tracked on purpose:** the `Dockerfile` copies it
+into the image and `scripts/checks/container_wordlist.py` asserts it is there at build *and*
+runtime, because the container has no system dictionary and falling back would silently give the
+deployed box a resolver the benchmark never measured (`DEPLOY-2`). **Keep — load-bearing.**
+
+### Everything else
+
+**`embed_results.jsonl`** (582 MB, not in git) — **Decide.** Already loaded into the database, and
+it covers only **196 of 799 filings**, so it is *not* a usable backup. If the database is backed
+up, delete it. If it isn't, the right fix is to back up the database, not to keep this. It is now
+the single largest recoverable file in `data/`.
+
+**`company_lexicon.json`** (9.9 KB, in git) — **Keep — actively read** on the search path.
+Careful: it is committed *and* rebuilds itself only when missing, so a stale committed copy
+silently wins over a corpus change. If the corpus grows, delete this file to force a rebuild.
+
+**`unanswerable_questions.jsonl`** (**47** questions, in git) — trick questions with no answer in
+the corpus, used to test whether the system says "I don't know" instead of inventing a number.
+Five kinds; 30 are checkable by machine, the other 17 rest on what an annual report contains and
+say so in the file. **Keep — hand-written, not regeneratable.**
+
+**`unanswerable_results.jsonl`** (40 KB, **48 rows**, in git) — the abstention run's per-question
+output. **Keep. You paid for it.** It has 48 rows because it predates `unans_034`'s retirement to
+`data/archive/`; the live set is 47.
+
+**`ci_retrieval_fixture.jsonl`** (519 KB) and **`ci_retrieval_baseline.json`** (314 B), both in
+git — the small committed slice the automatic quality check scores, plus the numbers it compares
+against. **Keep** — they are what lets the gate run with no database and no GPU, and
 `.github/workflows/ci.yml`'s `gate` job fails without them.
+
+`day5_embed_payload.json` (103 MB) is **gone** (`64de14e`); it rebuilt in minutes.
 
 ---
 
 ## Safe to delete
 
-| What | Size |
-|---|---|
-| `data/day6_arm4_A_rerank_payload.json` | 230 MB |
-| `data/day8_retr16_rerank_payload.json` | 113 MB |
-| `data/day5_embed_payload.json` | 103 MB |
-| `data/day8_failure_cases.json` | 15 MB |
-| `data/day6_gold_labeling_audit.txt` | 1.5 MB |
-| `data/rerank_scores_603filings.jsonl` | 1.1 MB |
-| `data/day8_failure_slices/` | 556 KB |
-| `data/day5_prepare_payload_stdout.log` | 77 KB |
-| `data/day6_arm4_*_cpu_dev_*` (6 files) | 21 KB |
-| Three ingest `stdout.log` files | 25 KB |
-| All `__pycache__/` folders | ~280 KB |
-| **Running total** | **~465 MB** |
-| `data/embed_results.jsonl` — only if the database is backed up | 582 MB |
-| **With that** | **~1.04 GB** |
+`64de14e` already removed everything that was on this list bar one. What remains:
 
-**Looks deletable, is not:** anything ending `_rerank_scores.jsonl` or `_slice_scores_*.jsonl`
-(GPU hours), `day7_gold_inds_matched_full.json` (nothing can recreate it),
-`day8_cost13_payload.json` (`COST-34` upgraded it to Keep, and `.gitignore` carries a `!` override for it), `day8_cost13_responses.jsonl`, `day6_table_summaries.json` and `day9_arm6_dev_results.jsonl`
-(paid for — the last one is also what makes a re-run free), and the `.bak_old_labeler` and
-`data/archive/*.bak` files (deliberately kept).
+| What | Size | Condition |
+|---|---|---|
+| `data/embed_results.jsonl` | 582 MB | only if the database is backed up — it covers 196 of 799 filings, so it is not itself a backup |
+| `data/label_audit/` | 38 MB | the audit is closed and this replays from a seeded script |
+| `data/day8_failure_cases_retr16v2.json` | 7.5 MB | free to regenerate; the conclusions are already written down |
+| All `__pycache__/` folders | ~280 KB | |
+| **Running total** | **~628 MB** | |
 
-**Deletable, and still on disk** (checked 2026-09-07): `data/day9_worst_failures_{arm6,static}.md`,
-both generated from pre-`AGENT-16` data. They regenerate for free from the finished run — the reason
-to delete rather than keep is that a stale failure list reads as a current one.
+**Looks deletable, is not:** anything ending `_rerank_scores.jsonl`, `_rr_*_scores.jsonl` or
+`_slice_scores_*.jsonl` (GPU hours), `day7_gold_inds_matched_full.json` (nothing can recreate it),
+`day8_cost13_payload.json` (`COST-34` upgraded it to Keep, and `.gitignore` carries a `!` override
+for it), `day8_cost13_responses.jsonl`, `cost31_thinking_*.jsonl`, `day6_table_summaries.json`,
+`day9_arm6_dev_results.jsonl` and `unanswerable_results.jsonl` (all paid for — and the Day 9 file
+is also what makes a re-run free), `wordlist_web2.txt` (the container asserts it at runtime), the
+`.bak_old_labeler` files and `data/archive/*` (deliberately kept).
 
 ---
 
