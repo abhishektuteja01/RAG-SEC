@@ -48,7 +48,13 @@ def variant_predicate_violations() -> list[str]:
                 continue
             try:
                 tree = ast.parse(path.read_text())
-            except SyntaxError:
+            except (SyntaxError, UnicodeDecodeError):
+                # UnicodeDecodeError is not hypothetical: macOS tar writes AppleDouble
+                # `._name.py` sidecars, and those match rglob("*.py") while being binary.
+                # Uncaught, this crashed the CONTAINER at startup rather than failing a
+                # lint run, because get_conn() calls this guard on the serving path.
+                # Skipping is correct rather than lenient -- Python source is UTF-8 by
+                # definition, so an undecodable file is not a module this guard can miss.
                 continue
             for lineno, sql in _sql_literals(tree):
                 if not FROM_CHUNKS.search(sql):
