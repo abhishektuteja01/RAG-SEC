@@ -68,7 +68,9 @@ uv sync
 The corpus (filings, parsed sections, chunks, embeddings, rerank scores) isn't
 committed — it's ~4GB and fully reproducible from EDGAR. Rebuild it in order:
 
-Each numbered phase in `scripts/pipeline/` is one stage, in order:
+Each numbered phase in `scripts/pipeline/` is one stage, in order.
+[`scripts/README.md`](scripts/README.md) is the full run order — every phase, its real run
+dates, what it costs, and what a fresh clone can and cannot rebuild.
 
 ```bash
 uv run scripts/pipeline/01_corpus.py           # fetch all 799 filings from EDGAR, parse, chunk (~1h)
@@ -85,10 +87,12 @@ uv run scripts/pipeline/01_corpus.py --rechunk   # re-chunk from data/parsed/ (~
 uv run scripts/pipeline/01_corpus.py --reparse   # re-parse from data/filings/ (~30 min)
 ```
 
-Reranking (Arm 3) needs a CUDA GPU — on a CPU it doesn't finish in reasonable
-time (see `DECISIONS.md` ARM3-2). Phase 05 is a split job for that
+Reranking (Arm 3) is the expensive stage. Phase 05 is a split job for that
 (`05_arm3_rerank.py prepare` → run `scripts/pipeline/hpc/rerank_hpc.py` on a GPU box →
 `05_arm3_rerank.py score`); adapt the GPU step to whatever cluster or cloud GPU you have.
+Every published rerank number came from that route (`DECISIONS.md` ARM3-2). It also runs
+locally without a GPU — `05_arm3_rerank.py local` — at roughly 32.6s per question per cell
+on an M3, so a full split is tens of hours. See [`scripts/README.md`](scripts/README.md).
 Corpus-growth embeddings follow the same pattern in phase 03
 (`03_index.py new-filings --prepare` → `scripts/pipeline/hpc/embed_hpc.py` →
 `03_index.py new-filings --load`).
