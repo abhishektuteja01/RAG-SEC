@@ -18,7 +18,13 @@ search is 0.241s against rerank's 32.60s).
 
 Usage:
     uv run python scripts/eval/candidate_k_curve.py
+    uv run python scripts/eval/candidate_k_curve.py --out data/deploy14_candidate_k_curve.json
+
+--out exists because DEPLOY-14 is a load-bearing negative result that lived only as prose
+in DECISIONS.md. INFRA-10 made the same fix for three other print-only scripts: a number
+whose producer wrote nothing to disk is the shape of the unsourced 9.4x.
 """
+import argparse
 import json
 import sys
 from pathlib import Path
@@ -30,6 +36,7 @@ from rag_sec.eval import (  # noqa: E402
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
+    mean_and_stderr,
     ndcg_at_k,
     recall_at_k,
 )
@@ -39,7 +46,7 @@ TOP_K = 10                  # what the answer stage sees; unchanged by this leve
 KS = (50, 40, 30, 25, 20, 15, 10)
 
 
-def curve(split: str) -> None:
+def curve(split: str) -> dict:
     scores = _ROOT / "data" / f"retr7_rr_{split}_scores.jsonl"
     published = {}
     with open(scores) as f:
@@ -59,8 +66,9 @@ def curve(split: str) -> None:
             rows.append((cell, gold))
 
     print(f"\n-- {split}, n={len(rows)}, cell={CELL}, top_k={TOP_K} --")
-    print(f"  {'K':>4}  {'recall@10':>10}  {'nDCG@10':>8}  {'vs K=50':>8}  {'ceiling':>8}")
+    print(f"  {'K':>4}  {'recall@10':>10}  {'+/-':>6}  {'nDCG@10':>8}  {'vs K=50':>8}  {'ceiling':>8}")
     base = None
+    curve_rows = []
     for k in KS:
         rec, nd, ceil = [], [], []
         for cell, gold in rows:
@@ -71,11 +79,48 @@ def curve(split: str) -> None:
             # What the reranker COULD have reached with a perfect ordering of this pool --
             # separates "the pool lost the gold" from "the reranker mis-ranked it".
             ceil.append(recall_at_k([(s, i) for s, i, _ in pool], gold, k))
-        r, n, c = (sum(x) / len(x) for x in (rec, nd, ceil))
+        r, r_se = mean_and_stderr(rec)
+        n, n_se = mean_and_stderr(nd)
+        c, _ = mean_and_stderr(ceil)
         base = base if base is not None else r
-        print(f"  {k:>4}  {r:>10.3f}  {n:>8.3f}  {r - base:>+8.3f}  {c:>8.3f}")
+        print(f"  {k:>4}  {r:>10.3f}  {r_se:>6.3f}  {n:>8.3f}  {r - base:>+8.3f}  {c:>8.3f}")
+        curve_rows.append(
+            {
+                "k": k,
+                "recall_at_10": r,
+                "recall_at_10_stderr": r_se,
+                "ndcg_at_10": n,
+                "ndcg_at_10_stderr": n_se,
+                "delta_recall_vs_k50": r - base,
+                "pool_ceiling_at_k": c,
+            }
+        )
+
+    return {
+        "n": len(rows),
+        "source": str(scores.relative_to(_ROOT)),
+        "curve": curve_rows,
+    }
 
 
 if __name__ == "__main__":
-    for s in ("dev", "test"):
-        curve(s)
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument(
+        "--out",
+        type=Path,
+        help="write the curve as JSON so DEPLOY-14 has a producer output on disk",
+    )
+    args = ap.parse_args()
+
+    result = {
+        "cell": CELL,
+        "top_k": TOP_K,
+        "ks": list(KS),
+        "splits": {s: curve(s) for s in ("dev", "test")},
+    }
+
+    if args.out:
+        out = args.out if args.out.is_absolute() else _ROOT / args.out
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(result, indent=2) + "\n")
+        print(f"\nwrote {out.relative_to(_ROOT)}")
