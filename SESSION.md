@@ -4,16 +4,18 @@ Living document. Overwrite stale lines; don't append to them. Numbers and reason
 in `DECISIONS.md` — this file only says where things stand and what to pick up. **§5 is the
 Day 9-14 checklist**; it refers to §2's numbered command lists rather than repeating them.
 
-Last updated: 2026-09-06 (late). **Days 9, 10 and 11 are COMPLETE. BOTH reranker latency routes
-are now exhausted** — ONNX/int8 is dead on macOS (`DEPLOY-11`, but for a reason that turned out to
-be wrong, see `DEPLOY-11-CORRECTED`) and cutting `CANDIDATE_K` cannot reach an interactive p95 at
-any acceptable recall (`DEPLOY-14`). The run was 200/200 questions, 0 errors, 339.6 min; the
-screenshots are captured; the gate is green on real data. **What is left is AWS, and a decision
-about what the p95 target even is.** Day 8 closed out, including the `RETR-7`/`RETR-8` re-index
-(`RETR-39`) and the last cheap cost item (`COST-34`/`COST-35`/`COST-36`). Day 10's
-observability was pulled forward ahead of the run (`OBS-1`..`OBS-12`), so it produced its
-own traces. **Read §2's first block before quoting any Day 9 number** — three of them are
-not what the pilot predicted, and two published numbers turned out to be non-comparable.
+Last updated: 2026-09-06 (very late). **Days 9, 10, 11 are COMPLETE and Day 12 is ~85% done —
+the service is DEPLOYED AND ANSWERING on real AWS hardware.** `POST /ask` returns a correct,
+cited answer from a self-hosted Postgres on Graviton3 in **157.7s, of which rerank is 156.9s
+(99.5%)** — `DEPLOY-18`. Both reranker latency routes were already exhausted (`DEPLOY-11`, whose
+stated reason was wrong — see `DEPLOY-11-CORRECTED`; and `DEPLOY-14`), and 157.7s measured on the
+target confirms the conclusion rather than rescuing it. **The real remaining bottleneck is not
+AWS: the repo has NO GIT REMOTE and has never been pushed.** Day 8 closed out, including the
+`RETR-7`/`RETR-8` re-index (`RETR-39`) and the last cheap cost item
+(`COST-34`/`COST-35`/`COST-36`). Day 10's observability was pulled forward ahead of the run
+(`OBS-1`..`OBS-12`), so it produced its own traces. **Read §2's first block before quoting any
+Day 9 number** — three of them are not what the pilot predicted, and two published numbers
+turned out to be non-comparable.
 
 **"Day N" is a unit of planned work in `spec.md`, not a calendar date** — Day 8 spanned
 several days. The `COST-`/`RETR-` IDs follow the project label, not the calendar, so a
@@ -149,20 +151,43 @@ which makes it a cross-validation of two independent code paths. **And its stage
 is still pre-`AGENT-24` saturated data** (embed 13.13s against a true 0.075s) — regenerate it
 before Day 13 gates a p95 off it, which its own caption says it will.
 
-**What still needs a human. Every measurement the old list named is now DONE — what is left is
-AWS and one decision:**
+### AWS is LIVE — the running system, in one block
 
-1. **AWS**, the binding ~10h block, and now the ONLY block. Genuinely unblocked: the route is
-   chosen, the wordlist is baked, the code is reviewed. **Open the account and request credits
-   FIRST** — the first five steps are waiting, and they run in parallel with everything else.
-2. **Decide what the p95 target is.** Both latency routes are measured and both failed (below).
-   The honest options are: ORT int8 **on Graviton** (a ~20-minute check on the EC2 host you are
-   building anyway, and genuinely open), HF **TEI** (purpose-built arm64 reranker server, never
-   tried), or **restate the target as non-interactive** and say why in the writeup. The third
-   costs zero hours and is defensible — see `DEPLOY-14`'s arithmetic.
-3. **Re-derive the EC2 sizing basis before using it** (`DEPLOY-12`) — now mostly bookkeeping,
-   because `DEPLOY-11-CORRECTED` explains the gap it flagged: 63.0s native vs 207.8s container
-   is **AMX vs NEON** (Linux cannot reach Apple's AMX coprocessor), not container overhead.
+**Deployed 2026-09-06 and answering.** Everything here exists right now; nothing below is a plan.
+
+| what | value |
+|---|---|
+| account | Paid plan (the **Free plan cannot offer an 8 GiB Arm instance** — `DEPLOY-17`) |
+| credits | **$160** = $100 signup + 3 × $20 (EC2, Budgets, RDS). Lambda + Bedrock skipped — no project use |
+| region | **us-east-2 only.** Anything in another region is invisible from the console you are looking at |
+| instance | `i-0ebb938d759088661`, **`c7g.2xlarge`** (8 vCPU, 16 GiB, Graviton3, non-burstable), ~$0.29/hr |
+| address | Elastic IP **`3.149.223.184`** — stable across stop/start, which is why it exists |
+| ssh | `ssh -i ~/.ssh/ragsec-key.pem ec2-user@3.149.223.184` |
+| IAM | user `ragsec-deploy` (local CLI, profile `ragsec`); instance role `ragsec-ec2-ecr` so **no keys live on the box** |
+| image | ECR `294417174821.dkr.ecr.us-east-2.amazonaws.com/ragsec:d12.1`, built **on the host** (arm64 native, no 4GB home upload) |
+| Postgres | self-hosted from `Dockerfile.postgres`, `pg_search` 0.25.1 + `vector` 0.8.6, bound to `127.0.0.1` |
+| corpus | restored from a 670MB `pg_dump`: **A=99654 / B=4708 / C=1665**, all four indexes |
+| deploy dir | `~/deploy` on the host — `compose.yml` + `.env` (0600), NOT in the repo |
+| endpoints | `/health` and `/ready` green; `/ready` re-runs `store.preflight`, so it independently re-verifies the corpus |
+| **not yet done** | **port 8000 is closed to the internet** — reachable only from inside the box |
+
+**Stop the instance when idle.** Containers restart automatically and warmup is 75s.
+
+**What still needs a human — and AWS is no longer the top of the list:**
+
+1. **PUBLISH THE REPO. There is no git remote and nothing has ever been pushed.** ~30 min, and
+   it is the only thing genuinely standing between this work and a public artifact. It was
+   never AWS.
+2. **Decide port 8000's exposure.** `/ask` calls Gemini per request with no auth, so a public
+   URL is a spend vector once it is in a README. Suggested: keep the security group on your own
+   IP and widen to `0.0.0.0/0` only while demoing — a ten-second edit either way.
+3. **The p95 target: restate it as non-interactive.** `DEPLOY-18` measures 157.7s on the target
+   with rerank at 99.5% and embed+search at 0.74s combined, so no first-stage work can move it.
+   Reaching interactive needs ~50-75x; K=10 buys 5x for 0.224 recall. One route remains genuinely
+   open and it is now cheap — **ORT int8 vs torch on Graviton3, ~1h, on the host that exists**
+   (`DEPLOY-11-CORRECTED`; Graviton3 has SVE and i8mm, unlike the M3, and unlike t4g's Graviton2).
+4. **`DEPLOY-12`'s sizing basis is now re-derivable from real hardware** — supersede the
+   container's 207.8s with `DEPLOY-18`'s 156.9s on 8 known cores.
 
 ### The two latency routes, both now measured and both closed
 
@@ -460,6 +485,13 @@ original claim.
   never `pmset -g therm` (no thermal warning has ever been recorded here). **Numbers measured
   before 2026-09-05 in a long pass are saturated-regime and are not the system's latency.**
   Any latency this project publishes needs the machine state recorded next to it.
+- **Latency drift has now had THREE different mechanisms and nobody guessed any of them.**
+  Battery/thermals were wrong; it was MPS memory (`AGENT-24`). On AWS the drift was CPU
+  credits: a `t4g` burstable in `Standard` mode ran a single question past 1029s while
+  `CPUCreditBalance` fell 34.4 -> 0.04 (`DEPLOY-17`). **Diagnose with the metric for the
+  machine you are on** — `sysctl vm.swapusage` on the laptop, `CPUCreditBalance` on a
+  burstable instance — and never publish a latency without the machine state beside it. The
+  deployment host is deliberately **non-burstable** so this class cannot recur.
 - **Don't run two CPU passes concurrently.** Measured 2026-09-01: contended ~0.5 it/s vs
   ~3.9 it/s alone — **8x, not 2x**. Each compression pass took ~5 min alone against a
   projected 40. Run them sequentially.
@@ -526,51 +558,72 @@ Where each day stands. The old "run-list #N" numbering is retired — that list 
       than fp32 within ORT. **Graviton is Linux + i8mm, so it is untested there, not ruled out**
 - [x] **`CANDIDATE_K` cut measured on BOTH splits and it FAILS as a latency route** (`DEPLOY-14`).
       K=30 adopted as a 40% trim (test recall 0.711); no K reaches an interactive p95
-- [ ] **Decide the p95 target** — Graviton ORT int8 (~20 min on the host), HF TEI, or restate it
-      as non-interactive. **This is now the only open reranker decision**
-- [ ] **Re-derive the sizing basis** (`DEPLOY-12`) — container 207.8s vs native 63.0s, and the
-      reranker is bandwidth-bound so `DEPLOY-6`'s per-vCPU scaling does not hold
-- [ ] **AWS account** — user-owned (card, MFA). Pick the **Free** plan at signup, not Paid
-- [ ] Verify the $100 landed: Billing -> **Credits**, a real row with amount + expiry. Empty page = fall back
-- [ ] Zero-spend Budget **before any workload** — the "Free plan shuts down instead of billing" claim is
-      unconfirmed by AWS
-- [ ] Four remaining $20 tasks, then re-check Credits that they paid out. Delete the RDS instance after
-- [ ] Report whether the second $100 arrived — it sets instance size and how long the URL stays up
-      (`DEPLOY-4`). All five gate everything below
-- [ ] IAM, ECR, S3 — no local build needed, and the image now exists to push
-- [ ] Both containers on one EC2 host via docker-compose, arm64/Graviton (`DEPLOY-4`). Postgres from
-      `Dockerfile.postgres` — **not** RDS; `pg_search` rules it out (`DEPLOY-2`). **Size from
-      `DEPLOY-6`'s decision, not from the 2.17GiB alone**
-- [ ] **~20 min once the host exists: ORT int8 vs torch on Graviton.** Cheap because the instance
-      is already there; the one route `DEPLOY-11-CORRECTED` leaves genuinely open
-- [ ] Corpus load — needs a `pg_dump` of the 2.1 GB live DB. **Unblocked now**
+- [x] **Sizing basis re-derived on real hardware** (`DEPLOY-17`/`DEPLOY-18`) — API is **3.95 GiB
+      resident**, so `t4g.small`'s 2 GiB was never viable and the free tier is ruled out by RAM
+      before latency. `t4g` burstable also throttles (credits 34.4 -> 0.04 in 35 min), making
+      latency a function of uptime. Host is `c7g.2xlarge`, non-burstable
+- [x] **AWS account** — created, **upgraded to Paid** (Free plan has no 8 GiB Arm type)
+- [x] Credits verified: **$160**. EC2 needed launch **and terminate** to pay out; Lambda and
+      Bedrock deliberately skipped (no project use, $40 left on the table)
+- [x] Zero-spend Budget created (it was also one of the $20 tasks)
+- [x] RDS throwaway created and **deleted**, no final snapshot retained
+- [x] IAM — `ragsec-deploy` + instance role `ragsec-ec2-ecr`. **S3 skipped**: the `pg_dump` went
+      over `scp` in 79s, so a whole service was avoided rather than added
+- [x] ECR — repo `ragsec`, image `d12.1`. **Built ON the host**, not pushed from the laptop:
+      4.4GB of weights come down over AWS's backbone instead of up a home connection
+- [x] Both containers on one host via docker-compose, arm64/Graviton. Postgres from
+      `Dockerfile.postgres`, **not** RDS (`DEPLOY-2`)
+- [x] Corpus loaded — 670MB dump, sha verified both ends, A=99654/B=4708/C=1665, 4 indexes
+- [x] `/health` + `/ready` green; wordlist guard verified ON in a running container, so
+      **`DEPLOY-7` is now proven rather than merely built**
+- [ ] **Open port 8000** — the last step to a live URL, and a decision (see §2, item 2)
+- [ ] **ORT int8 vs torch on Graviton3, ~1h.** Runs as-is now that Postgres is on the host;
+      the one route `DEPLOY-11-CORRECTED` leaves genuinely open
 - [x] Bedrock dropped, generation stays Gemini (`DEPLOY-3`, closes `AGENT-18`)
 
 ### Day 13 — Ship and latency
-- [ ] Deploy finished, live URL, single EC2 host, up through Day 14 (`DEPLOY-4`) — depends on
-      Day 12 and on the credit check; falls back to deploy/screenshot/teardown if credits fall short
-- [ ] MCP server — not started
-- [ ] p95 measured **in the container** (`DEPLOY-1`) — the field it reads is fixed and populated
-      (`DEPLOY-5`), but the number it currently gives is 212s (`DEPLOY-6`)
-- [ ] Gate enforces p95 — **blocked on `DEPLOY-6`**, not on the gate
+- [x] Deploy done on a single EC2 host; **only the firewall stands between it and a live URL**
+- [ ] MCP server — not started. **Cuttable (2-3h, nothing depends on it)**
+- [x] p95 basis measured **in the container on the target** — `stage_latency` populates correctly
+      (`DEPLOY-5`'s whitelist fix), and one warm question gives 157.7s total / 156.9s rerank
+- [ ] Gate enforces p95 — **unblocked**: pick a threshold off `DEPLOY-18` and state the host next
+      to it. No longer blocked on a reranker route, because both are closed
 
 ### Day 14 — Ship
 - [ ] README benchmark table + trace screenshots — depends on the screenshots above
 - [ ] The written post
 - [ ] Final drill
 
-**What remains is AWS, and one decision.** Days 9, 10 and 11 are done bar one dashboard tile.
-Both reranker latency routes are now measured and both failed, so **no local measurement gates
-anything any more** — the next action is to open the AWS account and request credits, because
-the first five steps are calendar waiting that nothing can compress. **Roughly 20-25 hours of
-work remain**, plus that waiting; budget is not a constraint (~$29-30 of $40 left, and almost
-nothing left costs money).
+**What remains is publishing, not building.** Days 9-11 are done bar one dashboard tile, and
+Day 12 is done bar the firewall. **The bottleneck all along was never AWS: this repo has no git
+remote and has never been pushed.** That is ~30 minutes.
 
-**The p95 decision is the one thing that needs a human.** `DEPLOY-14`'s arithmetic says the
-workload cannot reach an interactive p95 on free-tier CPU, and saying that plainly in the
-writeup — with the three measured routes behind it — is stronger than a number fudged into
-range. Two optional scope cuts if you want to publish sooner: the **MCP server** (2-3h, nothing
-depends on it) and the **second interview drill**.
+**Roughly 15-20 hours left**, in the order worth doing them:
+
+1. **Publish the repo** — 30 min. Nothing else is gated on it and everything benefits.
+2. **ORT int8 vs torch on Graviton3** — ~1h, only needs the host that already exists, and it
+   closes the last open measurement in the writeup.
+3. **Open port 8000** — 10 min plus the exposure decision.
+4. **Regenerate the stale dashboard tile** (`OBS-13`) — 30 min; it currently shows
+   saturated-regime numbers its own caption says Day 13 gates on.
+5. **The deliberately-broken commit proving the gate fires** — 20 min. `spec.md §7` names it
+   explicitly; the gate exists and is proven on a fixture, but not in the history.
+6. Citation grounding (1-2h) · p95 gate threshold (1h) · README + table + screenshots (2h, and
+   it still publishes **0.752** where the current number is **0.747**) · the written post (2-3h)
+   · two drills (2-3h).
+7. **Script reorg** — 65 scripts, 9 near-duplicate copies of one ranking loader (the `AGENT-16`
+   bug lived in one of them). Full job 22-30h; the **publishable subset is 4-5h and is all
+   documentation** — a `scripts/README.md` giving the run order beats renaming files, which
+   would break CI, the Dockerfile and the `.sbatch` fallbacks.
+
+**Budget is not a constraint:** ~$160 of AWS credit, valid 12 months from signup, and ~$29 of
+the $40 API budget. The live host costs ~$0.29/hr and should be **stopped when idle**.
+
+**The p95 decision is made in all but writing: restate it as non-interactive.** `DEPLOY-18`
+measures 157.7s on the deployment target with rerank at 99.5%, so this is a property of the
+workload, not of a bad host. Saying that with four measured routes behind it is stronger than a
+number fudged into range. Optional scope cuts if you want to publish sooner: the **MCP server**
+(2-3h) and the **second drill**.
 
 **If you run anything on this laptop, read `DEPLOY-12` first:** fanless M3 Air, and ORT rerank
 latency drifted 1.5-3.3x within *three* questions while torch stayed flat. Record per-question
