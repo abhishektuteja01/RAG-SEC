@@ -65,7 +65,7 @@ def main() -> int:
 
     if not args.scores.exists():
         print(f"error: {args.scores} absent -- it is gitignored and must be rebuilt first "
-              f"(scripts/retrieval/rerank_hpc.py)", file=sys.stderr)
+              f"(scripts/pipeline/hpc/rerank_hpc.py)", file=sys.stderr)
         return 1
 
     # Sorted on load, not read as stored. rerank_hpc.py zips scores onto the FIRST-STAGE

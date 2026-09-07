@@ -26,13 +26,13 @@ DECISIONS.md ROWS THIS BACKS
 
 WHEN THIS ACTUALLY RAN (calendar dates, not "Day N")
     2026-08-28   the Arm 3 cross-encoder HPC pass (its Day-5/6 ancestor,
-                 scripts/archive/arm3_rerank_hpc.py)
+                 arm3_rerank_hpc.py, deleted in the pipeline reorg; see git history)
     2026-08-30   those results rescored on the laptop
     2026-09-04   the current retr7_* passes, dev and test, after the RETR-7/RETR-8
                  re-index
 
 TRAPS
-  * THE BASENAME IS PART OF THE CONTRACT. `scripts/retrieval/rerank_hpc.sbatch` does
+  * THE BASENAME IS PART OF THE CONTRACT. `scripts/pipeline/hpc/rerank_hpc.sbatch` does
     `cd ~` and then `python -u rerank_hpc.py` by bare name, after this file has been
     scp'd to the cluster home directory. Renaming it breaks the submitted job, not this
     repo. Same for argv: exactly two positionals, `payload.json results.jsonl`.

@@ -175,8 +175,8 @@ from rag_sec.tracing import (  # noqa: E402
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
 DATA_DIR = _ROOT / "data"
 
-# Sampling seed. Fixed, and shared with scripts/eval/latency_measure.py and
-# scripts/checks/mps_leak_probe.py, so a latency probe and this run see the SAME questions
+# Sampling seed. Fixed, and shared with scripts/archive/latency_measure.py and
+# scripts/archive/mps_leak_probe.py, so a latency probe and this run see the SAME questions
 # in the same order -- AGENT-20/AGENT-24's stage-latency comparisons depend on that.
 SEED = 42
 

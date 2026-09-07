@@ -1,5 +1,5 @@
 """The shipping retrieval path: dense + BM25/RRF + cross-encoder rerank, query in and
-ranked chunks out. Same pipeline scripts/archive/arm3_singleprocess.py evaluates offline
+ranked chunks out. Same pipeline scripts/pipeline/05_arm3_rerank.py evaluates offline
 (DECISIONS.md ARM2-1/ARM3-1/RETR-31); candidate generation itself lives in
 `rag_sec.candidates`, shared with every offline arm rather than re-implemented (RETR-36).
 """
@@ -103,7 +103,7 @@ def _drain_mps(device: str) -> float:
     the usual sense: torch.mps.current_allocated_memory() stays pinned at 4542 MB throughout,
     so nothing is retained; the caching allocator simply never returns freed blocks to a
     16 GiB unified-memory system that needs them back. Measured both ways over 25 questions
-    (AGENT-24, scripts/checks/mps_leak_probe.py).
+    (AGENT-24, scripts/archive/mps_leak_probe.py).
 
     `startswith`, not `==`: RAG_SEC_DEVICE is returned verbatim by `pick_device()`, and a
     perfectly valid `mps:0` would otherwise turn the drain off silently and regress latency
@@ -158,7 +158,7 @@ def retrieve(
 
     `strip_query` reranks against the question with company/filing framing removed, while
     candidate generation still sees the full question -- exactly the split
-    scripts/retrieval/rerank_prepare.py measured. Alone it is +0.015, but
+    scripts/pipeline/05_arm3_rerank.py measured. Alone it is +0.015, but
     with the filter it is +0.145: once every candidate is the right company, the company
     name only rewards whichever chunk repeats the most boilerplate (RETR-6).
 

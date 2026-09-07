@@ -7,10 +7,10 @@ element.
 Provenance: the `ARM3-2`/`ARM3-3` split-job and batching design, applied to `ARM4-*`.
 Outputs: `data/day6_arm4_{A,B,C}_rerank_scores.jsonl` -- three real GPU passes, all three
 still on disk. **The A file is read by live code today**: it is the `unfiltered_raw`
-baseline in `scripts/retrieval/rerank_score.py` and the input to
-`scripts/analysis/failure_triage.py`. Archiving this script does not retire its data.
+baseline in `scripts/pipeline/05_arm3_rerank.py` (`score`) and the input to
+`scripts/archive/failure_triage.py`. Archiving this script does not retire its data.
 
-Replaced by: `scripts/retrieval/rerank_hpc.py`.
+Replaced by: `scripts/pipeline/hpc/rerank_hpc.py`.
 
 Safe to run today? Yes on a GPU box. Self-contained by design (`ARM3-2`/`INFRA-6`): no
 database, no `rag_sec` import -- do not add one. Do not let it overwrite

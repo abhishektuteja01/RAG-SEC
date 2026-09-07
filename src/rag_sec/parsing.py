@@ -159,7 +159,7 @@ def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
 
 
 def load_parsed_blocks(path) -> list[Block]:
-    """Inverse of what scripts/corpus/build_corpus.py writes to data/parsed/. Shared by the
+    """Inverse of what scripts/pipeline/01_corpus.py writes to data/parsed/. Shared by the
     chunker and by rag_sec.compress so the two can never disagree about how a stored block
     is rebuilt -- a divergent copy of this (bool vs string `is_title`) silently reshuffles
     every chunk boundary while still looking like it worked."""

@@ -116,7 +116,7 @@ not quote as a result).
 ## 4. This is not the `multi_doc` flag already in the repo
 
 There is exactly one `multi_doc` in the codebase, and it measures a different thing.
-`scripts/analysis/pack_variants.py:287`:
+`scripts/archive/pack_variants.py:287`:
 
 ```python
 stems = {u["chunk"][0] for u in (units[i] for i in kept)}
@@ -203,7 +203,7 @@ cannot be fixed by re-running, by sampling differently, or by spending more.
   the two arms differ only in the loop.
 
 **Caveat to state first, always:** n≈200 dev questions, one split, single-document only, and
-the run is scored by `scripts/eval/agent_analyze.py`. Nothing here is a test-split number.
+the run is scored by `agent_analyze.py` (now `scripts/pipeline/07_arm6_loop.py analyze`). Nothing here is a test-split number.
 
 ## 7. If asked "so what should you have done"
 

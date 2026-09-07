@@ -31,7 +31,7 @@ PRODUCES
 
 READS
     data/day6_gold_tables.json    which (filing, table_index) answers which question,
-                                  from scripts/archive/arm4_identify_gold_tables.py
+                                  from scripts/pipeline/02_gold_labels.py (`tables`)
     data/parsed/*.json            the block lists phase 01 wrote
     data/day6_table_summaries.json  cached variant-C summaries — ALL 498 ALREADY CACHED
     Postgres `chunks`, and the matched question set via rag_sec.eval
@@ -82,7 +82,7 @@ TRAPS
     Arm 4 carries (stem, index, variant) triples everywhere and Arm 3 does not.
   * GPU PROVENANCE IS UNVERIFIED AND CONTRADICTORY. `score` stamps its results file
     "Tesla V100-SXM2-32GB", while the Arm 3 finalizer
-    (scripts/archive/arm3_rerank_score.py:100) stamps "Tesla V100-PCIE-32GB" for what was
+    (data/day5_arm3_dev_results.json) stamps "Tesla V100-PCIE-32GB" for what was
     the same cluster and the same week. Only one can be right; no log survives to settle
     it. The string is preserved verbatim rather than corrected or deleted — see
     RERANK_DEVICE_UNVERIFIED below.
@@ -128,7 +128,7 @@ DATA_DIR = _ROOT / "data"
 PARSED_DIR = DATA_DIR / "parsed"
 
 # Which (filing, table_index) pairs are gold evidence for a dev question. 498 tables across
-# 281 filings (ARM4-3). Written by scripts/archive/arm4_identify_gold_tables.py; also read
+# 281 filings (ARM4-3). Written by scripts/pipeline/02_gold_labels.py (`tables`); also read
 # by rag_sec.eval, so it is NOT an Arm-4-only artifact.
 GOLD_TABLES_PATH = DATA_DIR / "day6_gold_tables.json"
 
@@ -150,7 +150,7 @@ VARIANTS = ("A", "B", "C")
 
 # UNVERIFIED, PRESERVED VERBATIM. This exact string is what the published
 # data/day6_arm4_{A,B,C}_dev_results.json carry, so it stays byte-identical here or those
-# files stop round-tripping. But it CONTRADICTS scripts/archive/arm3_rerank_score.py:100,
+# files stop round-tripping. But it CONTRADICTS data/day5_arm3_dev_results.json,
 # which stamps "Tesla V100-PCIE-32GB (Northeastern Explorer HPC)" for the same cluster in
 # the same week — and rerank_hpc.sbatch requests `gpu:v100-sxm2:1`, which is suggestive but
 # not evidence, since the Arm 3/Arm 4 passes were interactive `srun` bookings whose actual

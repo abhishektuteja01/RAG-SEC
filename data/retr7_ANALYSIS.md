@@ -115,7 +115,7 @@ Then, on this machine:
 
 ```bash
 scp tuteja.a@xfer.discovery.neu.edu:~/retr7_rr_test_scores.jsonl data/
-uv run scripts/retrieval/rerank_score.py --scores data/retr7_rr_test_scores.jsonl \
+uv run scripts/pipeline/05_arm3_rerank.py score --scores data/retr7_rr_test_scores.jsonl \
     --split test --out data/retr7_arm3_test_results.json
 ```
 
