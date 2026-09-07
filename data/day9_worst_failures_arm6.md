@@ -4,7 +4,7 @@ Source `data/day9_arm6_dev_results.jsonl` (200 rows read, 28 excluded as unscore
 Config: top_k=10 candidate_k=50 max_iterations=4 answer=gemini-3.7-flash/medium judge=gemini-3.1-flash-lite/minimal plan=gemini-3.7-flash/low
 Classes among all 53 failures: reasoning 41, rerank 3, retrieval 9
 
-Ordering is a choice, not a measure: reasoning failures (gold was in the top-k) before rerank failures (gold was in the 50) before retrieval failures (gold was never fetched); then best gold rank, then iterations, then id. See the module docstring of `scripts/eval/worst_failures.py`.
+Ordering is a choice, not a measure: reasoning failures (gold was in the top-k) before rerank failures (gold was in the 50) before retrieval failures (gold was never fetched); then best gold rank, then iterations, then id. See the module docstring of `scripts/archive/worst_failures.py`.
 
 ---
 ## 1. `finqa_dev_672` — reasoning

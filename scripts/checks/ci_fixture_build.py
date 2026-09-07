@@ -40,6 +40,7 @@ from rag_sec.eval import (  # noqa: E402
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
+    load_ranking,
     mean_and_stderr,
     ndcg_at_k,
     recall_at_k,
@@ -64,18 +65,13 @@ def main() -> int:
 
     if not args.scores.exists():
         print(f"error: {args.scores} absent -- it is gitignored and must be rebuilt first "
-              f"(scripts/retrieval/rerank_hpc.py)", file=sys.stderr)
+              f"(scripts/pipeline/hpc/rerank_hpc.py)", file=sys.stderr)
         return 1
 
-    ranked = {}
-    with open(args.scores) as f:
-        for line in f:
-            if line.strip():
-                r = json.loads(line)
-                # Sorted on load, not read as stored. rerank_hpc.py zips scores onto the
-                # FIRST-STAGE order, so 0/1235 cells are in rank order on disk -- AGENT-16,
-                # and scripts/checks/static_ranking_order.py locks the same property.
-                ranked[r["id"]] = [(s, i) for s, i, _ in sorted(r["cells"][CELL], key=lambda x: -x[2])]
+    # Sorted on load, not read as stored. rerank_hpc.py zips scores onto the FIRST-STAGE
+    # order, so 0/1235 cells are in rank order on disk -- AGENT-16, and
+    # scripts/checks/static_ranking_order.py locks the same property of this one loader.
+    ranked = load_ranking(args.scores, CELL)
 
     df = load_matched_questions()
     split = df[df["split"] == args.split].reset_index(drop=True)

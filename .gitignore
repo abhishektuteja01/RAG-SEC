@@ -20,14 +20,14 @@ CLAUDE.md
 .claude/settings.local.json
 
 # Regeneratable data (raw filings, parsed/chunked output) -- large,
-# reproducible from scripts/corpus/build_corpus.py.
+# reproducible from scripts/pipeline/01_corpus.py.
 # Keep: logs (*.jsonl) and day2_findings.md.
 data/filings/
 data/parsed/
 data/chunks/
 
 # Regeneratable HPC split-job payloads/outputs (embeddings, rerank scores) --
-# large, reproducible via the split-job scripts in scripts/index and scripts/retrieval.
+# large, reproducible via the split-job phases in scripts/pipeline (03_index, 05_arm3_rerank).
 # Keep the small aggregated *_dev_results.json/*_dev_failures.md instead.
 data/*_embed_payload.json
 data/*_rerank_payload.json
@@ -46,7 +46,7 @@ data/*_cpu_dev_failures.md
 data/day8_*payload*.json
 
 # Day 8 diagnostic dumps -- regeneratable free (no GPU, no API) from
-# scripts/analysis/failure_triage.py; 15MB of raw failure text.
+# scripts/archive/failure_triage.py; 15MB of raw failure text.
 data/day8_failure_cases.json
 data/day8_failure_cases_retr16v2.json
 data/day8_failure_slices/
@@ -62,7 +62,7 @@ data/day8_slice_scores_t150.jsonl
 data/day8_cost13_smoke.jsonl
 
 # Label audit (RETR-9/RETR-34) -- 38MB, all of it, deliberately including the verdicts.
-# cases/ and blind/ replay from scripts/analysis/label_audit_prepare.py (SEED=17; case_id
+# cases/ and blind/ replay from scripts/archive/label_audit_prepare.py (SEED=17; case_id
 # hashes the question id, not the labels, so ids survive matcher changes). verdicts/ are
 # model-generated, not human, and the audit is closed: its rates, mechanism and the
 # RETR-35 cross-check are all written up in DECISIONS.md RETR-34/RETR-35. Re-running is
@@ -86,3 +86,22 @@ data/ingest_log.jsonl
 .DS_Store
 models/
 data/onnx_parity_partial/
+
+# --- Overrides: GPU/paid outputs the rules above wrongly swept up -----------------
+# A rule that says "regeneratable" is wrong when regenerating costs GPU hours or money.
+# These are records, not working files. ~39MB total.
+#   retr7_rr_*_scores.jsonl        the RETR-39 headline's own rerank pass. Read by
+#                                  ci_fixture_build.py, agent_run.py, onnx_rerank_parity.py
+#                                  -- i.e. CI-1, AGENT-16, AGENT-26, DEPLOY-9 all cite it.
+#   day6_arm4_*_rerank_scores      three GPU passes (ARM4-10). A is still the live control.
+#   rerank_scores.jsonl            the original Arm 3 GPU pass (ARM3-1..3).
+#   day8_cost13_payload.json       COST-34 upgraded this to Keep; the day8_*payload* rule
+#                                  above still ignored it. Changing it silently moves both
+#                                  stored arms.
+!data/retr7_rr_dev_scores.jsonl
+!data/retr7_rr_test_scores.jsonl
+!data/day6_arm4_A_rerank_scores.jsonl
+!data/day6_arm4_B_rerank_scores.jsonl
+!data/day6_arm4_C_rerank_scores.jsonl
+!data/rerank_scores.jsonl
+!data/day8_cost13_payload.json

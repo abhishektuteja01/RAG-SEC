@@ -415,3 +415,163 @@ def mean_and_stderr(values: list[float]) -> tuple[float, float]:
     variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
     stderr = math.sqrt(variance / n) if n > 0 else float("nan")
     return mean, stderr
+
+
+# The shipped arm's cell name in the rerank score files. Lives here rather than in a script
+# so the CI guard and the agent run cannot drift apart on which cell they mean.
+SHIPPED_CELL = "filtered_stripped"
+
+
+class _AllCells:
+    """Sentinel type for `load_ranking(cell=ALL_CELLS)` -- see ALL_CELLS."""
+
+    __slots__ = ()
+
+    def __repr__(self) -> str:
+        return "ALL_CELLS"
+
+
+# "every cell in this modern file", as distinct from `cell=None` = "this is a legacy file
+# with no cells". Those two are different questions with different return shapes, and one
+# argument value used to mean both: `cell=None` returned {id: {cell: [...]}} on a modern
+# file and {id: [...]}} on a legacy one. A caller written for the legacy shape then fed a
+# modern file got a dict of cells where it expected a ranking, and `recall_at_k` scored the
+# cell NAMES as chunk ids -- garbage, silently. Now each intent names itself and the wrong
+# pairing raises.
+ALL_CELLS = _AllCells()
+
+
+def load_ranking(
+    path,
+    # Required on purpose: a default made `load_ranking(path)` silently mean "legacy
+    # file, no cells", which is the ambiguity ALL_CELLS exists to remove.
+    cell: "str | None | _AllCells",
+    *,
+    with_score: bool = False,
+    with_latency: bool = False,
+    sort: bool = True,
+) -> dict:
+    """Load a `*_scores.jsonl` rerank file into `{question_id: ranking}`.
+
+    ONE loader, because there were nine near-copies of this and AGENT-16 was one of them
+    silently omitting the sort -- which turned Arm 6's own baseline into a first-stage
+    ranking and cost recall@10 0.552 against 0.739.
+
+    TWO ON-DISK SHAPES, and the dispatch is on the RECORD, never on an argument:
+
+      {"id":.., "cells": {name: [[stem, idx, rerank_score], ..]}}
+          Written by `rerank_hpc.py`, which zips rerank scores onto the FIRST-STAGE RRF
+          candidate order -- so the score is attached, not applied. 0/1235 dev cells are
+          in score order as stored. This shape MUST be sorted on load. Entries are always
+          3-wide. Files: `retr7_rr_{dev,test}_scores.jsonl`, `day8_retr16v2_dev_scores.jsonl`,
+          `day8_retr18_test_scores.jsonl`.
+
+      {"id":.., "reranked": [[stem, idx] | [stem, idx, variant_tag], ..]}
+          Already ranked, so this shape is never sorted -- and where a third field exists
+          it is the variant TAG, not a score, so sorting would order by a string.
+          TWO WIDTHS on disk, and both are real:
+            2-wide [stem, idx]              -- the original Arm 3 GPU pass, pre-Arm-4, which
+                                               had no variants to tag: `rerank_scores.jsonl`,
+                                               `rerank_scores_603filings.jsonl`.
+            3-wide [stem, idx, variant_tag] -- the Day 6 Arm 4 per-variant files:
+                                               `day6_arm4_{A,B,C}_rerank_scores.jsonl`.
+          Only 2 and 3 are accepted; any other width raises, naming the file and the width,
+          rather than being coerced into a guess about what the extra field means.
+
+    Dispatching on the record is the fix for the copy that keyed on `cell is None`: passing
+    a cell name against a legacy-shaped file returned `{}` there, with no error.
+
+    `cell` distinguishes the two intents that `None` alone used to conflate:
+      ALL_CELLS  -> every cell of a modern file, as {id: {cell_name: [...]}}
+      None       -> a legacy no-cells file, as {id: [...]}; raises on a modern record
+      "name"     -> that one cell of a modern file; raises on a legacy record
+
+    `sort=False` is for the two callers that legitimately want stored order -- slicing the
+    first K candidates in first-stage order before re-sorting (`candidate_k_curve.py`,
+    DEPLOY-13) and re-scoring the candidates from scratch (`onnx_rerank_parity.py`).
+    """
+    if cell is ALL_CELLS and with_score:
+        raise ValueError("with_score needs an explicit cell; ALL_CELLS mode returns ids only")
+
+    out: dict = {}
+    cell_seen = False
+    cells_available: set[str] = set()
+
+    with open(path) as f:
+        for line in f:
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+
+            if "cells" in rec:
+                cells_available.update(rec["cells"])
+                if cell is ALL_CELLS:
+                    value = {
+                        name: _project(entries, sort=sort, with_score=False)
+                        for name, entries in rec["cells"].items()
+                    }
+                elif cell is None:
+                    raise ValueError(
+                        f"{path}: record {rec['id']!r} is modern 'cells'-shaped, but "
+                        "cell=None means 'legacy file with no cells' and returns a bare "
+                        "ranking. Pass ALL_CELLS for every cell, or a cell name for one. "
+                        f"Available: {sorted(rec['cells'])}"
+                    )
+                elif cell in rec["cells"]:
+                    cell_seen = True
+                    value = _project(rec["cells"][cell], sort=sort, with_score=with_score)
+                else:
+                    continue
+
+            elif "reranked" in rec:
+                if cell is not None:
+                    raise ValueError(
+                        f"{path}: legacy 'reranked' record {rec['id']!r} has no cells, but "
+                        f"cell={cell!r} was requested. Pass cell=None for this file."
+                    )
+                if with_score:
+                    raise ValueError(
+                        f"{path}: legacy 'reranked' entries carry no score -- the third field, "
+                        "where present, is a variant tag -- so with_score is "
+                        "meaningless here"
+                    )
+                # Already ranked -- see the docstring; `sort` is deliberately ignored.
+                # Two real widths on disk (2-wide pre-Arm-4, 3-wide Day 6 per-variant), and
+                # only the first two fields are ever used, so both project the same way. The
+                # width is still checked instead of sliced blind: a 4-wide entry would mean a
+                # producer we have never seen, and guessing at its field order is exactly the
+                # habit that produced this project's recurring bug.
+                entries = []
+                for e in rec["reranked"]:
+                    if len(e) not in (2, 3):
+                        raise ValueError(
+                            f"{path}: legacy 'reranked' record {rec['id']!r} has a "
+                            f"{len(e)}-wide entry {e!r}; only 2-wide [stem, idx] and "
+                            "3-wide [stem, idx, variant_tag] are known shapes"
+                        )
+                    entries.append((e[0], e[1]))
+                value = entries
+
+            else:
+                raise ValueError(
+                    f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
+                    f"keys were {sorted(rec)}. A 'scores' key means this is a SLICE file "
+                    "(5-tuples of slice positions, not chunk rankings) -- different unit, "
+                    "not loadable here."
+                )
+
+            out[rec["id"]] = (value, rec.get("latency_s")) if with_latency else value
+
+    if isinstance(cell, str) and not cell_seen:
+        raise ValueError(
+            f"{path}: cell {cell!r} appears in no record. Available: "
+            f"{sorted(cells_available) or 'none'}"
+        )
+    return out
+
+
+def _project(entries, *, sort: bool, with_score: bool) -> list[tuple]:
+    ordered = sorted(entries, key=lambda e: -e[2]) if sort else list(entries)
+    if with_score:
+        return [(s, i, score) for s, i, score in ordered]
+    return [(s, i) for s, i, _score in ordered]

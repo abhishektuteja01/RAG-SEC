@@ -11,7 +11,7 @@ are marked "inference".
 
 ## 1. Framing: "worst" is an ordering choice, not a measurement
 
-`scripts/eval/worst_failures.py`'s docstring is explicit: ranking failures by wrongness is
+`scripts/archive/worst_failures.py`'s docstring is explicit: ranking failures by wrongness is
 meaningless here (a number either matches gold or it does not), so the file orders by **how
 close the gold evidence got to the answer model** — `reasoning` (gold was in the top-k) before
 `rerank` (gold was in the 50 candidates) before `retrieval` (gold never fetched), then best

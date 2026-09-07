@@ -11,12 +11,12 @@ scored under the coverage-based gold labels (`DECISIONS.md` RETR-35):
 
 | Cell | recall@10 |
 |---|---|
-| reranked baseline | 0.604 |
+| reranked baseline | 0.607 |
 | + company filter | 0.644 |
-| + query strip | 0.625 |
-| **+ both** | **0.752** |
+| + query strip | 0.632 |
+| **+ both** | **0.747** |
 
-The two together are worth 2.4x their sum: once every candidate is the right company, the
+The two together are worth 2.3x their sum: once every candidate is the right company, the
 company name in the query only rewards whichever chunk repeats the most boilerplate.
 
 Every arm is scored on the same 799-filing corpus, same split, same labels. Full
@@ -68,41 +68,47 @@ uv sync
 The corpus (filings, parsed sections, chunks, embeddings, rerank scores) isn't
 committed — it's ~4GB and fully reproducible from EDGAR. Rebuild it in order:
 
+Each numbered phase in `scripts/pipeline/` is one stage, in order.
+[`scripts/README.md`](scripts/README.md) is the full run order — every phase, its real run
+dates, what it costs, and what a fresh clone can and cannot rebuild.
+
 ```bash
-uv run scripts/corpus/build_corpus.py    # fetch all 799 filings from EDGAR, parse, chunk (~1h)
-uv run scripts/index/embed_local.py      # embed + load into Postgres
-uv run scripts/index/index_bm25.py       # build BM25 index (pg_search)
+uv run scripts/pipeline/01_corpus.py           # fetch all 799 filings from EDGAR, parse, chunk (~1h)
+uv run scripts/pipeline/03_index.py local      # embed + load into Postgres
+uv run scripts/pipeline/03_index.py bm25       # build BM25 index (pg_search)
 ```
 
-`build_corpus.py` skips whatever is already on disk, so it resumes after an interruption
+`01_corpus.py` skips whatever is already on disk, so it resumes after an interruption
 and re-running it is a no-op. After changing `chunking.py` or `parsing.py`, rebuild without
 re-downloading:
 
 ```bash
-uv run scripts/corpus/build_corpus.py --rechunk   # re-chunk from data/parsed/ (~4 min)
-uv run scripts/corpus/build_corpus.py --reparse   # re-parse from data/filings/ (~30 min)
+uv run scripts/pipeline/01_corpus.py --rechunk   # re-chunk from data/parsed/ (~4 min)
+uv run scripts/pipeline/01_corpus.py --reparse   # re-parse from data/filings/ (~30 min)
 ```
 
-Reranking (Arm 3) needs a CUDA GPU — on a CPU it doesn't finish in reasonable
-time (see `DECISIONS.md` ARM3-2). The split-job scripts in `scripts/retrieval/`
-(`rerank_prepare.py` → run `rerank_hpc.py` on a GPU box → `rerank_score.py`) exist
-for that; adapt the GPU step to whatever cluster or cloud GPU you have.
-Corpus-growth embeddings follow the same split-job pattern in `scripts/index/`
-(`embed_prepare.py` → `embed_hpc.py` → `embed_load.py`).
+Reranking (Arm 3) is the expensive stage. Phase 05 is a split job for that
+(`05_arm3_rerank.py prepare` → run `scripts/pipeline/hpc/rerank_hpc.py` on a GPU box →
+`05_arm3_rerank.py score`); adapt the GPU step to whatever cluster or cloud GPU you have.
+Every published rerank number came from that route (`DECISIONS.md` ARM3-2). It also runs
+locally without a GPU — `05_arm3_rerank.py local` — at roughly 32.6s per question per cell
+on an M3, so a full split is tens of hours. See [`scripts/README.md`](scripts/README.md).
+Corpus-growth embeddings follow the same pattern in phase 03
+(`03_index.py new-filings --prepare` → `scripts/pipeline/hpc/embed_hpc.py` →
+`03_index.py new-filings --load`).
 
 ## Running the eval
 
 ```bash
-uv run scripts/retrieval/arm1_dense.py         # dense only
-uv run scripts/retrieval/arm2_hybrid.py        # + BM25 / RRF fusion
-uv run scripts/archive/arm3_singleprocess.py   # + reranker (archived single-machine reference; slow on CPU, use -n for a quick check)
+uv run scripts/pipeline/04_arms_first_stage.py arm1        # dense only
+uv run scripts/pipeline/04_arms_first_stage.py arm2        # + BM25 / RRF fusion
+uv run scripts/pipeline/05_arm3_rerank.py local --n 20     # + reranker, single machine (slow on CPU; use --n)
 ```
 
-The recorded Arm 3 baseline was produced by the split-job pipeline instead
-(`scripts/archive/arm3_rerank_prepare.py` → `arm3_rerank_hpc.py` on a GPU box →
-`arm3_rerank_score.py`) — see `DECISIONS.md` ARM3-2 for why a full CPU run isn't
-viable. Those three are archived; the current split-job trio is
-`scripts/retrieval/rerank_{prepare,hpc,score}.py`.
+The recorded Arm 3 baseline was produced by phase 05's split job instead
+(`05_arm3_rerank.py prepare` → `scripts/pipeline/hpc/rerank_hpc.py` on a GPU box →
+`05_arm3_rerank.py score`) — see `DECISIONS.md` ARM3-2 for why a full CPU run isn't
+viable. Arm 4's table-layout variants are phase 06 and the agent loop is phase 07.
 
 ## Docs
 
