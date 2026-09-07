@@ -1,6 +1,9 @@
 """Locks the one property `agent_run.static_baseline` assumes about its input: the static
 rankings it slices `[:TOP_K]` from are in DESCENDING rerank-score order at the point of use.
 
+Checks `rag_sec.eval.load_ranking`, the single loader every caller now shares, rather than
+importing a script by filename -- so this gate no longer breaks when scripts move.
+
 Nothing in the pipeline guarantees this. `rerank_hpc.py:132-135` writes each cell by zipping
 scores onto the FIRST-STAGE RRF candidate order, so the score is merely attached; the
 published scorer sorts on load (`rerank_score.py:62`) and `agent_run.py` did not. Measured
@@ -21,9 +24,16 @@ from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
-sys.path.insert(0, str(_ROOT / "scripts" / "eval"))
 
-from agent_run import STATIC_CELL, load_static_rankings  # noqa: E402
+# Imported from the library, not from scripts/eval/agent_run.py. A CI gate must not depend
+# on a pipeline script's filename or its symbol names -- moving that file used to break CI.
+from rag_sec.eval import SHIPPED_CELL as STATIC_CELL  # noqa: E402
+from rag_sec.eval import load_ranking  # noqa: E402
+
+# The exact call agent_run.py makes. Locking the flags, not a wrapper, keeps this the only
+# implementation -- a wrapper here would just be a tenth copy of the thing being checked.
+def _load(path: str) -> dict:
+    return load_ranking(path, STATIC_CELL, with_score=True, with_latency=True)
 
 
 def _descending(cell) -> bool:
@@ -41,9 +51,9 @@ def _synthetic() -> list[str]:
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "scores.jsonl"
         p.write_text("".join(json.dumps(r) + "\n" for r in rows))
-        ranked, latency = load_static_rankings(str(p))["synth-1"]
+        ranked, latency = _load(str(p))["synth-1"]
     if not _descending(ranked):
-        return [f"load_static_rankings did not sort an out-of-order cell: {ranked}"]
+        return [f"load_ranking did not sort an out-of-order cell: {ranked}"]
     if [c[1] for c in ranked] != [1, 2, 0]:
         return [f"sort is not by score descending: {ranked}"]
     if latency != 1.0:
@@ -61,7 +71,7 @@ def main() -> int:
         print(f"note: {path.name} absent, real-artifact half skipped")
         n = 0
     else:
-        rankings = load_static_rankings(str(path))
+        rankings = _load(str(path))
         n = len(rankings)
         bad = [qid for qid, (ranked, _) in rankings.items() if not _descending(ranked)]
         if bad:
@@ -73,7 +83,7 @@ def main() -> int:
         for f in failures:
             print(f"  {f}\n", file=sys.stderr)
         return 1
-    print(f"ok: load_static_rankings sorts by rerank score; {n} shipped cells descending")
+    print(f"ok: load_ranking sorts by rerank score; {n} shipped cells descending")
     return 0
 
 
