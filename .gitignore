@@ -15,9 +15,14 @@ wheels/
 # Personal working notes, kept local and purged from history (2026-09-06). Nothing in
 # the repo reads them -- the many spec.md/SESSION.md citations in docs and scripts are
 # prose references only. DECISIONS.md and INVENTORY.md stay tracked.
-CLAUDE.md
+#   CLAUDE.local.md    the owner's working rules, renamed from CLAUDE.md on 2026-09-07.
+#                      The tracked CLAUDE.md is now newcomer orientation instead.
+#   DECISIONS.local.md the personal/process/housekeeping rows pruned out of DECISIONS.md
+#                      on 2026-09-07; no tracked file cites any ID in it, by construction.
+CLAUDE.local.md
 spec.md
 SESSION.md
+DECISIONS.local.md
 
 # Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
 # ignored -- it is the shared, committable half.
@@ -89,13 +94,18 @@ data/retr7_embed_results.jsonl
 data/ingest_log.jsonl
 .DS_Store
 models/
+# Resume state for the two ONNX/ORT archive probes. Both are partial progress, not
+# records -- the results they produce are the tracked onnx_parity_results.json and
+# ort_fp32_latency.json. ort_fp32_partial/ was committed before this rule existed and
+# stays tracked; `git rm --cached -r data/ort_fp32_partial` if you want them symmetric.
 data/onnx_parity_partial/
+data/ort_fp32_partial/
 
 # --- Overrides: GPU/paid outputs the rules above wrongly swept up -----------------
 # A rule that says "regeneratable" is wrong when regenerating costs GPU hours or money.
 # These are records, not working files. ~39MB total.
 #   retr7_rr_*_scores.jsonl        the RETR-39 headline's own rerank pass. Read by
-#                                  ci_fixture_build.py, agent_run.py, onnx_rerank_parity.py
+#                                  ci_fixture_build.py, 07_arm6_loop.py, onnx_rerank_parity.py
 #                                  -- i.e. CI-1, AGENT-16, AGENT-26, DEPLOY-9 all cite it.
 #   day6_arm4_*_rerank_scores      three GPU passes (ARM4-10). A is still the live control.
 #   rerank_scores.jsonl            the original Arm 3 GPU pass (ARM3-1..3).
