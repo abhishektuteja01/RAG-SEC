@@ -80,7 +80,11 @@ TRAPS
     PRE-RETR-7 chunk text. Merging it into a post-re-index 2x2 mixes two corpora and
     mis-attributes the ablation. `score` therefore refuses to merge it when the scores
     file already carries `unfiltered_raw` for every question; an explicit `--baseline`
-    still wins.
+    still wins. This is also why `prepare` now DEFAULTS to all four cells on both splits:
+    the three-cell dev payload only ever made sense as "reuse the cell we already have",
+    and after the re-index of 2026-09-04 (`RETR-39`) that cell is the wrong corpus. The
+    three-cell payload is still reachable with `--reuse-dev-baseline`, which is a
+    historical-reproduction flag, not an optimization. `score` is unchanged either way.
   * recall@50 is a property of the candidate POOL, not the reranker. It can only differ
     between filtered and unfiltered cells; identical values there are correct.
   * `local` IS SLOW AND THAT IS NOT A BUG. Rerank alone is ~32.6s/question on an M3
@@ -249,9 +253,12 @@ def cmd_prepare(args: argparse.Namespace) -> None:
             questions.append({
                 "id": row["id"],
                 "split": row["split"],
+                # All four cells by default (RETR-30/RETR-39). --reuse-dev-baseline
+                # brings back the pre-re-index shortcut of dropping dev's unfiltered_raw
+                # and merging it from BASELINE_DEV, which is now the wrong thing to do.
                 "cells": (
                     ["filtered_raw", "filtered_stripped", "unfiltered_stripped"]
-                    if row["split"] == "dev" and not args.all_cells
+                    if row["split"] == "dev" and args.reuse_dev_baseline
                     else list(CELLS)
                 ),
                 "question": q,
@@ -261,8 +268,18 @@ def cmd_prepare(args: argparse.Namespace) -> None:
                 "cands_filtered": [list(p) for p in filtered],
             })
 
-    args.out.write_text(json.dumps({"questions": questions, "texts": texts}))
     n = len(questions)
+    if not n:
+        # Reachable with --splits naming a split the question set does not have. Checked
+        # BEFORE the write, not after: --out defaults to the 100MB+ day8_* payload, and a
+        # typo'd --splits would otherwise replace it with an empty one -- and the summary
+        # below divides by n.
+        raise SystemExit(
+            f"no questions matched splits={wanted!r} -- nothing written to {args.out}.\n"
+            f"  Known splits: {sorted(df['split'].unique())}"
+        )
+
+    args.out.write_text(json.dumps({"questions": questions, "texts": texts}))
     pairs = sum(
         len(q["cands_filtered" if c.startswith("filtered") else "cands_unfiltered"])
         for q in questions
@@ -471,9 +488,16 @@ def main() -> None:
                        formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--n", type=int, help="limit questions (smoke test)")
     p.add_argument("--splits", default="dev,test", help="comma-separated (default: %(default)s)")
-    p.add_argument("--all-cells", action="store_true",
-                   help="score the full 2x2 on every split, ignoring any cached baseline; "
-                        "required after a re-index (RETR-24)")
+    # DEFAULT FLIPPED: the full 2x2 on every split. Before the RETR-7/RETR-8 re-index the
+    # dev payload dropped unfiltered_raw and `score` merged it from the cached
+    # day6_arm4_A file; that file is PRE-re-index text, so doing it today mixes two
+    # corpora and mis-attributes the ablation (see TRAPS). The old behaviour is still
+    # reachable, but it now has to be asked for.
+    p.add_argument("--reuse-dev-baseline", action="store_true",
+                   help="OLD, PRE-RE-INDEX behaviour: omit dev's unfiltered_raw cell and "
+                        "let `score` merge it from the cached day6_arm4_A file. That file "
+                        "is pre-RETR-7 text, so this mixes two corpora -- do not use it "
+                        "for a post-re-index number")
     p.add_argument("--out", type=Path, default=PAYLOAD_DEFAULT,
                    help=f"default is the STALE day8_* name ({_rel(PAYLOAD_DEFAULT)})")
     p.set_defaults(fn=cmd_prepare)
