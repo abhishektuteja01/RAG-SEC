@@ -29,6 +29,21 @@ broke and how) is logged in [`DECISIONS.md`](DECISIONS.md).
 comparable to the table — recall is uniformly higher under the corrected labels. It has no
 producer script, so it cannot be regenerated; the table is the number to quote.
 
+## Replaying the result without a GPU
+
+The rerank scores behind the table are committed, so the headline replays in ~90 s with no
+GPU, no Postgres, no API key and no money:
+
+```bash
+uv run scripts/pipeline/05_arm3_rerank.py score \
+    --scores data/retr7_rr_test_scores.jsonl --split test
+```
+
+It needs the corpus on disk first (`eval.py` reads `data/chunks/` to resolve gold labels), so
+a fresh clone runs `01_corpus.py` once — ~1 h, no GPU. That is the short path: it skips the
+~9.3 h embed and Postgres entirely. Only Arms 1-2 need those, because they query the index
+live. See [`scripts/README.md`](scripts/README.md).
+
 ## Pipeline
 
 ```
@@ -116,7 +131,11 @@ viable. Arm 4's table-layout variants are phase 06 and the agent loop is phase 0
 - [`scripts/README.md`](scripts/README.md) — the pipeline in run order, with dates and costs
 - [`INVENTORY.md`](INVENTORY.md) — file-by-file map: what each file is and whether it's still needed
 - [`RUNBOOK.md`](RUNBOOK.md) — how to run a GPU job on the cluster, start to finish
+- [`CLAUDE.md`](CLAUDE.md) — orientation if you're new: what an arm is, the traps, the glossary
 
-Three planning files are local and gitignored, so text elsewhere in the repo cites them
-without linking: `spec.md` (scope, sequence, eval methodology), `SESSION.md` (what's next),
-`CLAUDE.md` (working rules).
+Open the repo in Claude Code and `/walkthrough` gives you a guided tour; `/explain-arm 3`
+walks through any single arm.
+
+Four files are local and gitignored, so text elsewhere in the repo cites them without
+linking: `spec.md` (scope, sequence, eval methodology), `SESSION.md` (what's next),
+`CLAUDE.local.md` (the owner's working rules), `DECISIONS.local.md` (pruned housekeeping rows).
