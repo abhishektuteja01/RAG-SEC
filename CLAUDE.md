@@ -46,7 +46,6 @@ local embed and Postgres entirely. Only Arms 1–2 need those.
 | `DECISIONS.md` | why every choice was made — **the only source of truth for any number** |
 | `scripts/README.md` | run order, calendar dates, what each command costs |
 | `INVENTORY.md` | file-by-file map, and what's still missing |
-| `RUNBOOK.md` | the GPU cluster procedure, start to finish |
 
 Quote numbers from `DECISIONS.md`'s current baseline table at the top of the file, never from a
 lower table — those predate the `RETR-35` label correction. Cite the decision ID (`RETR-39`,

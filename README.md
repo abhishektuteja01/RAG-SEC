@@ -103,7 +103,6 @@ it costs, and what a fresh clone can and cannot rebuild.
 | [`DECISIONS.md`](DECISIONS.md) | why every choice was made — the source of truth for any number |
 | [`scripts/README.md`](scripts/README.md) | run order, real dates, what each command costs |
 | [`INVENTORY.md`](INVENTORY.md) | file-by-file map, and what's still missing |
-| [`RUNBOOK.md`](RUNBOOK.md) | the GPU cluster procedure, start to finish |
 | [`CLAUDE.md`](CLAUDE.md) | orientation: what an arm is, the glossary, the traps |
 
 `/walkthrough` in Claude Code gives a guided tour of the repo.

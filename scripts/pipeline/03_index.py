@@ -105,12 +105,12 @@ EMBED_BATCH_SIZE = 32
 # Default payload for the `new-filings` route. Kept at the original name so the artifact
 # on disk (data/day5_embed_payload.json, 26,737 chunks, written 2026-08-28) still matches
 # the default that produced it. The `changed-chunks` route has NO default payload path on
-# purpose — RUNBOOK.md passes retr7_embed_payload.json explicitly, and defaulting it would
+# purpose — the re-index passes retr7_embed_payload.json explicitly, and defaulting it would
 # invite overwriting one route's artifact from the other.
 NEW_FILINGS_PAYLOAD = DATA_DIR / "day5_embed_payload.json"
 
 # Pre-RETR-7 chunk backup that `changed-chunks` diffs against. Not created by any script:
-# it is extracted from the tarball RUNBOOK.md takes before --rechunk.
+# it is extracted from the tarball taken before --rechunk (01_corpus.py's docstring).
 BASELINE_CHUNKS_DIR = DATA_DIR / "chunks_pre_retr7"
 
 # Commit every N rows during the bulk UPDATE. Large enough that commit overhead is

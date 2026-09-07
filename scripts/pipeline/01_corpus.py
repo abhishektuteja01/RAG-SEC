@@ -37,7 +37,7 @@ TRAPS
     pass --rechunk / --reparse.
   * --rechunk over the live corpus overwrites data/chunks/. If you intend to re-embed
     afterwards, take the backup FIRST — phase 03's --load diffs the new chunks against
-    that backup, not against the database (see RUNBOOK.md, INFRA-12).
+    that backup, not against the database (INFRA-12).
   * Re-chunking without re-embedding leaves Postgres holding vectors for the old text.
 """
 

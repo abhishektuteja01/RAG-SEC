@@ -64,6 +64,6 @@ spends real money despite being named a test.
 
 ## Stage 4 — rebuild or extend
 
-Only if they mean it. `scripts/README.md` §"Start here" is the no-cluster path end to end;
-`RUNBOOK.md` is the GPU cluster procedure. Point at the cost table in `scripts/README.md` before
-they run anything.
+Only if they mean it. `scripts/README.md` §"Start here" is the no-cluster path end to end, and
+is the only path a clone can follow — the GPU cluster procedure is not in the repo. Point at the
+cost table in `scripts/README.md` before they run anything.

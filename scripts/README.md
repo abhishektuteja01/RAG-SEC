@@ -58,8 +58,9 @@ Commands are copy-pasteable and were each confirmed against the script's own `--
 
 ### Phase 03 — the cluster route
 
-The GPU stage needs no database, which is why it is split out (`ARM3-2`, `INFRA-6`).
-Mechanics — hosts, `module load`, tmux, transfers — live in [`RUNBOOK.md`](../RUNBOOK.md).
+The GPU stage needs no database, which is why it is split out (`ARM3-2`, `INFRA-6`). The
+mechanics — hosts, `module load`, tmux, transfers — are specific to one university cluster and
+are kept out of the repo; the commands below are the part that transfers.
 
 ```bash
 # new filings, not yet in Postgres

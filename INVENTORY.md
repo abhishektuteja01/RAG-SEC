@@ -61,12 +61,12 @@ The front door: what this is, how to set it up, and the commands to rebuild the 
 Sizes for `README.md`, `CLAUDE.md`, `DECISIONS.md` and `scripts/README.md` were taken at 12:37 on
 2026-09-07 while all four were being rewritten — treat them as approximate.
 
-**`RUNBOOK.md`** — 7.0 KB, in git.
-The step-by-step for running a GPU job on Northeastern's Explorer cluster: transfer
-through the `xfer` host, allocate with `srun` inside tmux, run, copy back, verify. Includes the
-full `RETR-7`/`RETR-8` re-index procedure with its backup step.
-**Status: Keep.** It is the only place the cluster hostnames and module/venv setup are written
-as commands rather than buried in a decision row — and `ARM3-2`'s copy is stale (Discovery, not Explorer).
+**`RUNBOOK.md`** — 7.0 KB, on disk but **untracked** since 2026-09-07.
+The step-by-step for running the GPU jobs on the university cluster, including the
+`RETR-7`/`RETR-8` re-index and its backup step. Untracked because it names cluster hosts and
+per-account setup, which are useless to a clone and not ours to publish.
+**Status: Keep locally.** Nothing tracked cites it, so its absence breaks no path a clone can
+follow: `scripts/README.md` is the complete no-cluster route.
 
 **`INVENTORY.md`** — this file, 61 KB.
 What every folder and file is, where it came from, and whether it's still needed.
@@ -349,7 +349,7 @@ project's real passes were actually run.
 - `changed-chunks --prepare` / `--load` — the `RETR-7`/`RETR-8` re-embed of the 47,312 chunks
   whose text moved. `--load` refuses rather than half-applies if any changed chunk has no
   embedding or any filing's chunk count moved, and drops/rebuilds HNSW + BM25 around the bulk
-  update. See `RUNBOOK.md` for the full cycle.
+  update. The full re-embed cycle is a cluster procedure and is not documented in the repo.
 
 **`04_arms_first_stage.py`** — Arms 1 and 2, one positional argument apart, which is why they
 belong in one file — the project's rule is that an arm changes exactly one thing. Absorbed `retrieval/arm1_dense.py`

@@ -37,4 +37,4 @@ Everything else reads only. Amounts are in `DECISIONS.md`.
 - `checks/` holds guards that fail a run rather than trust an assumption. Where the on-disk-shape
   bug has bitten, a check lives here — add one rather than a comment.
 - `archive/` is finished one-off analyses. Read for provenance; do not wire into the pipeline.
-- `pipeline/hpc/` is cluster-only (Slurm). See `RUNBOOK.md`.
+- `pipeline/hpc/` is cluster-only (Slurm). The run procedure is not in the repo.

@@ -1,7 +1,7 @@
 """Pipeline phase 03, stage 2 — embed a payload with BGE-M3 on a GPU node.
 
-THIS FILE RUNS ON THE CLUSTER, NOT HERE. RUNBOOK.md scp's it to the login/xfer host and
-invokes it by BARE NAME from the home directory:
+THIS FILE RUNS ON THE CLUSTER, NOT HERE. It is scp'd to the login/xfer host and invoked by
+BARE NAME from the home directory:
 
     scp scripts/pipeline/hpc/embed_hpc.py $NEU@xfer.discovery.neu.edu:~/
     cd ~ && python -u embed_hpc.py retr7_embed_payload.json retr7_embed_results.jsonl
