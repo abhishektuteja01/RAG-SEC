@@ -86,3 +86,22 @@ data/ingest_log.jsonl
 .DS_Store
 models/
 data/onnx_parity_partial/
+
+# --- Overrides: GPU/paid outputs the rules above wrongly swept up -----------------
+# A rule that says "regeneratable" is wrong when regenerating costs GPU hours or money.
+# These are records, not working files. ~39MB total.
+#   retr7_rr_*_scores.jsonl        the RETR-39 headline's own rerank pass. Read by
+#                                  ci_fixture_build.py, agent_run.py, onnx_rerank_parity.py
+#                                  -- i.e. CI-1, AGENT-16, AGENT-26, DEPLOY-9 all cite it.
+#   day6_arm4_*_rerank_scores      three GPU passes (ARM4-10). A is still the live control.
+#   rerank_scores.jsonl            the original Arm 3 GPU pass (ARM3-1..3).
+#   day8_cost13_payload.json       COST-34 upgraded this to Keep; the day8_*payload* rule
+#                                  above still ignored it. Changing it silently moves both
+#                                  stored arms.
+!data/retr7_rr_dev_scores.jsonl
+!data/retr7_rr_test_scores.jsonl
+!data/day6_arm4_A_rerank_scores.jsonl
+!data/day6_arm4_B_rerank_scores.jsonl
+!data/day6_arm4_C_rerank_scores.jsonl
+!data/rerank_scores.jsonl
+!data/day8_cost13_payload.json
