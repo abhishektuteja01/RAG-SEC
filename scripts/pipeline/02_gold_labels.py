@@ -29,7 +29,7 @@ TWO LEGS, two independent outputs, no shared state:
                Arm 4's B/C layouts to the ~498 tables that matter instead of all 38,959.
                Reads: T2-RAGBench + data/parsed/. No DB, no GPU, no money — it CAN run.
                Still read by live code: src/rag_sec/eval.py and
-               scripts/corpus/build_table_variants.py, so re-run it deliberately.
+               scripts/pipeline/06_arm4_tables.py (`variants`), so re-run it deliberately.
 
 DECISIONS.md ROWS THIS BACKS
     INFRA-15  the frozen-input finding above. The reason this phase is half-runnable.

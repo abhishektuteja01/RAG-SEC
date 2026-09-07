@@ -101,16 +101,16 @@ tar -czf ~/rag-sec-backups/chunks_json_$(date +%Y%m%d).tgz data/chunks
 ```bash
 # 1. laptop: re-chunk with both flags on, then build the payload
 RAG_SEC_MULTI_HEADING=1 RAG_SEC_STRIP_TITLE_FURNITURE=1 \
-  uv run scripts/corpus/build_corpus.py --rechunk
+  uv run scripts/pipeline/01_corpus.py --rechunk
 
 mkdir -p data/chunks_pre_retr7
 tar -xzf ~/rag-sec-backups/chunks_json_*.tgz -C data/chunks_pre_retr7 --strip-components=2
 
-uv run scripts/index/reembed_changed.py --prepare data/retr7_embed_payload.json
+uv run scripts/pipeline/03_index.py changed-chunks --prepare data/retr7_embed_payload.json
 
 # 2. ship up (payload is 164 MB -- xfer host, not login)
 scp data/retr7_embed_payload.json $NEU@xfer.discovery.neu.edu:~/
-scp scripts/index/embed_hpc.py    $NEU@xfer.discovery.neu.edu:~/
+scp scripts/pipeline/hpc/embed_hpc.py $NEU@xfer.discovery.neu.edu:~/
 
 # 3. cluster
 ssh $NEU@login.explorer.northeastern.edu
@@ -123,7 +123,7 @@ cd ~ && python -u embed_hpc.py retr7_embed_payload.json retr7_embed_results.json
 
 # 4. laptop: apply (~1.03 GB comes back)
 scp $NEU@xfer.discovery.neu.edu:~/retr7_embed_results.jsonl data/
-uv run scripts/index/reembed_changed.py --load data/retr7_embed_results.jsonl
+uv run scripts/pipeline/03_index.py changed-chunks --load data/retr7_embed_results.jsonl
 
 # 5. verify
 uv run scripts/checks/candidate_sql.py

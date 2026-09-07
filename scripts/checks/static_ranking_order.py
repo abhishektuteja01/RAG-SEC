@@ -25,7 +25,7 @@ from pathlib import Path
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
 
-# Imported from the library, not from scripts/eval/agent_run.py. A CI gate must not depend
+# Imported from the library, not from scripts/pipeline/07_arm6_loop.py. A CI gate must not depend
 # on a pipeline script's filename or its symbol names -- moving that file used to break CI.
 from rag_sec.eval import SHIPPED_CELL as STATIC_CELL  # noqa: E402
 from rag_sec.eval import load_ranking  # noqa: E402

@@ -196,7 +196,7 @@ correction matters** (`DEPLOY-11-CORRECTED`). `DEPLOY-11` compared `latency-fp32
 CrossEncoder) against `latency-int8` (an ONNX Runtime session) and read the gap as precision.
 Those are **different backends**. Verified on this machine: torch reports
 `BLAS_INFO=accelerate`, so its matmuls reach Apple's undocumented **AMX** coprocessor; ORT's
-MLAS never does and gets plain NEON. `scripts/eval/ort_fp32_latency.py` measured the missing
+MLAS never does and gets plain NEON. `scripts/archive/ort_fp32_latency.py` measured the missing
 cell — three legs, **one backend per process**, same 3 questions, same 50 pairs:
 
 | leg | p50 | per question |
@@ -216,7 +216,7 @@ drift upward within the run (fp32 1.5x, int8 3.3x) while torch is flat at 1.11x 
 directions are robust, the magnitudes are not. **Do not quote 7.11x; quote 4.5-7.6x.**
 
 **Route 2, cutting `CANDIDATE_K`: measured on both splits, and it cannot do the job**
-(`DEPLOY-14`, via `scripts/eval/candidate_k_curve.py` — free, replayed from disk, no GPU).
+(`DEPLOY-14`, via `scripts/archive/candidate_k_curve.py` — free, replayed from disk, no GPU).
 
 | K | test recall@10 | vs 50 | dev | est. container rerank |
 |---|---|---|---|---|
@@ -317,7 +317,7 @@ multiple from a pilot**: both swing hard with the iteration mix (multiple 3.6x a
 n=9; cache 12.4-26.1%), because a single-iteration question caches nothing and costs little
 (`OBS-10`, `AGENT-14`). Take both from the finished run.
 
-**Still owed after the run:** regenerate the worst-failures files — `scripts/eval/worst_failures.py`
+**Still owed after the run:** regenerate the worst-failures files — `scripts/archive/worst_failures.py`
 exists and its earlier output was **deleted as stale**, having been built on the pre-`AGENT-16` rows.
 Then Day 10's real half: diagnose the ten worst failures from their traces, and capture dashboard
 screenshots while the traces are still in retention. **The documentation debt is now cleared** —
@@ -335,7 +335,7 @@ after Days 10-14 (~$19): ~$2-8.
 questions" — that subset is **empty**, so the loop's best case is untestable on this
 benchmark. This sharpens rather than softens `COST-30`, which deferred iteration's published
 strength (multi-hop composition *across* documents) to Day 9. The only `multi_doc` flag in the
-repo (`scripts/analysis/pack_variants.py:287`) measures whether *retrieved chunks* span
+repo (`scripts/archive/pack_variants.py:287`) measures whether *retrieved chunks* span
 filings — `RETR-3`'s contamination finding, a property of the result, not of the question.
 
 **Decided** (`AGENT-15`): run the trajectory half — calls, tokens, dollars, wall clock,

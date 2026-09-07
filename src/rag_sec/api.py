@@ -5,7 +5,7 @@ no retrieval; `retrieve()`'s defaults already ARE the winning `filtered_stripped
 so serving it needs no arm selection here.
 
 The answer call imports `_ANSWER_PROMPT`/`_answer_llm`/`_evidence_text` from `agent`, the
-same three `scripts/eval/agent_run.py:static_baseline` imports. That is deliberate: it
+same three `scripts/pipeline/07_arm6_loop.py:static_baseline` imports. That is deliberate: it
 makes the deployed system identical to the arm the published 0.747 was measured on, with
 retrieval computed live instead of replayed from `retr7_rr_dev_scores.jsonl`.
 """

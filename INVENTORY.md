@@ -2,7 +2,9 @@
 
 Every folder and every file in this project: what it is, where it came from, what uses it,
 and whether you still need it. Written 2026-09-02, last checked 2026-09-04, by reading the
-files, not by running them.
+files, not by running them. Scripts sections rewritten 2026-09-06 for the `pipeline/` reorg:
+20 scripts became 7 numbered phases plus 2 cluster legs, 5 dead scripts were deleted, and 28
+one-off measurements moved to `archive/`. The `data/` sections below were not revisited.
 
 Words used throughout:
 
@@ -113,7 +115,7 @@ in the corpus, for the 30 of 48 where that can be checked by machine. **Keep.** 
 non-obvious case: a year with no filing of its own can still be answerable, because annual
 reports reprint several earlier years.
 
-**`scripts/eval/unanswerable_run.py`** — asks all 48 and reports how often the system correctly
+**`scripts/archive/unanswerable_run.py`** — asks all 48 and reports how often the system correctly
 says it does not know, broken down by kind of question. **Keep, not yet run.** Costs about $0.60.
 
 ### Environment and settings
@@ -246,31 +248,33 @@ is what holds it to both.
 
 ## `scripts/` — the layout
 
-Nine folders, named by what the scripts do rather than the day they were written. The old
-`dayN_` prefixes are gone; the day tags live in `DECISIONS.md`, where they belong.
+Three folders, named by role rather than by day. The old `dayN_` prefixes are gone and so are
+the nine topic folders (`corpus/`, `index/`, `retrieval/`, `compression/`, `eval/`,
+`observability/`, `analysis/`) — a reader had to know which arm a script belonged to before they
+could find it. The day tags live in `DECISIONS.md`, where they belong.
 
 | Folder | What lives there |
 |---|---|
-| `corpus/` | building the corpus from EDGAR |
-| `index/` | making the corpus searchable |
-| `retrieval/` | the live search arms and the current rerank pipeline |
-| `compression/` | evidence compression and the paid answer A/B |
-| `eval/` | ground-truth resolution, and the Arm 6 run with its two free readers |
-| `observability/` | the Langfuse dashboard, defined as code |
+| `pipeline/` | seven numbered phases, in the order a corpus is actually built and measured |
+| `pipeline/hpc/` | the two cluster legs, plus their sbatch job files |
 | `checks/` | guards and regression tests, not investigations |
-| `analysis/` | one-off investigations behind published numbers |
-| `archive/` | superseded scripts kept as the record of how a number was made |
+| `archive/` | one-off measurements whose findings are already in `DECISIONS.md`, and superseded scripts kept as the record of how a number was made |
 
 Every `*_hpc.*` file is deliberately self-contained: it runs on the cluster where the
 `rag_sec` package isn't installed, so it must never import from it (`ARM3-2`, `INFRA-6`).
 
 ---
 
-## `scripts/corpus/` — building the corpus
+## `scripts/pipeline/` — the seven phases
 
-**`build_corpus.py`** — the one way to build the corpus: fetch all 799 filings from EDGAR,
-parse them, chunk them. **Keep, active.** Replaced `day2_ingest.py`, `day4_ingest_next200.py` and
-`day2_chunk.py` in `INFRA-8`; all three are in git history if ever needed.
+Twenty scripts collapsed into seven, one per stage, each a subcommand-per-leg CLI. Numbered so
+the order is the file listing. Every phase docstring carries PRODUCES / READS / the
+`DECISIONS.md` rows it backs / when it actually ran / its traps — so the provenance the old
+per-folder split carried in this file now lives next to the code.
+
+**`01_corpus.py`** — the one way to build the corpus: fetch all 799 filings from EDGAR, parse
+them, chunk them. **Keep, active.** Replaced `day2_ingest.py`, `day4_ingest_next200.py` and
+`day2_chunk.py` in `INFRA-8`, and now `corpus/build_corpus.py`; all are in git history.
 No sampling and no seed — 799 *is* the whole pool, so there was never anything to sample, and the
 seeds were what allowed `DATA-6`'s accidental duplicate run. Each stage skips its own output, so one
 run reaches 799 and re-running is a no-op. `--rechunk` (~4 min) and `--reparse` (~30 min) rebuild
@@ -278,208 +282,122 @@ after a `chunking.py`/`parsing.py` change without re-downloading 2.9 GB; `--limi
 Note: `--rechunk` rewrites all 799 chunk files to add the `standalone` field they predate
 (`ARM4-2`) — content-identical, but it touches every file.
 
-**`build_table_variants.py`** — built the alternative table layouts B and C for the experiment
-that lost. **Keep as history.** It's also the only thing that ever created those B and C rows —
-the same rows that later caused the contamination bug.
-Note: its description still says "Groq", which you stopped using.
+**`02_gold_labels.py`** — the ground truth every metric is scored against. Two independent legs.
+Absorbed `eval/resolve_gold_evidence.py` and `archive/arm4_identify_gold_tables.py`.
 
----
+- `evidence` turns pointers like `table_6` into the actual rows and sentences, so scoring never
+  has to touch the huge original dataset files. **Keep — and this is the most fragile thing in
+  the project.** Two problems, both confirmed: the file it reads,
+  `data/day7_gold_inds_matched_full.json`, has **no producer anywhere in this project** (the
+  matching that made it was done by hand and never saved), and it reads a `data/raw/` folder that
+  **does not exist on this machine**. `INFRA-9`'s two guards now make it refuse rather than
+  quietly overwrite good ground truth with an almost-empty file. Everything you can currently
+  measure depends on those two files and neither can be rebuilt from this repository.
+- `tables` works out which raw table answers which question, so the B and C layouts only had to
+  be built for the ~498 tables that mattered. **Keep** — it holds the **last surviving copy of
+  the old labelling method** (superseded by `GOLD-1`); deleting it removes that approach from the
+  project entirely. Runnable today: no DB, no GPU, no money. Its output
+  `data/day6_gold_tables.json` is still read by `eval.py` and by phase 06.
 
-## `scripts/index/` — making the corpus searchable
+**`03_index.py`** — makes the corpus searchable. Four legs, absorbing `index/embed_local.py`,
+`index_bm25.py`, `embed_prepare.py`, `embed_load.py` and `reembed_changed.py`. **Both routes are
+kept on purpose:** local is how a fresh machine gets a corpus, the cluster split job is how this
+project's real passes were actually run.
 
-**`embed_local.py`** — computes embeddings on this laptop and loads them into the database,
-then builds the search index. **Keep** — the simple local path.
+- `local` — embeds on this laptop and loads into the database, then builds HNSW. ~1.4 chunks/s on
+  this M3's MPS (`INFRA-13`): fine for a smoke test, ~9.3 h for a full pass.
+- `bm25` — builds the keyword search index. **Nothing from Arm 2 onward works without it.**
+  Note: the count it prints includes the B and C rows, so it reports 106,027 rather than the real
+  99,654. Harmless here, but that mismatch is what eventually exposed the contamination bug.
+- `new-filings --prepare` / `--load` — the corpus-growth split job. `--load` skips a whole filing
+  rather than loading half of one if any chunk is missing its embedding.
+- `changed-chunks --prepare` / `--load` — the `RETR-7`/`RETR-8` re-embed of the 47,312 chunks
+  whose text moved. `--load` refuses rather than half-applies if any changed chunk has no
+  embedding or any filing's chunk count moved, and drops/rebuilds HNSW + BM25 around the bulk
+  update. See `RUNBOOK.md` for the full cycle.
 
-**`index_bm25.py`** — 24 lines. Builds the keyword search index. **Keep** — nothing from
-Arm 2 onward works without it.
-Note: the count it prints includes the B and C rows, so it reports 106,027 rather than the real
-99,654. Harmless here, but that mismatch is what eventually exposed the contamination bug.
+**`04_arms_first_stage.py`** — Arms 1 and 2, one positional argument apart, which is why they
+belong in one file (`spec.md` 2.2: change one thing per arm). Absorbed `retrieval/arm1_dense.py`
+and `arm2_hybrid.py`, which differed by 12 lines. **Keep, active.** `--company-filter` is what
+produced Arm 1's 0.329 -> 0.384.
 
-The next three are one job split across two machines, because embedding the whole corpus on a
-laptop isn't practical:
+**`05_arm3_rerank.py`** — Arm 3, the headline arm. Absorbed `retrieval/rerank_prepare.py`,
+`rerank_score.py` and the abandoned `archive/arm3_*` trio. Because the reranker can't run on a
+laptop in reasonable time, this is a split job: `prepare` (needs the database) → the cluster leg
+→ `score` (no GPU). **Keep, active — this produced the numbers you quote.**
 
-**`embed_prepare.py`** — works out what still needs embedding and writes it to one
-file to carry to the cluster. **Keep.**
+- `prepare` builds all four cells in one GPU booking so the filter/strip improvement can be
+  attributed properly.
+- `local` is the single-process CPU/MPS alternative, same model and same cell definitions,
+  writing the identical scores format. It exists so the headline arm is reproducible **without
+  cluster access** — the one real gap the old `retrieval/` folder had. ~32.6 s/question/cell on
+  an M3, so use `--n`; resumable per question id, and it writes to
+  `data/local_rr_{split}_scores.jsonl`, deliberately not the published `retr7_rr_*` files.
+- `score` computes the headline comparison and **writes a results file**
+  (`data/retr7_arm3_{dev,test}_results.json`), which `rerank_score.py` never did. It requires all
+  four cells present and counts what it skipped, so a missing cell cannot shrink the denominator
+  invisibly.
+- Note: the internal default filenames still carry Day-8 drift (`day8_retr16v2_*`) while the live
+  artifacts are `retr7_rr_{dev,test}_scores.jsonl`. Pass `--scores` explicitly. Left alone so the
+  merge is behaviour-preserving against the scripts it replaced.
 
-**`embed_hpc.py`** — runs **on the cluster**. Deliberately imports nothing from this project,
-so nothing on the cluster can break it. Resumable if the job is killed. **Keep.**
+**`06_arm4_tables.py`** — the table-layout experiment that lost, A vs B vs C. Absorbed
+`corpus/build_table_variants.py` and `archive/arm4_rerank_{prepare,score}.py`. **Keep.**
+`variants` **writes the live index and can cost money** (Strategy C summarises tables with
+claude-haiku-4-5, `ARM4-6`); all 498 summaries are already cached on disk, so a normal run spends
+nothing, and a cache miss now **refuses** rather than silently re-spending. `score` is the odd leg
+out: it computes a current number, not a historical one — its variant-A output is the live
+baseline and the `unfiltered_raw` control every Day 8 gain is measured against, and it is still
+the only thing that can score B and C.
 
-**`embed_load.py`** — loads the results back into the database. **Keep.**
-Good behaviour: if any chunk is missing its embedding it skips the whole filing rather than
-loading half of one.
+**`07_arm6_loop.py`** — the Day 9 Arm 6 agentic loop plus its paired static baseline. Absorbed
+`eval/agent_run.py` and `agent_analyze.py`.
 
----
+- `run` — **NOT FREE.** Live paid Gemini calls, ~$8 for n=300, now behind an explicit
+  `--allow-paid-run` gate; `-n` is the other brake. Resume is at the **file level**: completed ids
+  in `--out` are skipped and errored rows are not counted as done, so a kill costs nothing but
+  deleting that file costs money again. Must stay at `--concurrency 1` — concurrent model
+  construction on MPS segfaults the machine (`AGENT-10`/`AGENT-17`).
+- `analyze` — trajectory, judge accuracy, retrieval and answer scores, p50/p95 per stage.
+  **Free, read-only**, safe on a partial results file mid-run. **The authoritative source for
+  $/question**: it prices each usage record from the model ids in the row, so the number is not
+  typed in anywhere.
+- Its static baseline is where `AGENT-16` was found — the rankings it slices are not in
+  descending score order as stored, and `checks/static_ranking_order.py` now guards that.
 
-## `scripts/retrieval/` — the live search arms
+### `scripts/pipeline/hpc/` — the two cluster legs
 
-Each "arm" is one search setup being compared:
+**`embed_hpc.py`** — BGE-M3 embedding on a cluster GPU node. **Unchanged** from the day-5
+corpus-growth run: payload `{filing_stem, chunk_index, text}` in, `{filing_stem, chunk_index,
+embedding}` out. Resumable if the job is killed. **Keep.**
 
-- **Arm 1** — meaning-based search only
-- **Arm 2** — Arm 1 plus keyword search, results merged
-- **Arm 3** — Arm 2 plus the reranker
-- **Arm 4** — Arm 3 tried against three table layouts, A, B and C (now in `archive/`)
+**`rerank_hpc.py`** — the current reranker on the cluster. Ran 4.4 h for dev and 7.2 h for test.
+Checkpoints per question id and skips what is already in the output file. **Keep, active.**
+**Its basename is part of the contract:** it is scp'd to the cluster home directory and invoked
+by bare name, so renaming it breaks a submitted job rather than this repo. Same for argv —
+exactly two positionals.
 
-Because the reranker can't run on a laptop, a reranked arm is split into three files:
-**prepare** (here, needs the database) → **rerank** (on the cluster, no database) →
-**score** (here, no GPU). That pattern used to repeat three times; the Day 5 and Day 6 copies
-are now in `archive/` and only this one is current.
+**`rerank_hpc.sbatch`** — the cluster job file for the test run. Moved here from
+`retrieval/` to sit beside the `.py` it submits. **Keep.**
 
-**`arm1_dense.py`** — Arm 1 end to end. **Keep, active.** The `--company-filter` option is what produced the improvement from 0.329 to 0.384.
-
-**`arm2_hybrid.py`** — Arm 2. **Keep, active.** Differs from Arm 1 by only 12 lines — they're one option apart.
-
-**`rerank_prepare.py`** — the current, best version. Builds four combinations
-in one GPU booking so the improvement can be attributed properly. **Keep, active** — this produced
-the numbers you quote.
-Note: it's the only script here that must be run from the project root.
-
-**`rerank_hpc.py`** — the current reranker, on the cluster. **Keep, active.**
-Ran 4.4 hours for dev and 7.2 hours for test.
-
-**`rerank_score.py`** — computes the headline comparison. **Keep, active.**
-**One real gap: it prints to the screen and saves nothing.** Every other scoring script writes a
-results file. The per-question detail behind your best number exists nowhere on disk. About ten
-lines to fix, and the highest-value fix in this folder.
-
-**`rerank_hpc.sbatch`** — the cluster job description for the test run. **Keep.**
-
-### What could be tidied in `scripts/retrieval/`
-
-- The three prepare / rerank / score families are about 70% identical. Combining them would save
-  roughly 600 of 1,900 lines. The argument against doing it now: the older files are the record of
-  numbers already published, and the cluster files are valuable precisely because they're frozen.
-  That is now settled the safe way: these three are the current ones and the Day 5 / Day 6 copies
-  sit in `archive/`.
-- One small statistics helper is copy-pasted into **seven** files. It belongs in `eval.py`. No risk.
-- Two scoring scripts record **different GPU model names** as a fixed string, which will quietly
-  be wrong if either is ever run elsewhere.
-- Every query here now correctly says which variant it wants. That was fixed after the
-  contamination bug and is now enforced automatically.
-
----
-
-## `scripts/compression/` — evidence compression and the paid answer A/B
-
-Eight files, all about measuring whether compressing the evidence saves money without losing
-accuracy. **This is the only folder in the project that spends real money.**
-
-**`slice_prepare.py`** — cuts candidate chunks into ~150-word slices and packages them
-for the cluster. **Keep.**
-Note: **its default input file isn't on disk** — you'd have to rebuild that first.
-
-**`slice_rerank_hpc.py`** — scores 555,337 slices on the cluster. **Costs GPU time:** about
-1 hour 52 minutes on one machine. **Keep.**
-
-**`slice_rerank_hpc.sbatch`** — the cluster job description for the above. **Keep.**
-It carries a real operational rule in its comments: submit this **second**, after the other GPU job
-has loaded its model, because both pull the same model into the same cache and two cold downloads
-at once risks corrupting it.
-
-**`slice_budget_sweep.py`** — 277 lines. Sweeps budgets across four approaches and reports
-how much evidence survives. **Keep — but the number it prints is the wrong one.**
-The stricter, honest measure lives only in `analysis/stratum_b_channel.py` and was never folded back
-in. The file admits this in its own comments. Adding it as a second column is the obvious fix.
-
-**`answer_ab_prepare.py`** — builds both versions of each prompt and picks which questions to
-test. Free and offline on purpose, so prompts can be eyeballed before any spending. **Keep.**
-
-**`answer_ab_run.py`** — **one of the two scripts that deliberately spend money.**
-Sends prompts to Gemini one at a time, synchronously. About **$2.02** for a full run at
-`standard` (corrected from $1.53, which priced thinking tokens wrong — `COST-23`/`COST-31`).
-It prints a price estimate first and has a dry-run mode. Sends at `standard`, **not** `flex`:
-flex 503'd ~9 of 10 requests (`COST-29`).
-**Keep — and know this:** it resumes by reading `data/day8_cost13_responses.jsonl`. While that
-file exists, re-running is **free**. **Delete or move that file and a re-run costs money again.**
-`--limit` is a wiring check, **not a sample** — the payload is stratum-sorted, so any limit
-under 89 is 100% `A_gold_lost` (`COST-33`).
-
-**`answer_batch_run.py`** — **the other money-spending script, and the cheap one.** Same
-payload in, same row shape out, via the Batch API at **50% of standard** — a full run is
-~**$1.01** against `answer_ab_run.py`'s ~$2.02. Asynchronous: it splits the work into jobs
-under Tier 1's 3M enqueued-token cap, uploads JSONL, submits, polls, then joins results back
-by an explicit `id|arm|thinking` key rather than by position. Shares the same resume file, so
-the two runners are interchangeable and neither re-pays for the other's rows. Proven on a real
-10-request job (`COST-32`). **Keep.** Use this one for anything large; use `answer_ab_run.py`
-when you want results in seconds rather than minutes.
-
-**`answer_ab_score.py`** — scores the responses already paid for. Free, safe to re-run.
-Prices `flex` and `batch` rows at 50% and everything else at full. **Keep.**
-
-### What could be tidied in `scripts/compression/`
-
-- Delete nothing. Every file either generates a published number or launches one that does.
-- Fold the honest survival measure into `slice_budget_sweep.py` so the wrong number stops
-  being what it prints by default.
-- Four files hardcode the same constants — slice size 150, budget 1500, and which ranking to read.
-  The slice size is the one that bites: slices travel as *positions*, so a mismatch quietly resolves
-  to completely different text. Two files guard against this; **`analysis/stratum_b_channel.py` does not.**
-
----
-
-## `scripts/eval/` — four files
-
-One ground-truth resolver, one paid run, and two free readers of what that run wrote.
-
-**`resolve_gold_evidence.py`** — turns pointers like `table_6` into the actual rows and
-sentences, so scoring never has to touch the huge original dataset files.
-**Status: Keep — and this is the most fragile thing in the project.**
-
-Two problems, both confirmed:
-1. **The file it reads, `data/day7_gold_inds_matched_full.json`, has no producer anywhere in this
-   project.** The matching that made it was done by hand and never saved as a script.
-2. It reads from a `data/raw/` folder that **does not exist on this machine**. Missing files only
-   produce a warning, so re-running it today would quietly overwrite good ground truth with an
-   almost-empty file.
-
-Everything you can currently measure depends on these two files. Neither can be rebuilt from
-this repository.
-
-**`agent_run.py`** — 346 lines. The Day 9 Arm 6 run: the loop over a seeded random dev sample,
-plus the paired static baseline on the same questions. **NOT FREE — live paid Gemini calls at
-`standard`, ~$8 for n=300.** There is no dry-run and no price estimate; `-n` is the only brake.
-**Keep** — it is the one artifact several later days read, which is why it is written as a
-one-off. Resume is at the **file level**: completed ids in `--out` are skipped and errored rows
-are not counted as done, so a kill costs nothing but deleting that file costs money again.
-Defaults to `--concurrency 1` and must stay there — concurrent model construction on MPS
-segfaults the machine (`AGENT-10`/`AGENT-17`).
-
-**`agent_analyze.py`** — 169 lines. The Day 9 metrics: trajectory, judge accuracy, retrieval
-and answer scores, p50/p95 per stage. **Free, read-only, no API and no GPU**, and safe to point
-at a partial results file mid-run. **Keep — this is the authoritative source for $/question**;
-it prices each usage record itself from the model ids in the row, so the number is not typed in
-anywhere.
-
-**`worst_failures.py`** — 240 lines. Writes the 20 worst failures per arm as markdown
-(`spec.md` 2.2 rule 5), to `data/day9_worst_failures_{arm6,static}.md`. **Free, read-only**, and
-also safe on a partial file. **Keep.** Its ordering is a stated choice, not a measurement:
-failures are ranked by how close the gold evidence got to the answer model — reasoning, then
-rerank, then retrieval — because every wrong number is equally wrong.
-Note: **regenerate it from the finished run.** The two files from the pre-`AGENT-16` data were
-deleted rather than kept, since a stale worst-failures list is read as if it were current.
-
----
-
-## `scripts/observability/` — the dashboard as code
-
-**`build_langfuse_dashboard.py`** — 358 lines, one file. Builds the Day 10 dashboard
-("RAG-SEC -- Arm 6 loop vs static") and its **12 widgets** by pushing them to Langfuse: per-arm
-cost and question count, question and per-stage latency at p50/p95, four iteration tiles, two
-judge-verdict tiles, cached-vs-fresh input tokens, and observations by level.
-**Keep** — this is why the dashboard is reproducible rather than a screenshot of some clicks.
-Needs the Langfuse keys and network; no GPU, no model calls, so it costs nothing to re-run.
-**Idempotent by name**: widgets and the dashboard are looked up by name and PATCHed, never
-duplicated, and nothing is removed unless `--prune` or `--delete` is passed explicitly.
-Note: it writes through the `unstable/` API, pinned in the file to snapshot 4.16.0. That
-surface **drops unknown body keys silently instead of erroring**, so the script re-reads what it
-wrote and compares field by field — a half-built dashboard that renders is worse than a failed
-run. It also backs off on 429, because a full build is ~30 calls against a 30/min limit.
+Both import nothing from `rag_sec`; do not add an import.
 
 ---
 
 ## `scripts/checks/` — guards and regression tests
 
-Not investigations. Each of these has an ongoing obligation, which is exactly what filing them
-as "Day 8 one-offs" used to hide.
+Twelve files. Not investigations — each has an ongoing obligation, which is exactly what filing
+them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
+reproduces a behaviour rather than asserting one, so nothing should gate on it.
+
+Five are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
+`candidate_sql.py`, `static_ranking_order.py`, `tracing_offline.py`, `retrieval_gate.py` — and
+`container_wordlist.py` is invoked by the `Dockerfile` at both build and runtime. **Those six
+filenames are load-bearing outside this repo's Python; moving one breaks a pipeline, not an
+import.** Four more are described only in passing below and are worth a pass of their own:
+`ci_fixture_build.py` (distils the gitignored scores + chunks into the one committed ~1 MB
+fixture the retrieval gate replays, `CI-1`), `retrieval_gate.py` (the gate itself, `CI-2`),
+`container_wordlist.py`, and `unanswerable_validate.py`.
 
 **`variant_predicates.py`** — checks the project's own code for the query bug.
 **Keep**, but it's a safety check, not an investigation. The same check now runs automatically.
@@ -526,96 +444,159 @@ the cost warning.
 
 ---
 
-## `scripts/analysis/` — one-off investigations
+## `scripts/archive/` — one-offs and superseded scripts
 
-Twelve scripts, the eight below plus four label-audit/matcher ones this map has not
-caught up with. These aren't part of the pipeline. Each was written to answer one
-question, printed a table, and the answer was written into `DECISIONS.md`. **Every one of them is
-the only way to regenerate a number you've published**, and none of them save their output — so
-deleting one means rewriting it to get that number back.
+Thirty files, in two groups. Every one carries a docstring header saying what it did, which
+`DECISIONS.md` IDs and `data/` files came from it, what replaced it, and whether it is safe to
+run today. **Archived does not mean dead data** — several of these produced files that live code
+still reads. **Delete nothing here:** each is either the only way to regenerate a published
+number, or the record of how one was made.
+
+Nothing in this folder is needed to reproduce an arm. That is the line: if a script is on the
+path from EDGAR to a headline number it is a `pipeline/` phase; if it answered one question whose
+answer is now a `DECISIONS.md` row, it is here.
+
+### The one-off measurements (moved here, not retired)
+
+Each was written to answer one question, printed a table, and the answer went into
+`DECISIONS.md`. None of them save their output, so deleting one means rewriting it to get that
+number back.
+
+**`failure_triage.py`** — the most consequential file here. Sorted every failing question into a
+cause and found that the reranker is only 6.9% of the problem while 19.6% of the time the right
+answer never even reached the shortlist. **This reframed the whole project onto search.** Re-run
+on the shipped ordering (`RETR-33`): 87.0 / 1.5 / 11.5 / 0. The old contaminated ordering is still
+reachable via `--scores` and reproduces the earlier numbers exactly.
+
+**`company_filter_ab.py`** — the test that proved the company filter works (+8.1 points). Needs
+the database and embeds 1,235 questions locally — minutes, not hours. It has a `--split test`
+option; **don't use it casually**, the test split is meant to stay untouched.
 
 **`chunk_length_vs_recall.py`** — asks whether search quality drops on longer chunks. It does:
-0.50 on short, 0.41 on medium, 0.26 on long. **Keep.**
-Warning: it reads a results file that has been rewritten twice since. Re-running gives different
-numbers than the ones recorded.
+0.50 short, 0.41 medium, 0.26 long. Warning: it reads a results file that has been rewritten
+twice since, so re-running gives different numbers than the ones recorded.
 
-**`company_filter_ab.py`** — the test that proved the company filter works (+8.1 points).
-**Keep.** Needs the database and embeds 1,235 questions locally — minutes, not hours.
-It has a `--split test` option; **don't use it casually**, the test split is meant to stay untouched.
+**`chunk_interpretability.py`** — how much evidence is unreadable on its own even before
+compression. Answer: 7% genuinely at risk — the standing reason *not* to re-cut the corpus.
 
-**`gold_atom_floor.py`** — measured that the smallest useful evidence piece averages 684 words,
-76% of its chunk, which killed one compression approach. **Keep.**
+**`gold_atom_floor.py`** / **`slice_floor.py`** — the smallest useful evidence piece averages 684
+words, 76% of its chunk, which killed one compression approach; thinner slices make a small
+budget workable. Two sizes of the same measurement, and they should be one script with an option.
+Note: `slice_floor.py` prints the other's result as a **typed-in string** rather than computing
+it, so it will silently go stale.
 
-**`chunk_interpretability.py`** — asks how much evidence is unreadable on its own even
-before compression. Answer: 7% genuinely at risk. **Keep** — that number is the standing reason
-*not* to re-cut the corpus.
-
-**`failure_triage.py`** — the most consequential file here. Sorted every failing
-question into a cause and found that the reranker is only 6.9% of the problem while 19.6% of the
-time the right answer never even reached the shortlist. **This reframed the whole project onto search.**
-**Keep.** Re-run on the shipped ordering (`RETR-33`): 87.0 / 1.5 / 11.5 / 0. The old contaminated
-ordering is still reachable via `--scores` and reproduces the numbers above exactly.
-
-**`stratum_b_channel.py`** — 240 lines, the newest file here. Checked whether the earlier
-compression conclusion held up. It didn't: the loose way of judging "did the evidence survive"
-over-reports, and does so unevenly, which **doubled the real gap between the two approaches.**
-**Keep, active** — this is the next thing to run.
+**`stratum_b_channel.py`** — checked whether the earlier compression conclusion held up. It
+didn't: the loose way of judging "did the evidence survive" over-reports, and unevenly, which
+**doubled the real gap between the two approaches.**
 
 **`pack_variants.py`** — built and measured six ways of assembling the compressed prompt, all
-offline. Answered the three open questions in one run: none of the three proposed fixes to how
-evidence is picked actually works (`COST-27`), and the one change that did ship — labelling each
-block with its filing and year, and keeping a table's rows together — costs a point of evidence
-survival and buys a prompt the reader can actually attribute (`COST-28`). It imports the loaders
-from `stratum_b_channel.py` rather than copying them, and **asserts per question that its rebuilt
-prompt still reproduces the one whose numbers are published**. **Keep, active.**
+offline. None of the three proposed fixes to evidence selection works (`COST-27`); the one change
+that did ship — labelling each block with its filing and year, keeping a table's rows together —
+costs a point of evidence survival and buys a prompt the reader can attribute (`COST-28`). It
+imports the loaders from `stratum_b_channel.py` by literal filename rather than copying them, so
+**the two must stay in the same directory**, and it **asserts per question that its rebuilt prompt
+still reproduces the one whose numbers are published.**
 
-**`slice_floor.py`** — showed that cutting evidence into thinner slices makes a small budget
-workable. **Keep.**
-Note: it prints the previous script's result as a **typed-in string** rather than computing it, so
-it will silently go stale.
+**`rescore_labels.py`** / **`label_matcher_ab.py`** / **`label_audit_prepare.py`** /
+**`label_audit_score.py`** — the `RETR-9`/`RETR-34`/`RETR-35` label work: the A/B between the old
+shingle matcher and `gold_inds` positional matching, the blind audit that sized the label error
+rate, and the rescore that moved every arm onto coverage-based labels. The audit is closed and
+its rates, mechanism and cross-check are all written up in `DECISIONS.md`.
 
-### What could be tidied in `scripts/analysis/`
+**`slice_prepare.py`** / **`slice_rerank_hpc.py`** / **`slice_rerank_hpc.sbatch`** /
+**`slice_budget_sweep.py`** — the compression measurement chain: cut candidates into ~150-word
+slices, score 555,337 of them on the cluster (~1 h 52 m of GPU), sweep budgets across four
+approaches. The sbatch carries a real operational rule in its comments: submit it **second**,
+after the other GPU job has loaded its model, because both pull the same model into the same
+cache and two cold downloads at once risks corrupting it. `slice_budget_sweep.py` **prints the
+wrong number by default** — the stricter, honest survival measure lives only in
+`stratum_b_channel.py` and was never folded back in; the file admits this in its own comments.
+Note: `slice_prepare.py`'s default input file isn't on disk.
+**Compression was measured and never shipped** (`COST-36`): `agent.py` sends uncompressed.
+
+**`answer_ab_prepare.py`** / **`answer_ab_run.py`** / **`answer_batch_run.py`** /
+**`answer_ab_score.py`** — the paid answer A/B. **The only scripts in the project that spend real
+money.** `prepare` and `score` are free and offline on purpose, so prompts can be eyeballed
+before any spending and responses re-scored afterwards. `answer_ab_run.py` sends synchronously at
+`standard` (~$2.02/run; **not** `flex`, which 503'd ~9 of 10 requests, `COST-29`);
+`answer_batch_run.py` is the same payload and row shape via the Batch API at 50% (~$1.01), joining
+results back by an explicit `id|arm|thinking` key rather than by position. Both share the same
+resume file, so neither re-pays for the other's rows — **while `data/day8_cost13_responses.jsonl`
+exists a re-run is free; delete or move it and it costs money again.** `--limit` is a wiring
+check, **not a sample**: the payload is stratum-sorted, so any limit under 89 is 100%
+`A_gold_lost` (`COST-33`).
+
+**`latency_measure.py`** — the per-stage latency pass behind the figures `spec.md` publishes.
+Shares its sampling seed with phase 07 and `mps_leak_probe.py`, so all three see the same
+questions. Run on mains power: battery throttling moves the very numbers it measures.
+
+**`mps_leak_probe.py`** — moved out of `checks/`, because it is a **diagnostic, not a guard**: it
+reproduces the MPS memory growth behind `AGENT-24`'s cache drain rather than asserting anything,
+so nothing should gate on it.
+
+**`candidate_k_curve.py`** — the `TOP_K`/candidate-width sweep. That question is closed
+(`RETR-33`); first-stage candidate *generation* is the part still open.
+
+**`onnx_rerank_export.py`** / **`onnx_rerank_parity.py`** / **`ort_fp32_latency.py`** — the
+`DEPLOY-6`/`DEPLOY-11` reranker route: export the cross-encoder to ONNX, quantise to int8, and
+**prove it does not reorder the top-10** before claiming `RETR-39`'s figures on the deployed box.
+`onnx_rerank_parity.py` re-execs **itself** as a subprocess per phase so the OS reclaims each
+backend at exit — three backends resident at once on 16 GiB is what killed `DEPLOY-8`.
+`ort_fp32_latency.py` imports its helpers from `onnx_rerank_parity.py` as a **sibling module**,
+so the two must stay in the same directory.
+
+**`unanswerable_run.py`** — the abstention pass; `checks/unanswerable_validate.py` is the guard
+half and stays in `checks/`.
+
+**`worst_failures.py`** — writes the 20 worst failures per arm as markdown (`spec.md` 2.2 rule 5)
+to `data/day9_worst_failures_{arm6,static}.md`. **Free, read-only**, safe on a partial file. Its
+ordering is a stated choice, not a measurement: failures are ranked by how close the gold
+evidence got to the answer model — reasoning, then rerank, then retrieval — because every wrong
+number is equally wrong. Note: **regenerate it from the finished run**; the two pre-`AGENT-16`
+files were deleted rather than kept, since a stale worst-failures list reads as current.
+
+**`build_langfuse_dashboard.py`** — builds the Day 10 dashboard ("RAG-SEC -- Arm 6 loop vs
+static") and its **12 widgets** by pushing them to Langfuse. **This is why the dashboard is
+reproducible rather than a screenshot of some clicks.** Needs the Langfuse keys and network; no
+GPU, no model calls, so it costs nothing to re-run. **Idempotent by name** — widgets are looked
+up by name and PATCHed, never duplicated, and nothing is removed without `--prune`/`--delete`.
+Note: it writes through the `unstable/` API, pinned to snapshot 4.16.0, a surface that **drops
+unknown body keys silently instead of erroring** — so the script re-reads what it wrote and
+compares field by field, because a half-built dashboard that renders is worse than a failed run.
+It backs off on 429: a full build is ~30 calls against a 30/min limit. Archived because the
+dashboard is built, not because it is disposable.
+
+### The superseded script
+
+**`arm4_rerank_hpc.py`** — Arm 4's cluster leg, stage 2 of the split job. Deliberately **not**
+moved into `pipeline/hpc/`: it differs from the Arm 3 twin by **three lines of actual code** and
+exists only as the record of three finished GPU passes. Its output
+`data/day6_arm4_{A,B,C}_rerank_scores.jsonl` is all three real passes and all three are still on
+disk — **the A file is read by live code today**, as phase 05's `unfiltered_raw` baseline and as
+`failure_triage.py`'s input. Safe on a GPU box, but do not let it overwrite that A file.
+
+The rest of the old archive is gone rather than kept. `arm3_singleprocess.py`,
+`arm3_rerank_{prepare,hpc,score}.py`, `arm4_singleprocess.py`,
+`arm4_rerank_{prepare,score}.py` and `arm4_identify_gold_tables.py` were all superseded by a
+`pipeline/` phase — phase 05's `local` leg is now the clearest single-file statement of what Arm 3
+is, and it is the *current* one rather than an abandoned Day-5 route. Their outputs are either
+gone or still on disk and still read, and the scripts themselves are in git history.
+
+### What could be tidied in `scripts/archive/`
 
 - Delete nothing. Everything here is the evidence behind a published number.
-- Two floor-measuring scripts (`gold_atom_floor.py`, `slice_floor.py`) are the same measurement at
-  two sizes and should be one script with an option.
-- The same "load the ranking from disk" code is written out **three times** across this folder and
-  `scripts/compression/`. Three copies quietly disagreeing is exactly the failure that already cost a day.
-
----
-
-## `scripts/archive/` — superseded, kept as provenance
-
-Nine files. Every one carries a docstring header saying what it did, which `DECISIONS.md` IDs and
-`data/` files came from it, what replaced it, and whether it is safe to run today. **Archived
-scripts do not mean dead data** — several of these produced files that live code still reads.
-
-**`arm3_singleprocess.py`** — Arm 3 all in one process, on the laptop.
-**Status: History.** Its output files don't exist because the laptop route was abandoned as too
-slow. Keep it as the clearest single-file statement of what Arm 3 actually is.
-
-**`arm3_rerank_prepare.py`** / **`arm3_rerank_hpc.py`** / **`arm3_rerank_score.py`** —
-Arm 3's three stages. **Status: Replaced** by the Day 8 versions (now `retrieval/rerank_*`), but
-keep as the record of how the published Arm 3 numbers were made. `arm3_rerank_hpc.py`'s output
-`data/rerank_scores.jsonl` is a real GPU pass and is still on disk.
-
-**`arm4_singleprocess.py`** — Arm 4 all in one process. **History.** The B and C rows it created are
-the 6,373 chunks that later contaminated Arms 1-3.
-
-**`arm4_identify_gold_tables.py`** — works out which raw table answers which question, so the B
-and C layouts only had to be built for the ~498 tables that mattered.
-**Keep as history** — and note it holds the **last surviving copy of the old labelling method**
-(superseded by `GOLD-1`). Deleting it removes that approach from the project entirely. Its output
-`data/day6_gold_tables.json` is still read by `eval.py` and `corpus/build_table_variants.py`.
-
-**`arm4_rerank_prepare.py`** / **`arm4_rerank_hpc.py`** / **`arm4_rerank_score.py`** —
-Arm 4's three stages. **Keep** — the A results file is still the live baseline that two current
-scripts read, and the A payload was reused to build the first slice payload (`COST-14`).
-Note: `arm4_rerank_hpc.py` differs from its Arm 3 twin by **three lines of actual code.** Two
-110-line files for that.
-**`arm4_rerank_score.py` is the odd one out: it computes a current number, not a historical one.**
-Its variant-A output is the live baseline (0.609/0.687) and the `unfiltered_raw` control every
-Day 8 gain is measured against. It is also still the only script that can score variants B and C.
+- Fold the honest survival measure into `slice_budget_sweep.py` so the wrong number stops being
+  what it prints by default.
+- Several files hardcode the same constants — slice size 150, budget 1500, and which ranking to
+  read. The slice size is the one that bites: slices travel as *positions*, so a mismatch quietly
+  resolves to completely different text. Some files guard against this; **`stratum_b_channel.py`
+  does not.**
+- The "load the ranking from disk" duplication that used to run to ten copies is fixed:
+  `rag_sec.eval.load_ranking` is the single loader and it **sorts on load**, which is `AGENT-16`'s
+  fix rather than a tidy-up.
+- Two scoring scripts record **different GPU model names** as a fixed string. Both are preserved
+  verbatim because the published results files carry them; see phase 06's
+  `RERANK_DEVICE_UNVERIFIED` note.
 
 ---
 
@@ -827,13 +808,13 @@ to delete rather than keep was that a stale failure list reads as a current one.
    write down plainly that this file is frozen and back it up.
 
 2. ~~**Your best number isn't saved anywhere.**~~ **Done.** `rerank_score.py` used to print and
-   exit; it now takes `--out` and writes the scored table, which is where
+   exit; `scripts/pipeline/05_arm3_rerank.py score` takes `--out` and writes the scored table, which is where
    `data/retr7_arm3_{dev,test}_results.json` — the `RETR-39` headline, dev and test — come from.
 
 3. ~~**The naming is the reason this folder feels overwhelming.**~~ **Done.** Every script used to
    be called `dayN_something`, which recorded *when* it was written, not *what it does* — and it was
    already misleading, since `arm4_rerank_score.py` carried a Day 6 prefix while computing a current
-   baseline. `scripts/` is now organised by job (`corpus`, `index`, `retrieval`,
-   `compression`, `eval`, `observability`, `checks`, `analysis`, `archive`) with every file named
-   for what it does; the
-   day tags stay in `DECISIONS.md`, where they belong.
+   baseline. `scripts/` was first reorganised by job, and is now organised by *role* — the seven
+   numbered `pipeline/` phases in the order they run, `checks/` for guards, `archive/` for
+   one-offs — because organising by job still required knowing which arm a script belonged to
+   before you could find it. The day tags stay in `DECISIONS.md`, where they belong.

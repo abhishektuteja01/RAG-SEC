@@ -6,7 +6,7 @@ Classes among all 66 failures: reasoning 42, rerank 3, retrieval 21
 
 **Read the ranks carefully for this arm**: the delivered top-k is the stored order of `retr7_rr_dev_scores.jsonl`, which is first-stage order with rerank scores attached, not rerank order (`rerank_score.py:62` sorts before scoring, `agent_run.py:118` does not). So a gold chunk can be delivered at position 7 while its rerank rank is 2.
 
-Ordering is a choice, not a measure: reasoning failures (gold was in the top-k) before rerank failures (gold was in the 50) before retrieval failures (gold was never fetched); then best gold rank, then iterations, then id. See the module docstring of `scripts/eval/worst_failures.py`.
+Ordering is a choice, not a measure: reasoning failures (gold was in the top-k) before rerank failures (gold was in the 50) before retrieval failures (gold was never fetched); then best gold rank, then iterations, then id. See the module docstring of `scripts/archive/worst_failures.py`.
 
 ---
 ## 1. `finqa_dev_672` — reasoning

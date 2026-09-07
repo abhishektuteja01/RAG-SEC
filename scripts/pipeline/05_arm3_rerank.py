@@ -58,7 +58,7 @@ DECISIONS.md ROWS THIS BACKS
 
 WHEN THIS ACTUALLY RAN (calendar dates, not "Day N")
     2026-08-28   the Arm 3 cross-encoder HPC pass (its Day-5/6 ancestor,
-                 scripts/archive/arm3_rerank_*.py)
+                 the arm3_rerank_* scripts, deleted in the pipeline reorg; see git history)
     2026-08-30   those results rescored on the laptop
     2026-09-04   the RETR-7/RETR-8 re-index and the current retr7_* dev+test passes;
                  data/retr7_arm3_{dev,test}_results.json are 09-04 09:39 and 11:22
@@ -72,7 +72,7 @@ TRAPS
     produce and consume are `data/retr7_rr_{dev,test}_scores.jsonl`. Quote RETR-39 from
     the retr7_* files and pass `--scores` explicitly. The names were left alone so this
     phase is byte-for-byte behaviour-preserving against the scripts it merges;
-    `scripts/retrieval/rerank_hpc.sbatch` carries the same drift (`day8_retr18_test_*`).
+    `scripts/pipeline/hpc/rerank_hpc.sbatch` carries the same drift (`day8_retr18_test_*`).
   * `score`'s CELLS requires all four cells present, and counts what it skipped rather
     than dropping questions silently -- a missing cell would otherwise shrink the
     denominator invisibly and make cells incomparable.
@@ -91,8 +91,8 @@ TRAPS
     laptop (AGENT-24) and ~156.9s on the Graviton3 deploy host, PER CELL. Four cells over
     the 1235-question dev split is many hours to days. Use `--n` for a smoke test; use
     the cluster for a full pass.
-  * README.md's quickstart still points at `scripts/archive/arm3_*` for the local route.
-    Those are the ABANDONED Day-5 scripts. `local` here is the current one.
+  * README.md's quickstart used to point at the abandoned Day-5 `arm3_*` scripts for the
+    local route. Those are deleted; the quickstart now points here. `local` is the only one.
 """
 
 import argparse
