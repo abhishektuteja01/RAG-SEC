@@ -51,6 +51,7 @@ from rag_sec.eval import (  # noqa: E402
     _load_chunks,
     gold_relevant_chunk_evidence,
     load_matched_questions,
+    load_ranking,
 )
 
 SCORES = Path("data/day8_retr16v2_dev_scores.jsonl")   # shipped ordering (RETR-16v2)
@@ -61,23 +62,16 @@ TOP_K = 10
 
 
 def _load_rerank_order(path: Path, cell: str) -> dict[str, list[tuple[str, int]]]:
-    """Two on-disk shapes. The RETR-16v2 file holds several ablation cells per question as
-    unordered [stem, idx, score]; the Day 6 file holds one already-ranked list whose third
-    field is the variant tag, not a score, so it must not be re-sorted."""
-    order = {}
+    """This caller genuinely takes either shape: --scores defaults to the modern cells file
+    but LEGACY_SCORES (the Day 6 Arm 4-A file) is a documented alternative, and the two
+    return the same `{id: ranking}` here. So sniff the first record and dispatch explicitly
+    -- a cell name for the modern shape, `cell=None` for the legacy no-cells one. Passing
+    the wrong one of those raises in the loader, so a bad sniff cannot pass silently.
+    Never ALL_CELLS: that returns a dict of cells, not the ranking this caller wants.
+    """
     with open(path) as f:
-        for line in f:
-            if not line.strip():
-                continue
-            rec = json.loads(line)
-            if "cells" in rec:
-                if cell in rec["cells"]:
-                    order[rec["id"]] = [
-                        (s, i) for s, i, _ in sorted(rec["cells"][cell], key=lambda x: -x[2])
-                    ]
-            else:
-                order[rec["id"]] = [(s, i) for s, i, _v in rec["reranked"]]
-    return order
+        first = next((json.loads(ln) for ln in f if ln.strip()), {})
+    return load_ranking(path, cell if "cells" in first else None)
 
 
 def main() -> None:

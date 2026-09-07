@@ -25,9 +25,11 @@ load_dotenv()
 from tqdm import tqdm  # noqa: E402
 
 from rag_sec.eval import (  # noqa: E402
+    ALL_CELLS,
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
+    load_ranking,
     mean_and_stderr,
     mrr,
     ndcg_at_k,
@@ -53,15 +55,9 @@ def main() -> None:
         help="file supplying unfiltered_raw; omit when the scores file already has that cell",
     )
     args = ap.parse_args()
-    ranked: dict[str, dict[str, list]] = {}
-    with open(args.scores) as f:
-        for line in f:
-            if line.strip():
-                r = json.loads(line)
-                ranked[r["id"]] = {
-                    c: [(s, i) for s, i, _sc in sorted(v, key=lambda x: -x[2])]
-                    for c, v in r["cells"].items()
-                }
+    # All cells, ids only, sorted by rerank score -- see rag_sec.eval.load_ranking for why
+    # the sort is on load and why the loader dispatches on the record's own shape.
+    ranked: dict[str, dict[str, list]] = load_ranking(args.scores, ALL_CELLS)
     # Resolved AFTER loading, so a scores file that already carries unfiltered_raw is never
     # silently overwritten by the cached one. That cache (day6_arm4_A) was scored against
     # pre-RETR-7 chunk text, so after a re-index merging it would mix two corpora inside one
@@ -74,13 +70,13 @@ def main() -> None:
 
     if baseline:
         merged = 0
-        with open(baseline) as f:
-            for line in f:
-                if line.strip():
-                    r = json.loads(line)
-                    if r["id"] in ranked:  # already in rerank order in this file
-                        ranked[r["id"]]["unfiltered_raw"] = [(s, i) for s, i, _v in r["reranked"]]
-                        merged += 1
+        # cell=None: the baseline is a legacy no-cells file, already in rerank order. Read
+        # through the shared loader rather than unpacking `reranked` inline -- that inline
+        # copy assumed a 3-wide entry, which only the day6_arm4_* files happen to be.
+        for qid, order in load_ranking(baseline, None).items():
+            if qid in ranked:
+                ranked[qid]["unfiltered_raw"] = order
+                merged += 1
         print(f"merged unfiltered_raw for {merged} questions from {baseline}")
 
     df = load_matched_questions()

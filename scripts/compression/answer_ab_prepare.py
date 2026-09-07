@@ -38,7 +38,7 @@ from rag_sec.agent import _ANSWER_PROMPT  # noqa: E402
 from rag_sec.answer_eval import gold_is_scoreable, gold_values  # noqa: E402
 from rag_sec.chunking import count_tokens  # noqa: E402
 from rag_sec.compress import Slice, chunk_atoms, pack_by_score, pack_grouped, slice_atom  # noqa: E402
-from rag_sec.eval import load_matched_questions  # noqa: E402
+from rag_sec.eval import load_matched_questions, load_ranking  # noqa: E402
 
 FLAGS = Path("data/day8_survival_flags.json")
 SLICE_SCORES = Path("data/day8_slice_scores_t150_filtered_stripped.jsonl")
@@ -69,13 +69,7 @@ FORMAT_LINE = (
 
 
 def _load_chunk_order() -> dict[str, list[tuple[str, int]]]:
-    order = {}
-    for line in open(CHUNK_SCORES):
-        if line.strip():
-            r = json.loads(line)
-            if CELL in r["cells"]:
-                order[r["id"]] = [(s, i) for s, i, _sc in sorted(r["cells"][CELL], key=lambda x: -x[2])]
-    return order
+    return load_ranking(CHUNK_SCORES, CELL)
 
 
 def _load_slice_scores() -> dict[str, list]:

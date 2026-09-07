@@ -35,7 +35,7 @@ from pathlib import Path
 from rag_sec.answer_eval import is_correct, parse_reason
 from rag_sec.chunking import count_tokens
 from rag_sec.compress import chunk_atoms, pack_by_score, slice_atom
-from rag_sec.eval import _YEAR_TOKEN_RE, _gold_evidence_resolved
+from rag_sec.eval import _YEAR_TOKEN_RE, _gold_evidence_resolved, load_ranking
 
 PAYLOAD = Path("data/day8_cost13_payload.json")
 RESPONSES = Path("data/day8_cost13_responses.jsonl")
@@ -66,13 +66,7 @@ def gold_figures(qid: str, gold: dict) -> set[str]:
 
 
 def chunk_order() -> dict[str, list[tuple[str, int]]]:
-    order = {}
-    for line in open(CHUNK_SCORES):
-        if line.strip():
-            r = json.loads(line)
-            if CELL in r["cells"]:
-                order[r["id"]] = [(s, i) for s, i, _ in sorted(r["cells"][CELL], key=lambda x: -x[2])]
-    return order
+    return load_ranking(CHUNK_SCORES, CELL)
 
 
 def slice_scores(keep: set[str] | None = None) -> dict[str, list]:

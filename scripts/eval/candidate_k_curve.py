@@ -36,6 +36,7 @@ from rag_sec.eval import (  # noqa: E402
     _filing_stem,
     gold_relevant_chunk_ids,
     load_matched_questions,
+    load_ranking,
     mean_and_stderr,
     ndcg_at_k,
     recall_at_k,
@@ -48,12 +49,10 @@ KS = (50, 40, 30, 25, 20, 15, 10)
 
 def curve(split: str) -> dict:
     scores = _ROOT / "data" / f"retr7_rr_{split}_scores.jsonl"
-    published = {}
-    with open(scores) as f:
-        for line in f:
-            if line.strip():
-                r = json.loads(line)
-                published[r["id"]] = r["cells"][CELL]
+    # sort=False is the point of this script: the first K are sliced in FIRST-STAGE order
+    # and only then reranked (DEPLOY-13). Sorting on load would make every K measure the
+    # same top-K of an already-reranked list.
+    published = load_ranking(scores, CELL, with_score=True, sort=False)
 
     df = load_matched_questions()
     rows = []
@@ -123,4 +122,11 @@ if __name__ == "__main__":
         out = args.out if args.out.is_absolute() else _ROOT / args.out
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(result, indent=2) + "\n")
-        print(f"\nwrote {out.relative_to(_ROOT)}")
+        # relative_to raises for a path outside the repo, and it used to do so AFTER the
+        # write -- a non-zero exit from a run that had already succeeded. Shorten only when
+        # the path really is under the repo; otherwise print it as given.
+        try:
+            shown = out.relative_to(_ROOT)
+        except ValueError:
+            shown = out
+        print(f"\nwrote {shown}")

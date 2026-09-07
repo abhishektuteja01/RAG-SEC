@@ -33,7 +33,10 @@ _ab = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_ab)
 legacy = _ab.legacy_table_row_relevant_chunks
 
-# (label, split, path, cell) -- cell=None means the file holds one already-ranked list
+# (label, split, path, cell) -- a cell name for the modern `cells`-shaped files;
+# cell=None ONLY for the legacy `reranked` files, which hold one already-ranked list.
+# The loader raises if the pairing is wrong either way, so a modern file dropped in
+# here can no longer return a dict of cells for `recall_at_k` to score as chunk ids.
 TARGETS = [
     ("Arm3 test baseline",      "test", "data/day8_retr18_test_scores.jsonl", "unfiltered_raw"),
     ("Arm3 test filter-only",   "test", "data/day8_retr18_test_scores.jsonl", "filtered_raw"),
@@ -46,19 +49,6 @@ TARGETS = [
     ("Arm4-B dev",              "dev",  "data/day6_arm4_B_rerank_scores.jsonl", None),
     ("Arm4-C dev",              "dev",  "data/day6_arm4_C_rerank_scores.jsonl", None),
 ]
-
-
-def load_order(path: str, cell: str | None) -> dict:
-    order = {}
-    for line in open(path):
-        if not line.strip():
-            continue
-        r = json.loads(line)
-        if cell is None:
-            order[r["id"]] = [(s, i) for s, i, _v in r["reranked"]]
-        elif cell in r.get("cells", {}):
-            order[r["id"]] = [(s, i) for s, i, _ in sorted(r["cells"][cell], key=lambda x: -x[2])]
-    return order
 
 
 def main() -> None:
@@ -88,7 +78,7 @@ def main() -> None:
         if not Path(path).exists():
             rows.append({"arm": label, "error": "missing file"})
             continue
-        order = load_order(path, cell)
+        order = E.load_ranking(path, cell)
         rec = {"arm": label, "split": split}
         for name in ("legacy", "coverage"):
             g = gold[(name, split)]
