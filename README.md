@@ -112,9 +112,11 @@ viable. Arm 4's table-layout variants are phase 06 and the agent loop is phase 0
 
 ## Docs
 
-- [`spec.md`](spec.md) — scope, sequence, eval methodology (source of truth)
 - [`DECISIONS.md`](DECISIONS.md) — every design choice, why kept or dropped
-- [`SESSION.md`](SESSION.md) — what's next and what's blocked
+- [`scripts/README.md`](scripts/README.md) — the pipeline in run order, with dates and costs
 - [`INVENTORY.md`](INVENTORY.md) — file-by-file map: what each file is and whether it's still needed
 - [`RUNBOOK.md`](RUNBOOK.md) — how to run a GPU job on the cluster, start to finish
-- `CLAUDE.md` (local, gitignored) — working rules + current project state
+
+Three planning files are local and gitignored, so text elsewhere in the repo cites them
+without linking: `spec.md` (scope, sequence, eval methodology), `SESSION.md` (what's next),
+`CLAUDE.md` (working rules).
