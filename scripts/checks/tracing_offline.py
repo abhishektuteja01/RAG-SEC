@@ -9,6 +9,14 @@ import os
 import subprocess
 import sys
 import time
+from pathlib import Path
+
+# Each case is a subprocess, and a subprocess does not inherit the parent's sys.path edits.
+# Locally that goes unnoticed because the project is pip-installed into .venv; CI builds its
+# venv from `uv export --no-emit-project`, so rag_sec is not installed there and every case
+# died on ModuleNotFoundError. Handing src down explicitly makes the check independent of
+# whether the project happens to be installed.
+_SRC = str(Path(__file__).resolve().parents[2] / "src")
 
 # Port 1 is privileged and never listening; a fake key set turns tracing on so the enabled
 # cases exercise the real SDK against a refused connection instead of a live backend.
@@ -438,6 +446,9 @@ def main() -> int:
     failures = 0
     for name, env, body in CASES.values():
         child = {**os.environ, **env}
+        child["PYTHONPATH"] = os.pathsep.join(
+            [_SRC, *([child["PYTHONPATH"]] if child.get("PYTHONPATH") else [])]
+        )
         started = time.monotonic()
         proc = subprocess.run(
             [sys.executable, "-c", body],
