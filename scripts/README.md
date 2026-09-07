@@ -107,7 +107,22 @@ the rerank score merely attached. Reading one raw scored recall@10 **0.552 again
 
 ---
 
-## Start here: reproducing the headline arm with no cluster
+## Start here: replaying the headline number
+
+**The cheapest path is not below.** The rerank scores are committed, so scoring the published
+Arm 3 result needs no GPU, no Postgres and no money -- only the corpus, for gold labels:
+
+```bash
+uv run scripts/pipeline/01_corpus.py    # ~1 h, resumable, skips existing
+uv run scripts/pipeline/05_arm3_rerank.py score \
+    --scores data/retr7_rr_test_scores.jsonl --split test    # ~90 s
+```
+
+That prints the `RETR-39` table: `filtered_stripped` recall@10 0.747 on 1545/1546 test
+questions. Everything below is only needed to rebuild the index itself, which Arms 1-2
+query live.
+
+## Rebuilding the index: Arms 1-2 with no cluster
 
 Do the setup in the [main README](../README.md) first (`.env`, `docker compose up -d`,
 `uv sync`). Then:
@@ -172,7 +187,7 @@ not pytest, to match the rest of `scripts/`.
 | `heading_fix.py` | `RETR-7`/`RETR-8` acceptance: reversible with flags off, chunk boundaries preserved, bug actually fixed. Local-only — it reads gitignored `data/chunks/` | — |
 | `company_resolver.py` | `rag_sec.company.resolve` edge cases + precision/recall on train (calibration) and dev (confirmation) | — |
 | `atom_replay.py` | the packer replayed from `data/parsed/` reproduces `data/chunks/` byte-for-byte, and chunks have enough atoms for compression to have any purchase | — |
-| `unanswerable_validate.py` | the unanswerable set really is unanswerable, for the 30 of 48 questions where that is machine-checkable | — |
+| `unanswerable_validate.py` | the unanswerable set really is unanswerable, for the 30 of 47 questions where that is machine-checkable | — |
 | `agent_loop_smoke_test.py` | the agentic loop end to end. **Paid** — see the cost table | — |
 
 The CI workflow is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): a `guards` job

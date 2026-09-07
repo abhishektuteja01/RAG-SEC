@@ -4,7 +4,8 @@ Every folder and every file in this project: what it is, where it came from, wha
 and whether you still need it. Written 2026-09-02, last checked 2026-09-04, by reading the
 files, not by running them. Scripts sections rewritten 2026-09-06 for the `pipeline/` reorg:
 20 scripts became 7 numbered phases plus 2 cluster legs, 5 dead scripts were deleted, and 28
-one-off measurements moved to `archive/`. The `data/` sections below were not revisited.
+one-off measurements moved to `archive/`. The `data/` sections were re-checked against disk
+on 2026-09-07 (counts, sizes, and five wrong Keep/Delete calls corrected).
 
 Words used throughout:
 
@@ -25,28 +26,40 @@ Status labels:
 
 ## Root
 
-Twenty things sit at the top level: six documents, six setup files, two environment files,
-one leftover script, and four folders.
+The top level is documents, setup files, two environment files, and folders — no script.
+(An earlier version of this line counted "one leftover script"; there is none. Re-checked
+2026-09-07.)
 
 ### Documents
 
-**`spec.md`** — 28 KB, in git.
+**`spec.md`** — 27 KB, **not in git** (purged from history and gitignored, 2026-09-06).
 The original plan, written before any code. Covers why the project exists, how a number is
 allowed to count as real, and a day-by-day schedule for fourteen days.
 **Status: Keep.** It's the plan you're still working against.
 Note: it's about a week behind reality. Day 8 is one line in it but became a whole phase of
 retrieval work, one planned experiment was dropped, and days 9-14 haven't started.
 
-**`DECISIONS.md`** — 92 KB, in git.
+**`DECISIONS.md`** — 163 KB, in git.
 The log of every choice made and what it measured. Starts with the results tables, then rows
 tagged by phase. If a number appears anywhere else in this project, this file is the one that's right.
 **Status: Keep.** The most current file here and the main thing you'd show someone.
 
-**`CLAUDE.md`** — 3 KB, **not in git** (deliberately).
-Two parts: nine working rules, and a running snapshot of where things stand.
+**`CLAUDE.md`** — 5 KB, in git (since 2026-09-07).
+Newcomer orientation: what an "arm" is, how to replay the headline number, the glossary, which
+doc answers what, and the traps that bite people who don't know the history yet.
 **Status: Keep.**
 
-**`SESSION.md`** — 11 KB, in git.
+**`CLAUDE.local.md`** — 6 KB, **not in git** (deliberately).
+The owner's working rules and a running snapshot of where things stand. Was `CLAUDE.md` until
+2026-09-07, when the tracked name was given to the orientation file above.
+**Status: Keep.**
+
+**`DECISIONS.local.md`** — 8 KB, **not in git** (deliberately).
+Six personal/housekeeping rows pruned out of `DECISIONS.md`. No tracked file cites an ID in
+it, by construction.
+**Status: Keep.**
+
+**`SESSION.md`** — 19 KB, **not in git** (purged from history and gitignored, 2026-09-06).
 Where things stand and what to do next, with open work sorted by what it costs to try.
 **Status: Keep.** The only file that ranks what's next.
 Note: its first section repeats the results tables from `DECISIONS.md`. The housekeeping list in
@@ -54,9 +67,9 @@ section 4 is genuinely unique — that part is worth protecting.
 
 **`README.md`** — 3.3 KB, in git.
 The front door: what this is, how to set it up, and the commands to rebuild the corpus in order.
-**Status: Keep, but stale in three ways.** It has no results table (the plan says that's the first
-thing "done" requires), the chart it shows was made before several corrections and shows numbers
-you've since withdrawn, and its list of documents leaves out `SESSION.md`.
+**Status: Keep.** It now carries a results table and names `SESSION.md`; the only thing still
+stale is the chart, made before several corrections and showing numbers you've since withdrawn.
+(Re-checked 2026-09-07.)
 
 **`RUNBOOK.md`** — in git.
 The step-by-step for running a GPU job on Northeastern's Explorer cluster: transfer
@@ -99,19 +112,19 @@ needs a dependency re-lock, and re-locking mid-run would have changed the enviro
 **Keep.** Without it the build would copy roughly the whole project, including the corpus.
 
 **`.github/workflows/ci.yml`** — the automatic checks that run on every push. Two stages: the
-self-contained guards, then the search-quality gate. **Keep, never run.** Written before the
-fixture it scores existed.
+self-contained guards, then the search-quality gate. **Keep.** Written before the fixture it
+scores existed; that fixture exists now (2026-09-05), so the `gate` job is live.
 
 **`scripts/checks/ci_fixture_build.py`** — makes the small committed file the gate scores:
 400 dev questions, each with its correct chunks and the ranking the published run produced.
-Run by hand, rarely. **Keep, not yet run.**
+Run by hand, rarely. **Keep** — it has been run; its two outputs are committed.
 
 **`scripts/checks/retrieval_gate.py`** — scores that file and fails the build if quality dropped
 more than two points. Borrows the scoring functions from `eval.py` rather than copying them.
 **Keep.** Tested against a made-up file: passes clean, fails a planted regression.
 
 **`scripts/checks/unanswerable_validate.py`** — proves the trick questions really have no answer
-in the corpus, for the 30 of 48 where that can be checked by machine. **Keep.** Catches the
+in the corpus, for the 30 of 47 where that can be checked by machine. **Keep.** Catches the
 non-obvious case: a year with no filing of its own can still be answerable, because annual
 reports reprint several earlier years.
 
@@ -149,7 +162,7 @@ probably committed early, before the ignore rules matured. Worth a look someday,
 
 - Cut the snapshot in `CLAUDE.md` down to a few pointing lines so numbers live in one place only.
 - Keep `SESSION.md` about the future and `DECISIONS.md` about the past — that's a clean split, but section 1 currently blurs it.
-- Fix the README chart and add a results table.
+- Fix the README chart (the results table it lacked has since been added).
 - The clearest doc order for someone new: README to set up, `spec.md` for what was promised, `DECISIONS.md` for what happened, `SESSION.md` for what's next, `CLAUDE.md` for how to work here.
 
 ---
@@ -600,7 +613,7 @@ gone or still on disk and still read, and the scripts themselves are in git hist
 
 ---
 
-## `data/` — 4.9 GB, 96 entries
+## `data/` — 4.9 GB, 121 top-level entries (counted 2026-09-07)
 
 The biggest source of confusion, and the biggest cleanup opportunity. Roughly **1 GB is dead weight.**
 
@@ -757,14 +770,15 @@ it. If it isn't, the right fix is to back up the database, not to keep this.
 Careful: it's committed to git *and* rebuilds itself only when missing. A stale committed copy will
 silently win over a corpus change. If the corpus grows, delete this file to force a rebuild.
 
-**`unanswerable_questions.jsonl`** (48 questions) — trick questions with no answer in the corpus,
+**`unanswerable_questions.jsonl`** (47 questions) — trick questions with no answer in the corpus,
 used to test whether the system says "I don't know" instead of inventing a number. Five kinds;
-30 of them are checkable by machine, the other 18 rest on what an annual report contains and say
+30 of them are checkable by machine, the other 17 rest on what an annual report contains and say
 so in the file. **Keep — hand-written, not regeneratable.**
 
 **`ci_retrieval_fixture.jsonl` / `ci_retrieval_baseline.json`** — the small committed slice the
 automatic quality check scores, plus the numbers it compares against. **Keep once built** — they
-are what lets the check run without a database or a GPU. Neither exists yet.
+are what lets the check run without a database or a GPU. **Both exist** (built 2026-09-05), and
+`.github/workflows/ci.yml`'s `gate` job fails without them.
 
 ---
 
@@ -776,7 +790,6 @@ are what lets the check run without a database or a GPU. Neither exists yet.
 | `data/day8_retr16_rerank_payload.json` | 113 MB |
 | `data/day5_embed_payload.json` | 103 MB |
 | `data/day8_failure_cases.json` | 15 MB |
-| `data/day8_cost13_payload.json` (or archive) | 6.5 MB |
 | `data/day6_gold_labeling_audit.txt` | 1.5 MB |
 | `data/rerank_scores_603filings.jsonl` | 1.1 MB |
 | `data/day8_failure_slices/` | 556 KB |
@@ -784,19 +797,19 @@ are what lets the check run without a database or a GPU. Neither exists yet.
 | `data/day6_arm4_*_cpu_dev_*` (6 files) | 21 KB |
 | Three ingest `stdout.log` files | 25 KB |
 | All `__pycache__/` folders | ~280 KB |
-| **Running total** | **~471 MB** |
+| **Running total** | **~465 MB** |
 | `data/embed_results.jsonl` — only if the database is backed up | 582 MB |
-| **With that** | **~1.05 GB** |
+| **With that** | **~1.04 GB** |
 
 **Looks deletable, is not:** anything ending `_rerank_scores.jsonl` or `_slice_scores_*.jsonl`
 (GPU hours), `day7_gold_inds_matched_full.json` (nothing can recreate it),
-`day8_cost13_responses.jsonl`, `day6_table_summaries.json` and `day9_arm6_dev_results.jsonl`
+`day8_cost13_payload.json` (`COST-34` upgraded it to Keep, and `.gitignore` carries a `!` override for it), `day8_cost13_responses.jsonl`, `day6_table_summaries.json` and `day9_arm6_dev_results.jsonl`
 (paid for — the last one is also what makes a re-run free), and the `.bak_old_labeler` and
 `data/archive/*.bak` files (deliberately kept).
 
-**Genuinely deletable and already deleted:** `data/day9_worst_failures_{arm6,static}.md`, both
-generated from pre-`AGENT-16` data. They regenerate for free once the run finishes — the reason
-to delete rather than keep was that a stale failure list reads as a current one.
+**Deletable, and still on disk** (checked 2026-09-07): `data/day9_worst_failures_{arm6,static}.md`,
+both generated from pre-`AGENT-16` data. They regenerate for free from the finished run — the reason
+to delete rather than keep is that a stale failure list reads as a current one.
 
 ---
 
