@@ -24,12 +24,15 @@ wheels/
 #                      to one university cluster and names its hosts.
 #   research.md        the 2026-09-07 literature/forensics sweep. Findings, not decisions:
 #                      anything it establishes graduates to DECISIONS.md with its own ID.
+#   research_latency.md the 2026-09-11 rerank-latency literature sweep. Same rule: findings,
+#                      not decisions -- anything adopted graduates to DECISIONS.md.
 CLAUDE.local.md
 spec.md
 SESSION.md
 DECISIONS.local.md
 RUNBOOK.md
 research.md
+research_latency.md
 
 # Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
 # ignored -- it is the shared, committable half.
