@@ -1,0 +1,52 @@
+[
+  {
+    "id": "finqa_test_0",
+    "pairs": 50,
+    "rerank_s": 17.149920003999966
+  },
+  {
+    "id": "finqa_test_1",
+    "pairs": 50,
+    "rerank_s": 16.92217796600005
+  },
+  {
+    "id": "finqa_test_2",
+    "pairs": 50,
+    "rerank_s": 16.756058730000007
+  },
+  {
+    "id": "finqa_test_3",
+    "pairs": 50,
+    "rerank_s": 19.030066404000024
+  },
+  {
+    "id": "finqa_test_4",
+    "pairs": 50,
+    "rerank_s": 17.130185688999973
+  },
+  {
+    "id": "finqa_test_5",
+    "pairs": 50,
+    "rerank_s": 18.23307814100002
+  },
+  {
+    "id": "finqa_test_6",
+    "pairs": 50,
+    "rerank_s": 17.608782935000022
+  },
+  {
+    "id": "finqa_test_7",
+    "pairs": 50,
+    "rerank_s": 15.77006283899999
+  },
+  {
+    "id": "finqa_test_8",
+    "pairs": 50,
+    "rerank_s": 15.967126902000018
+  },
+  {
+    "id": "finqa_test_9",
+    "pairs": 50,
+    "rerank_s": 16.064624012000024
+  }
+]

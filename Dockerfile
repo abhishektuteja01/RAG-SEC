@@ -6,12 +6,19 @@
 #   1. The corpus is embedded with BAAI/bge-m3, so the query embedder cannot be swapped for
 #      a hosted one without invalidating every dense-search number. torch ships in the image
 #      either way, which is why the cross-encoder reranker stays in-process too.
-#   2. CPU only. `RAG_SEC_DEVICE=cpu` is INFRA-6's speed knob, not an accuracy one -- mps and
-#      cpu scored identical to 2e-6 -- so a CPU container serves the same rankings the GPU
-#      runs published, just slower. Day 13's p95 has to be measured here, not on the laptop.
+#   2. Device is a build-time choice, not a runtime one. `TORCH_BACKEND`/`DEVICE` default to
+#      cpu -- INFRA-6's speed knob, not an accuracy one, since mps and cpu scored identical to
+#      2e-6, so a CPU image serves the same rankings the GPU runs published, just slower.
+#      `DEPLOY-21` measured a real GPU win (`g4dn.xlarge`, ~44.5x compounded, fp16), so the
+#      GPU build passes `--build-arg TORCH_BACKEND=cu130 --build-arg DEVICE=cuda`. DEVICE is
+#      forced rather than left to `pick_device()`'s auto-detect on purpose: if the GPU build
+#      ever runs somewhere `nvidia-container-toolkit` isn't wired up, torch.cuda calls should
+#      fail loudly, not silently fall back to a cpu-slow container nobody notices.
 
 ARG PYTHON_VERSION=3.12
 ARG UV_VERSION=0.12.1
+ARG TORCH_BACKEND=cpu
+ARG DEVICE=cpu
 
 # `COPY --from=<image>` does not expand variables, so the pinned uv image has to become a
 # named stage first -- `FROM` is the only instruction that expands a global ARG. Pinning uv
@@ -22,6 +29,7 @@ FROM ghcr.io/astral-sh/uv:${UV_VERSION} AS uvbin
 # ---------------------------------------------------------------------------- deps
 FROM python:${PYTHON_VERSION}-slim-bookworm AS builder
 COPY --from=uvbin /uv /bin/uv
+ARG TORCH_BACKEND
 
 WORKDIR /build
 COPY pyproject.toml uv.lock ./
@@ -31,19 +39,23 @@ COPY pyproject.toml uv.lock ./
 # resolves PyPI's CUDA-bundled torch wheel and adds ~2.5GB to an image that will never see a
 # GPU. `--frozen` keeps the exact locked versions -- the pins in pyproject.toml exist so a
 # routine upgrade cannot move the numbers in DECISIONS.md, and that has to survive the build.
-# The CUDA packages are STRIPPED FROM THE EXPORT, not just deselected by a flag, and the
-# distinction is why the first build of this image failed. uv.lock carries 43 `nvidia-*`
-# entries plus `triton` marked `sys_platform == 'linux'`, so `uv export` names them as
-# explicit requirements -- at which point `UV_TORCH_BACKEND` cannot help, because that
-# governs RESOLUTION and this step installs an already-resolved list. Left in, they pulled
-# ~3GB of CUDA runtime into an image whose own header says CPU only, and the build ran the
-# disk out during layer export. `--torch-backend=cpu` still goes on the install so torch
-# itself resolves to the +cpu variant, which has no nvidia dependencies to reinstate.
+# The CPU build STRIPS the CUDA packages from the export, not just deselects them by a flag,
+# and the distinction is why the first build of this image failed. uv.lock carries 43
+# `nvidia-*` entries plus `triton` marked `sys_platform == 'linux'`, so `uv export` names them
+# as explicit requirements -- at which point `UV_TORCH_BACKEND` cannot help, because that
+# governs RESOLUTION and this step installs an already-resolved list. Left in on a cpu build,
+# they pull ~3GB of unused CUDA runtime into the image and ran the disk out during layer
+# export. The GPU build (`TORCH_BACKEND=cu130`, matching the driver measured in `DEPLOY-21`)
+# keeps them -- they are the point, there.
 RUN uv export --frozen --no-dev --no-emit-project --no-hashes --extra serve \
         -o /build/requirements.full.txt \
-    && grep -vE '^(nvidia-|triton)' /build/requirements.full.txt > /build/requirements.txt \
+    && if [ "$TORCH_BACKEND" = "cpu" ]; then \
+           grep -vE '^(nvidia-|triton)' /build/requirements.full.txt > /build/requirements.txt; \
+       else \
+           cp /build/requirements.full.txt /build/requirements.txt; \
+       fi \
     && uv venv /opt/venv \
-    && VIRTUAL_ENV=/opt/venv uv pip install --torch-backend=cpu -r /build/requirements.txt
+    && VIRTUAL_ENV=/opt/venv uv pip install --torch-backend=${TORCH_BACKEND} -r /build/requirements.txt
 
 # ---------------------------------------------------------------------------- weights
 FROM builder AS weights
@@ -61,6 +73,7 @@ snapshot_download('${RERANK_MODEL}', ignore_patterns=['*.onnx','*.h5','*.msgpack
 
 # ---------------------------------------------------------------------------- runtime
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
+ARG DEVICE
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -68,7 +81,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app/src \
     HF_HOME=/models \
     HF_HUB_OFFLINE=1 \
-    RAG_SEC_DEVICE=cpu \
+    RAG_SEC_DEVICE=${DEVICE} \
     COMPANY_WORDLIST=/app/data/wordlist_web2.txt \
     PORT=8080
 

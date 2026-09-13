@@ -1,0 +1,152 @@
+[
+  {
+    "id": "finqa_test_0",
+    "question": "What is the net change in Entergy's net revenue from 2014 to 2015, considering factors such as retail electric price, volume/weather, and the impact of the Louisiana business combination customer credits?",
+    "ok": true,
+    "wall_s": 152.76,
+    "latency_s": 152.75530580400005,
+    "stage_latency": {
+      "embed_s": 0.14975149299993973,
+      "resolve_s": 0.0006124320000253647,
+      "search_s": 0.7265894649999609,
+      "rerank_s": 148.2291849239998,
+      "mps_empty_cache_s": 2.1719999949709745e-06,
+      "total_s": 149.10614048599973
+    }
+  },
+  {
+    "id": "finqa_test_1",
+    "question": "As of December 26, 2015, what percentage of Intel's total facilities, measured in square feet, were leased?",
+    "ok": true,
+    "wall_s": 142.18,
+    "latency_s": 142.17589894399998,
+    "stage_latency": {
+      "embed_s": 0.11924436200001765,
+      "resolve_s": 0.0004929859999265318,
+      "search_s": 0.25724384599993755,
+      "rerank_s": 139.2688152359999,
+      "mps_empty_cache_s": 2.0850000055361306e-06,
+      "total_s": 139.6457985149998
+    }
+  },
+  {
+    "id": "finqa_test_2",
+    "question": "What is the percentage change in the total notional amount of cash flow hedges denominated in euros, British pounds, and other currencies for Analog Devices as reported in their 2011 financial statements compared to the previous year?",
+    "ok": true,
+    "wall_s": 147.41,
+    "latency_s": 147.41042561599988,
+    "stage_latency": {
+      "embed_s": 0.16395018200000777,
+      "resolve_s": 0.0007475229999727162,
+      "search_s": 0.30217564200006564,
+      "rerank_s": 144.83009346000017,
+      "mps_empty_cache_s": 1.8509999790694565e-06,
+      "total_s": 145.2969686580002
+    }
+  },
+  {
+    "id": "finqa_test_3",
+    "question": "What percentage of the total purchase price for the Metavante acquisition does the value of Metavante stock awards represent?",
+    "ok": true,
+    "wall_s": 171.28,
+    "latency_s": 171.27738139899998,
+    "stage_latency": {
+      "embed_s": 0.11650885499989272,
+      "resolve_s": 0.00027913299982174067,
+      "search_s": 0.9267593600000055,
+      "rerank_s": 167.81059805200016,
+      "mps_empty_cache_s": 2.4039998152147746e-06,
+      "total_s": 168.8541478039997
+    }
+  },
+  {
+    "id": "finqa_test_4",
+    "question": "What was the difference in percentage cumulative total shareholder return on Masco common stock versus the S&P 500 Index for the five-year period ended 2017, given that a $100 investment in Masco common stock on December 31, 2012, would have grown to $318.46 by December 31, 2017, while the same investment in the S&P 500 Index would have grown to $206.49 over the same period?",
+    "ok": true,
+    "wall_s": 149.46,
+    "latency_s": 149.45459939299985,
+    "stage_latency": {
+      "embed_s": 0.23234094100007496,
+      "resolve_s": 0.0008066860000326415,
+      "search_s": 0.3234523950000039,
+      "rerank_s": 146.44257232799987,
+      "mps_empty_cache_s": 1.8539999473432545e-06,
+      "total_s": 146.99917420399993
+    }
+  },
+  {
+    "id": "finqa_test_5",
+    "question": "What was the percentage change in total rental expense under operating leases for Sysco from July 2, 2005, to July 1, 2006, given that the total rental expense was $92,710,000 in 2005 and $100,690,000 in 2006?",
+    "ok": true,
+    "wall_s": 162.79,
+    "latency_s": 162.787294169,
+    "stage_latency": {
+      "embed_s": 0.17059325199988962,
+      "resolve_s": 0.0006362340000123368,
+      "search_s": 0.23783866799999487,
+      "rerank_s": 159.8991197780001,
+      "mps_empty_cache_s": 2.0039999526488828e-06,
+      "total_s": 160.30818993599996
+    }
+  },
+  {
+    "id": "finqa_test_6",
+    "question": "What percentage of the total recourse debt of $4,612 million, as disclosed in the AES Corporation's Notes to Consolidated Financial Statements for 2010, is scheduled to be paid in 2011, which is $463 million?",
+    "ok": true,
+    "wall_s": 150.2,
+    "latency_s": 150.19969716699984,
+    "stage_latency": {
+      "embed_s": 0.17003526500002408,
+      "resolve_s": 0.0007540419999259029,
+      "search_s": 0.38161175999994157,
+      "rerank_s": 147.48481423199996,
+      "mps_empty_cache_s": 2.1889995878154878e-06,
+      "total_s": 148.03721748799944
+    }
+  },
+  {
+    "id": "finqa_test_7",
+    "question": "What percentage of the total future minimum rental payments of $2,575 million, as disclosed in the leases section of Goldman Sachs' 2015 Form 10-K, are due in 2018?",
+    "ok": true,
+    "wall_s": 140.24,
+    "latency_s": 140.23413754400008,
+    "stage_latency": {
+      "embed_s": 0.15477388199997222,
+      "resolve_s": 0.0006998190001468174,
+      "search_s": 0.335559744999955,
+      "rerank_s": 137.7917013479996,
+      "mps_empty_cache_s": 2.1979999473842327e-06,
+      "total_s": 138.28273699199963
+    }
+  },
+  {
+    "id": "finqa_test_8",
+    "question": "Did Altria Group, Inc.'s cumulative total shareholder return exceed that of the S&P 500 over the five-year period ending December 31, 2016?",
+    "ok": true,
+    "wall_s": 142.73,
+    "latency_s": 142.72338706899973,
+    "stage_latency": {
+      "embed_s": 0.14470053700006247,
+      "resolve_s": 0.0005288449997351563,
+      "search_s": 0.22703535200025726,
+      "rerank_s": 139.57927109899993,
+      "mps_empty_cache_s": 2.1549999473791104e-06,
+      "total_s": 139.95153798799993
+    }
+  },
+  {
+    "id": "finqa_test_9",
+    "question": "What was the change in unrecognized tax benefits for Comcast Corporation from the end of 2014 to the end of 2015, as reflected in the reconciliation of unrecognized tax benefits table in the 2015 Annual Report on Form 10-K?",
+    "ok": true,
+    "wall_s": 145.95,
+    "latency_s": 145.9435708279998,
+    "stage_latency": {
+      "embed_s": 0.1730396490002022,
+      "resolve_s": 0.0005673320001733373,
+      "search_s": 0.24471862200016403,
+      "rerank_s": 142.71343424299994,
+      "mps_empty_cache_s": 2.114999915647786e-06,
+      "total_s": 143.1317619610004
+    }
+  }
+]

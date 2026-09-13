@@ -38,7 +38,19 @@ def _device() -> str:
     once per model load, but span attributes put it on retrieve()'s hot path -- and span
     arguments are evaluated even when tracing is a no-op, so an untraced run would pay it
     too. The backend cannot change within a process, so caching it is free."""
-    return pick_device()
+    device = pick_device()
+    if device == "cpu":
+        # Graviton3 has no hyperthreads, so physical == logical core count -- explicit only
+        # because torch's own default intraop thread count can come in lower than that under
+        # a container runtime (cgroup CPU quota misread, or an inherited OMP_NUM_THREADS), and
+        # there is no way to see which happened short of setting it ourselves. Config only:
+        # does not touch a score, so nothing here needs re-validating against gold labels.
+        import os
+
+        import torch
+
+        torch.set_num_threads(os.cpu_count())
+    return device
 
 
 def last_call_stats() -> dict:
@@ -90,7 +102,14 @@ def _cross_encoder():
     from sentence_transformers import CrossEncoder
 
     device = _device()
-    return CrossEncoder(RERANK_MODEL_NAME, device=device)
+    # fp16 on cuda only: DEPLOY-21 measured a further 3.14-4.22x on top of fp32-GPU
+    # (g5g.xlarge and g4dn.xlarge respectively), exact top-5 parity both times, deltas
+    # 1e-6 to 1e-3. Needs sentence-transformers>=6.0.0 (pinned in pyproject.toml) -- an
+    # older release computed the CrossEncoder sigmoid in half precision and could silently
+    # reorder top candidates. Not extended to cpu/mps: bf16-on-cpu is a separate, already
+    # -measured lever (DNNL_DEFAULT_FPMATH_MODE, DEPLOY-20), and mps fp16 was never tested.
+    kwargs = {"model_kwargs": {"torch_dtype": "float16"}} if device.startswith("cuda") else {}
+    return CrossEncoder(RERANK_MODEL_NAME, device=device, **kwargs)
 
 
 def _drain_mps(device: str) -> float:
@@ -253,11 +272,23 @@ def retrieve(
                        device=device, pairs=len(candidates), k=k) as sp:
             t0 = time.perf_counter()
             pairs = [(rerank_query, texts[c]) for c in candidates]
+            # Sort by pair length before batching, unsort the scores after: `predict`'s
+            # batch_size=32 groups pairs in whatever order `candidates` handed them, and
+            # HuggingFace's padding=True pads every member of a batch to its longest --
+            # so one long outlier in an otherwise-short batch inflates every pair beside
+            # it for free. Sorting first only changes which pairs share a batch, never a
+            # pair's own (query, text) content, so scores are unaffected -- this is
+            # reordering compute, not re-scoring anything.
+            order_by_len = sorted(range(len(pairs)), key=lambda j: len(pairs[j][1]))
+            sorted_pairs = [pairs[j] for j in order_by_len]
             wait0 = time.perf_counter()
             with _gpu_lock:
                 compute0 = time.perf_counter()
-                scores = cross_encoder.predict(pairs, batch_size=32) if pairs else []
+                sorted_scores = cross_encoder.predict(sorted_pairs, batch_size=32) if pairs else []
                 compute_s = time.perf_counter() - compute0
+            scores = [0.0] * len(pairs)
+            for j, s in zip(order_by_len, sorted_scores):
+                scores[j] = float(s)
             order = sorted(range(len(candidates)), key=lambda j: scores[j], reverse=True)[:k]
             t["rerank_s"] = time.perf_counter() - t0
             t["rerank_lock_wait_s"] = compute0 - wait0
