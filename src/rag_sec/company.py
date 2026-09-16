@@ -252,17 +252,31 @@ def matched_aliases(question: str) -> list[tuple[str, tuple[str, ...]]]:
     return out
 
 
-def resolve(question: str) -> list[str]:
-    """Tickers this question is about. Empty list means "don't filter"."""
+def resolve_with_reason(question: str) -> tuple[list[str], str | None]:
+    """Same result as `resolve`, plus WHY an empty list came back. `resolve`'s bare `[]`
+    conflates two different situations that a caller falling back to unfiltered search
+    cannot otherwise tell apart (research.md sec5b): no company named at all
+    (`"no_match"`) vs. companies matched but discarded as spurious/over-broad
+    (`"too_many"`, `MAX_TICKERS`). Reason is `None` whenever tickers are returned.
+    """
     hits: set[str] = set()
     for _alias, syms in matched_aliases(question):
         hits.update(syms)
     hits |= _tickers_from_symbols(question)
 
+    if not hits:
+        return [], "no_match"
     # More than a handful means the match is spurious, or the question genuinely compares
     # many issuers (peer-group and performance-graph questions list index members). Either
     # way an over-broad filter buys nothing, so drop it.
-    return [] if not hits or len(hits) > MAX_TICKERS else sorted(hits)
+    if len(hits) > MAX_TICKERS:
+        return [], "too_many"
+    return sorted(hits), None
+
+
+def resolve(question: str) -> list[str]:
+    """Tickers this question is about. Empty list means "don't filter"."""
+    return resolve_with_reason(question)[0]
 
 
 # --- query normalization for reranking (RETR-6) ------------------------------------

@@ -14,8 +14,11 @@ Behaviour-preserving refactor: the SQL is byte-identical to the copies it replac
 `variant` parameter is bound (`scripts/checks/candidate_sql.py` asserts that).
 """
 
+from rag_sec.fiscal_year import year_distance_bonus
+
 RRF_K = 60  # standard constant from Cormack et al. 2009's original RRF paper
 LIVE_VARIANT = "A"  # the only variant in the live index (ARM4-3)
+YEAR_BIAS_ALPHA = 0.01  # untuned placeholder -- tune on dev before promoting to a default
 
 # One string, used by both queries: the company filter is the same predicate in each, and
 # RETR-5's whole point is that dense and BM25 see the *same* restricted pool.
@@ -50,8 +53,8 @@ def bm25(conn, query_text: str, k: int, variant: str, tickers: list[str] | None 
     return [(r[0], r[1]) for r in rows]
 
 
-def rrf_fuse(ranked_lists: list[list[Pair]], k: int = RRF_K) -> list[Pair]:
-    """Reciprocal Rank Fusion: score(d) = sum_over_lists 1/(k + rank_in_list(d)).
+def rrf_fuse_scores(ranked_lists: list[list[Pair]], k: int = RRF_K) -> dict[Pair, float]:
+    """Reciprocal Rank Fusion scores: score(d) = sum_over_lists 1/(k + rank_in_list(d)).
 
     Rank-based, not score-based -- dense cosine similarity and BM25 scores live on
     unrelated scales, so summing raw scores would let whichever one happens to have
@@ -61,6 +64,31 @@ def rrf_fuse(ranked_lists: list[list[Pair]], k: int = RRF_K) -> list[Pair]:
     for ranked in ranked_lists:
         for rank, doc_id in enumerate(ranked, start=1):
             scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank)
+    return scores
+
+
+def rrf_fuse(ranked_lists: list[list[Pair]], k: int = RRF_K) -> list[Pair]:
+    """Plain RRF order. Every offline arm and the shipping default call this one unchanged
+    (RETR-36) -- do not add signals here; add a sibling fuse function instead, the way
+    `rrf_fuse_year_biased` does, so past arms stay reproducible from this same code."""
+    scores = rrf_fuse_scores(ranked_lists, k)
+    return sorted(scores, key=lambda d: scores[d], reverse=True)
+
+
+def rrf_fuse_year_biased(
+    ranked_lists: list[list[Pair]],
+    query_years: list[int],
+    alpha: float = YEAR_BIAS_ALPHA,
+    k: int = RRF_K,
+) -> list[Pair]:
+    """RRF fusion plus an additive year-proximity nudge -- soft, not a filter. `RETR-5`
+    rejected a hard year gate: the extraction signal is only 75-82% accurate, and a hard
+    filter at that accuracy deletes the right answer whenever it misses. `query_years` empty
+    (no year extracted from the question) makes every bonus 0, identical to plain `rrf_fuse`.
+    `alpha` is untuned -- see `YEAR_BIAS_ALPHA`."""
+    scores = rrf_fuse_scores(ranked_lists, k)
+    for pair in scores:
+        scores[pair] += year_distance_bonus(pair[0], query_years, alpha)
     return sorted(scores, key=lambda d: scores[d], reverse=True)
 
 

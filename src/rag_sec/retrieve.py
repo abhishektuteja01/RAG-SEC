@@ -7,12 +7,14 @@ ranked chunks out. Same pipeline scripts/pipeline/05_arm3_rerank.py evaluates of
 import contextlib
 import threading
 import time
+from collections import Counter
 from functools import lru_cache, wraps
 
-from rag_sec.candidates import LIVE_VARIANT, bm25, chunk_texts, dense, rrf_fuse
-from rag_sec.company import resolve as resolve_companies
+from rag_sec.candidates import LIVE_VARIANT, bm25, chunk_texts, dense, rrf_fuse, rrf_fuse_year_biased
+from rag_sec.company import resolve_with_reason
 from rag_sec.company import strip_entity_framing
 from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device
+from rag_sec.fiscal_year import extract_years
 from rag_sec.store import get_conn
 from rag_sec.tracing import embedding, retriever, span
 
@@ -30,6 +32,18 @@ _last = threading.local()
 # model call goes through this lock. Concurrency is still worth having: retrieval is ~2s of
 # GPU against LLM calls of ~3-15s, and those stay parallel.
 _gpu_lock = threading.Lock()
+
+# How often company_filter's fallback-to-unfiltered-search path fires, broken out by reason
+# (research.md sec5b / sec7 item 2). Observability only: nothing here changes what
+# `resolve_with_reason` returns or which candidates get searched.
+_fallback_lock = threading.Lock()
+_fallback_reasons: Counter[str] = Counter()
+
+
+def fallback_reason_counts() -> dict[str, int]:
+    """Snapshot of `_fallback_reasons` -- read after a run, never gated on."""
+    with _fallback_lock:
+        return dict(_fallback_reasons)
 
 
 @lru_cache(maxsize=1)
@@ -162,6 +176,7 @@ def retrieve(
     strip_query: bool = True,
     reserve: int = 0,
     resolve_from: str | None = None,
+    year_bias: bool = True,
 ) -> list[dict]:
     """Dense+BM25/RRF candidates, reranked by the cross-encoder, top-k returned as dicts
     (LLM-readable as a LangGraph tool result, and scoreable as eval input).
@@ -181,7 +196,7 @@ def retrieve(
 
     `resolve_from` is the text the company filter resolves against, defaulting to `query`.
     It exists because an agent rewrites the query between iterations and its rewrites drop
-    the company's name, at which point `resolve_companies` returns nothing, the filter
+    the company's name, at which point `resolve_with_reason` returns nothing, the filter
     quietly takes the unfiltered branch across all 799 filings, and the results still look
     entirely normal -- measured at 59.6% of the loop's later iterations (`AGENT-25`). Callers
     that hold the ORIGINAL question should pass it here, so a rewrite cannot disable a
@@ -192,12 +207,20 @@ def retrieve(
     the one failure mode that can delete gold: a question naming an acquired business or a
     counterparty instead of the filer ("the FIS Gaming Business" in a Global Payments
     filing). Measured at 0.0% of dev and 0.20% of train, so it defaults off.
+
+    `year_bias` blends an additive year-proximity nudge into RRF fusion, targeting sibling-
+    year confusion (same company, wrong fiscal year -- the single largest slice of first-
+    stage misses, `RETR-3`). Soft, not a filter: a missed/absent year extraction just adds
+    a zero bonus, it never removes a candidate. Confirmed with a real HPC rerank pass, not
+    just the candidate-pool proxy: recall@10 dev 0.760->0.791 (+3.1pt), test 0.747->0.771
+    (+2.4pt), both baselines matching the published `RETR-39` numbers exactly (`RETR-40`).
+    Defaults on; the flag stays so earlier arms remain reproducible from this same code path.
     """
     t = {}
     device = _device()
     with _drain_on_error(device), \
             retriever("retrieve-chunks", input=query, k=k, company_filter=company_filter,
-                      strip_query=strip_query, reserve=reserve,
+                      strip_query=strip_query, reserve=reserve, year_bias=year_bias,
                       # recorded so a trace states whether AGENT-25's fix was active: without
                       # it, pre- and post-fix traces are indistinguishable on the one
                       # attribute that changed
@@ -232,10 +255,21 @@ def retrieve(
         # unreproducible, since it pairs this span's input against its `tickers` output.
         with span("resolve-company", input=resolve_from or query) as sp:
             t0 = time.perf_counter()
-            tickers = resolve_companies(resolve_from or query) if company_filter else []
+            if company_filter:
+                tickers, fallback_reason = resolve_with_reason(resolve_from or query)
+            else:
+                tickers, fallback_reason = [], None
+            if fallback_reason:
+                with _fallback_lock:
+                    _fallback_reasons[fallback_reason] += 1
             rerank_query = strip_entity_framing(query) if strip_query else query
+            # resolve_from, not query: same reason resolve_with_reason uses it -- an agent's
+            # rewritten query can drop a year the same way AGENT-25 found it drops the
+            # company name, and this must not silently go quiet.
+            query_years = extract_years(resolve_from or query) if year_bias else []
             t["resolve_s"] = time.perf_counter() - t0
-            sp.set(output={"tickers": list(tickers), "rerank_query": rerank_query},
+            sp.set(output={"tickers": list(tickers), "rerank_query": rerank_query,
+                            "query_years": query_years, "fallback_reason": fallback_reason},
                    stripped=rerank_query != query)
 
         with retriever("search-candidates", input=query, candidate_k=CANDIDATE_K,
@@ -258,7 +292,10 @@ def retrieve(
                         dense(conn, query_emb, CANDIDATE_K, LIVE_VARIANT),
                         bm25(conn, query, CANDIDATE_K, LIVE_VARIANT),
                     ]
-                fused = rrf_fuse(lists)[:CANDIDATE_K]
+                if year_bias:
+                    fused = rrf_fuse_year_biased(lists, query_years)[:CANDIDATE_K]
+                else:
+                    fused = rrf_fuse(lists)[:CANDIDATE_K]
                 texts = chunk_texts(conn, fused, LIVE_VARIANT)
             t["search_s"] = time.perf_counter() - t0
             # ids only: the chunk text this stage fetched is what the answer generation's
