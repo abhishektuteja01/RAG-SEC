@@ -33,6 +33,13 @@ _ANSWER_LINE = re.compile(r"ANSWER\s*:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILIN
 _REFUSAL = re.compile(r"insufficient|cannot|not (?:provided|available|stated|found)|unknown", re.IGNORECASE)
 _NUMBER = re.compile(r"-?\$?\d[\d,]*(?:\.\d+)?%?")
 
+# Boolean/comparative answers (yes/no, higher/lower) carry no digit, so _NUMBER never
+# matches and they fall into "no_number" even when correct (day9 dev audit: 4/4 such cases
+# were right answers, wrong parse). Matched against the first word only, so this can't
+# misfire on a sentence that merely mentions "no" or "less" later on.
+_BOOL_TRUE = {"yes", "true", "higher", "greater", "increase", "increased", "more"}
+_BOOL_FALSE = {"no", "false", "lower", "less", "decrease", "decreased", "fewer"}
+
 
 def _to_float(token: str) -> float | None:
     t = token.strip().replace(",", "").replace("$", "").replace("%", "").strip()
@@ -41,6 +48,18 @@ def _to_float(token: str) -> float | None:
         return float(t)
     except ValueError:
         return None
+
+
+def _bool_value(token: str) -> float | None:
+    words = token.strip().lower().split()
+    if not words:
+        return None
+    first = words[0].strip(".,;:")
+    if first in _BOOL_TRUE:
+        return 1.0
+    if first in _BOOL_FALSE:
+        return 0.0
+    return None
 
 
 def answer_line(text: str) -> str | None:
@@ -64,6 +83,9 @@ def parse_reason(text: str) -> tuple[float | None, str]:
         return None, "no_answer_line"
     nums = _NUMBER.findall(body)
     if not nums:
+        bv = _bool_value(body)
+        if bv is not None:
+            return bv, "ok"
         return None, "refused" if _REFUSAL.search(body) else "no_number"
     v = _to_float(nums[0])
     return (v, "ok") if v is not None else (None, "no_number")
@@ -73,7 +95,11 @@ def gold_values(program_answer, original_answer) -> list[float]:
     """Every numeric reading the dataset offers for this question."""
     out = []
     for raw in (program_answer, original_answer):
-        v = _to_float(str(raw)) if raw is not None else None
+        if raw is None:
+            continue
+        v = _to_float(str(raw))
+        if v is None:
+            v = _bool_value(str(raw))
         if v is not None:
             out.append(v)
     return out
@@ -84,11 +110,15 @@ def _close(a: float, b: float) -> bool:
 
 
 def is_correct(pred: float | None, golds: list[float]) -> bool:
+    """Sign-blind on magnitude match: SCALES has no negative factor, so a same-magnitude,
+    opposite-sign prediction (`dev_332`: pred -0.2, gold 0.2) is a real answer the strict
+    scorer used to reject outright. Checked against -g*scale too, not folded into SCALES,
+    so this stays visibly a sign tolerance rather than silently doubling the scale set."""
     if pred is None or not golds:
         return False
     for g in golds:
         for scale in SCALES:
-            if _close(pred, g * scale):
+            if _close(pred, g * scale) or _close(pred, -g * scale):
                 return True
     return False
 
