@@ -2,7 +2,9 @@
 sibling-year confusion (research.md sec1: 50% of right-company misses are wrong-year)?
 
 Same shape as `company_filter_ab.py` (RETR-5's own measurement): recall@50 on the
-CANDIDATE POOL only, no cross-encoder. The diagnosis is "the gold never reaches the
+CANDIDATE POOL only, no cross-encoder. That recall is a BINARY any-gold-in-pool hit, NOT
+the coverage-based `recall_at_k` every published table cell uses -- see `RETR-49`. Deltas
+between alphas here are self-consistent; the levels are not comparable to a table number. The diagnosis is "the gold never reaches the
 reranker", so reranking is not part of the question and running it would cost GPU time
 without changing the answer. `strip_query` is irrelevant here for the same reason -- it
 only changes what the reranker sees.
@@ -98,7 +100,9 @@ def main() -> None:
 
     print(f"\nquestions scored: {n_scored}   query mentions a year: "
           f"{n_with_query_year} ({100*n_with_query_year/n_scored:.1f}%)\n")
-    print(f"{'alpha':>10}{'recall@50':>14}{'delta vs alpha=0':>20}")
+    # BINARY any-gold-in-pool, not coverage `recall_at_k` -- the two are not
+    # interchangeable and mixing them cost 4.6pt of phantom headroom (`RETR-49`).
+    print(f"{'alpha':>10}{'recall@50 (binary)':>22}{'delta vs alpha=0':>20}")
     base = per_alpha_hits.get(0.0, per_alpha_hits[alphas[0]]) / n_scored
     for a in alphas:
         r = per_alpha_hits[a] / n_scored
