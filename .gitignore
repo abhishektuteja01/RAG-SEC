@@ -22,7 +22,8 @@ wheels/
 #                      on 2026-09-07; no tracked file cites any ID in it, by construction.
 #   RUNBOOK.md         the GPU cluster procedure, untracked on 2026-09-07: it is specific
 #                      to one university cluster and names its hosts.
-#   research.md        the 2026-09-07 literature/forensics sweep. Findings, not decisions:
+#   research_recall/research_recall.md the 2026-09-07 retrieval literature/forensics sweep
+#                      (was research.md until 2026-09-17). Findings, not decisions:
 #                      anything it establishes graduates to DECISIONS.md with its own ID.
 #   research_latency/research_latency.md the 2026-09-11 rerank-latency literature sweep. Same
 #                      rule: findings, not decisions -- anything adopted graduates to
@@ -33,7 +34,7 @@ spec.md
 SESSION.md
 DECISIONS.local.md
 RUNBOOK.md
-research.md
+research_recall/research_recall.md
 research_latency/research_latency.md
 
 # Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
