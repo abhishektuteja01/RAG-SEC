@@ -19,8 +19,10 @@ PRODUCES
 
 READS
     the matched question set via rag_sec.eval.load_matched_questions
-    data/retr7_rr_dev_scores.jsonl     the published RETR-39 `filtered_stripped` ranking,
-                                       read through rag_sec.eval.load_ranking (see TRAPS)
+    data/retr7_rr_dev_scores_year_bias.jsonl   the RETR-39 arm WITH RETR-40's year nudge,
+                                       read through rag_sec.eval.load_ranking (see TRAPS).
+                                       Was the plain RETR-39 file until 2026-09-16 -- see
+                                       STATIC_SCORES for why that had to change.
     Postgres `chunks` (variant 'A') for the static arm's evidence text, and Postgres again
     as LangGraph's checkpoint store
     analyze reads only the results file above plus the question set.
@@ -57,7 +59,11 @@ DECISIONS.md ROWS THIS BACKS
               rag_sec.retrieve.retrieve(). Without it stage latencies drift 2.3x inside
               one process, and those per-stage latencies are published.
     AGENT-25  the company filter silently switches OFF for 59.6% of later-iteration
-              queries. Fixed AFTER this run -- so every number here predates the fix.
+              queries. Fixed AFTER the published run. Measured value of the fix, same 200
+              questions: the loop's iteration-1 retrieval deficit narrows from -3.3pt to
+              -1.0pt. Still a deficit.
+    AGENT-30  the 2026-09-16 rerun and the stale-replay bug it exposed; see the results-file
+              table above. `scripts/checks/static_replay_provenance.py` guards it.
     COST-21   two gold answer fields that disagree on 10.1% of dev; both are stored per
               row and `rag_sec.answer_eval` scores against either.
     COST-30   Arm 6 runs on DEV ONLY. The holdout is not spent on a hypothesis that has
@@ -75,11 +81,23 @@ DECISIONS.md ROWS THIS BACKS
 
 WHEN THIS RAN: see the phase 07 row of scripts/README.md.
 
-EVERY FIGURE IN data/day9_arm6_dev_results.jsonl PREDATES THE AGENT-25 COMPANY-FILTER FIX.
-The filter was off for 59.6% of the loop's later-iteration queries, so the loop was
-retrieving with less than it now has. **69.2% answer accuracy is a FLOOR for the loop, not
-its ceiling** -- and AGENT-21's yes/no replay (71.5%) says the same thing from the scoring
-side. Do not quote 69.2% as what the loop can do.
+WHICH RESULTS FILE YOU ARE LOOKING AT DECIDES WHAT ITS NUMBERS MEAN. `analyze` reads
+`config.year_bias` and says so in its header; rows written before 2026-09-16 have no such key.
+
+    day9_arm6_dev_results.jsonl          the published pass. Predates the AGENT-25 fix, so
+                                         the filter was off for 59.6% of later-iteration
+                                         queries and the loop's accuracy is a FLOOR.
+    day9_arm6_dev_results_postfix.jsonl  post-fix loop, but its static half still replays a
+                                         PRE-year_bias ranking. NOT like-for-like; the loop
+                                         is flattered. Kept for provenance, do not quote.
+    day9_arm6_dev_results_fair.jsonl     both arms on year_bias. THE QUOTABLE ONE.
+
+On the fair file the loop's answer-accuracy win does NOT survive: 74.0% vs 70.5%, discordant
+8-2, McNemar exact p=0.109. The published p=0.0005 was real but was measured when first-stage
+retrieval was weaker -- RETR-40 fixed that cause directly, for 1.77x less money, and the
+static arm climbed 66.5% -> 70.5% to meet the loop. Retrieval is unambiguous and unchanged in
+direction: the loop LOSES on recall@10, nDCG@10 and MRR. p=0.109 is "no longer demonstrated",
+not "disproven" -- 10 discordant pairs carry little power.
 
 TRAPS
   * MONEY. `run` needs `--allow-paid-run` or it refuses before constructing a model, a
@@ -98,8 +116,9 @@ TRAPS
     **0.552 against the correct 0.739** on the 197-question sample, and biased the one
     question this phase exists to answer (AGENT-16). This file therefore reads it ONLY
     through `rag_sec.eval.load_ranking`, which sorts on load, with
-    `rag_sec.eval.SHIPPED_CELL`. `scripts/checks/static_ranking_order.py` is the CI gate
-    that locks both names. Do not open that file with `json.loads` here.
+    `rag_sec.eval.YEAR_BIAS_CELL` (was `SHIPPED_CELL` until 2026-09-16 -- see STATIC_SCORES).
+    `scripts/checks/static_ranking_order.py` is the CI gate that locks both names. Do not
+    open that file with `json.loads` here.
   * THE UNION RETRIEVAL ROW IS NOT COMPARABLE TO THE STATIC ROW (AGENT-22). `analyze`
     scores "all iters (union)" at k=len(got) -- every chunk the loop saw across up to 4
     iterations, so up to 40 slots -- while the static row is recall@10. The printed pair
@@ -152,7 +171,7 @@ from rag_sec.answer_eval import (  # noqa: E402
 from rag_sec.candidates import LIVE_VARIANT, chunk_texts  # noqa: E402
 from rag_sec.config import pick_device  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
-    SHIPPED_CELL,
+    YEAR_BIAS_CELL,
     gold_relevant_chunk_ids,
     load_matched_questions,
     load_ranking,
@@ -195,12 +214,18 @@ ARM_STATIC = "static"
 
 RESULTS_DEFAULT = DATA_DIR / "day9_arm6_dev_results.jsonl"
 
-# The paired baseline's source. The published RETR-39 `filtered_stripped` ranking, read
-# through rag_sec.eval.load_ranking (which SORTS ON LOAD) with rag_sec.eval.SHIPPED_CELL.
-# Both names are imported, never re-spelled: scripts/checks/static_ranking_order.py locks
-# this exact call, and reading the file as stored was AGENT-16 (recall@10 0.552 vs 0.739).
-STATIC_SCORES = DATA_DIR / "retr7_rr_dev_scores.jsonl"
-STATIC_CELL = SHIPPED_CELL
+# The paired baseline's source, read through rag_sec.eval.load_ranking (which SORTS ON LOAD)
+# with a cell name imported from rag_sec.eval, never re-spelled:
+# scripts/checks/static_ranking_order.py locks this exact call, and reading the file as
+# stored was AGENT-16 (recall@10 0.552 vs 0.739).
+# Repointed 2026-09-16. It was `retr7_rr_dev_scores.jsonl:filtered_stripped` (RETR-39), and
+# that was correct until RETR-43 made `year_bias` retrieve()'s default: the loop arm then ran
+# a retrieval stack the replayed baseline could not, and analyze kept printing LIKE-FOR-LIKE
+# over it. Same 200 dev questions: replayed static 0.736, static with year_bias 0.763, loop
+# iter-1 0.753 -- the loop's apparent retrieval win was the stale baseline.
+# scripts/checks/static_replay_provenance.py now fails the run if these two drift again.
+STATIC_SCORES = DATA_DIR / "retr7_rr_dev_scores_year_bias.jsonl"
+STATIC_CELL = YEAR_BIAS_CELL
 
 # Measured cost of the published pass, for --help and for the money gate's refusal text.
 # Measured on the published pass: $4.10 across 200 questions. Stated per question as well,
@@ -209,6 +234,10 @@ STATIC_CELL = SHIPPED_CELL
 RUN_COST_TOTAL_USD = 4.10
 RUN_COST_N = 200
 RUN_COST_PER_Q_USD = 0.0205
+# The static arm alone: one answer call, no plan, no judge, no rerank. Measured from the
+# published pass's own usage rows ($0.0116/q against the loop's $0.0205 -- the 1.77x in
+# AGENT-19), and what `restatic` buys when only the baseline needs rebuilding.
+STATIC_COST_PER_Q_USD = 0.0116
 
 # Serial, full stop. 1 is not a default to tune: concurrent CrossEncoder/SentenceTransformer
 # construction on MPS segfaults the process (AGENT-10, reproduced at concurrency ">1" and no
@@ -245,6 +274,20 @@ def _rel(path: Path) -> str:
     """Repo-relative, for --help text. Absolute paths in a --help make the help unreadable
     and machine-specific; the constants themselves stay absolute so cwd cannot matter."""
     return str(Path(path).relative_to(_ROOT))
+
+
+def _retrieve_default(name: str):
+    """A `retrieve()` keyword's live default, read from the signature.
+
+    Recording a hand-typed literal is what failed: the row said nothing about `year_bias`,
+    RETR-43 flipped it, and the config block kept describing a stack that no longer ran.
+    Reading the signature means the row cannot disagree with the function it describes.
+    """
+    import inspect
+
+    from rag_sec.retrieve import retrieve
+
+    return inspect.signature(retrieve).parameters[name].default
 
 
 # ─── STEP 1: the money gate ─────────────────────────────────────────────────────
@@ -391,7 +434,8 @@ def static_baseline(row, rankings) -> dict:
             usage = _record_usage("answer", "gemini-3.7-flash", resp, el, gen=gen)
         tr.set(output=resp.text)
     return {
-        "source": f"{_rel(STATIC_SCORES)}:{STATIC_CELL} (RETR-39, retrieval not re-run)",
+        "source": f"{_rel(STATIC_SCORES)}:{STATIC_CELL} "
+                  f"(RETR-39 + RETR-40 year_bias, retrieval not re-run)",
         "final_answer": resp.text,
         "top_k": [[st_, ix, sc] for st_, ix, sc in top],
         "reranked_all": ranked,
@@ -489,6 +533,12 @@ def run_one(graph, checkpointer, row, rankings) -> dict:
             "arm": ARM, "top_k": TOP_K, "candidate_k": CANDIDATE_K,
             "max_iterations": MAX_ITERATIONS, "company_filter": True,
             "strip_query": True,
+            # Read off retrieve()'s real signature, never re-typed. RETR-43 flipped this
+            # default after the published pass and nothing in the row recorded it, so two
+            # runs on different retrieval stacks were distinguishable only by `device`.
+            # That is what let the stale static replay go unnoticed.
+            "year_bias": _retrieve_default("year_bias"),
+            "static_source": f"{_rel(STATIC_SCORES)}:{STATIC_CELL}",
             "plan_model": "gemini-3.7-flash/low",
             "judge_model": "gemini-3.1-flash-lite/minimal",
             "answer_model": "gemini-3.7-flash/medium", "service_tier": "standard",
@@ -645,6 +695,65 @@ def _answer_accuracy(rows, yesno: bool) -> None:
               "(McNemar pairs; needs n to interpret)")
 
 
+def cmd_restatic(args: argparse.Namespace) -> None:
+    """Regenerate ONLY the static half of an existing results file, against the ranking
+    `STATIC_SCORES:STATIC_CELL` names today.
+
+    Exists because the loop half costs 1.77x the static half and there is no reason to buy
+    it twice. When the replayed baseline went stale (RETR-43 vs a pre-year_bias ranking),
+    the fix needed 200 fresh static answers and NOT 200 fresh loop runs -- re-running `run`
+    would have spent $4.10 to reproduce loop rows that were already correct, and would have
+    overwritten them with a second sample of a non-deterministic model.
+
+    The loop half is copied through byte-for-byte. Only `static_baseline` and `config` are
+    rewritten, so the pairing stays exact: same questions, same loop answers, new baseline.
+    """
+    rows = [json.loads(ln) for ln in args.results.read_text().splitlines() if ln.strip()]
+    rows = [r for r in rows if "error" not in r]
+    if not rows:
+        print(f"{args.results}: no usable rows", file=sys.stderr)
+        sys.exit(1)
+
+    done: set[str] = set()
+    if args.out.exists():
+        done = {json.loads(ln)["id"] for ln in args.out.read_text().splitlines() if ln.strip()}
+    todo = [r for r in rows if r["id"] not in done]
+
+    print(f"{args.results.name}: {len(rows)} rows, {len(done)} already restated, "
+          f"{len(todo)} to regenerate")
+    print(f"static source: {_rel(STATIC_SCORES)}:{STATIC_CELL}")
+    print(f"ESTIMATED SPEND ~${len(todo) * STATIC_COST_PER_Q_USD:.2f} "
+          f"(~${STATIC_COST_PER_Q_USD:.4f}/question, static arm only -- one answer call, "
+          f"no rerank)")
+    if not args.allow_paid_run:
+        print("\nrefusing: this makes a live Gemini call per question. Pass "
+              "--allow-paid-run if you mean to.", file=sys.stderr)
+        sys.exit(1)
+    if not todo:
+        print("nothing to do")
+        return
+
+    df = load_matched_questions()
+    by_id = {r["id"]: r for _, r in df[df["split"] == args.split].iterrows()}
+    rankings = load_static_rankings()
+
+    t0 = time.perf_counter()
+    with open(args.out, "a") as fh:
+        for i, rec in enumerate(todo, 1):
+            new = dict(rec)
+            new["static_baseline"] = static_baseline(by_id[rec["id"]], rankings)
+            new["config"] = {**rec.get("config", {}),
+                             "year_bias": _retrieve_default("year_bias"),
+                             "static_source": f"{_rel(STATIC_SCORES)}:{STATIC_CELL}",
+                             "restated_from": _rel(args.results.resolve())}
+            fh.write(json.dumps(new) + "\n")
+            fh.flush()
+            el = time.perf_counter() - t0
+            print(f"  {i}/{len(todo)} {rec['id']:<18} {el / 60:.1f}min elapsed, "
+                  f"~{el / i * (len(todo) - i) / 60:.1f}min left", flush=True)
+    print(f"\nwrote {args.out} -- loop half copied through, static half regenerated")
+
+
 def cmd_analyze(args: argparse.Namespace) -> None:
     """Day 9's metrics for a results file. Reads only -- free, and safe on a partial file."""
     with open(args.results) as f:
@@ -667,8 +776,25 @@ def cmd_analyze(args: argparse.Namespace) -> None:
     cfg = rows[0]["config"]
     print(f"device={cfg['device']} max_iter={cfg['max_iterations']} "
           f"answer={cfg['answer_model']}")
-    print("NOTE: the published run predates the AGENT-25 company-filter fix, so its answer "
-          "accuracy is a FLOOR.\n")
+    # Read off the row, not asserted: rows written before 2026-09-16 carry no `year_bias`
+    # key at all, and that absence is exactly what made the stale-baseline bug invisible.
+    yb, src = cfg.get("year_bias"), cfg.get("static_source")
+    if yb is None:
+        # Absence is AMBIGUOUS and must not be read as "predates everything": rows written
+        # before 2026-09-16 carry no `year_bias` key whether they ran before RETR-43 or
+        # after it. Say what is unknown rather than guessing -- guessing from an unrecorded
+        # field is the same habit that produced the stale baseline in the first place.
+        print("NOTE: this file records no `year_bias`, so its retrieval config CANNOT be "
+              "read off the row. It is either the pre-AGENT-25 published pass (accuracy a "
+              "FLOOR) or a post-fix run whose static half still replays a pre-year_bias "
+              "ranking (NOT like-for-like). Check the module docstring's results-file table "
+              "before quoting anything here.\n")
+    elif src and "year_bias" not in src:
+        print(f"WARNING: year_bias={yb} for the loop arm but the static row replays {src}, "
+              "which is NOT a year-bias ranking. The pair below is NOT like-for-like and the "
+              "loop is flattered (see scripts/checks/static_replay_provenance.py).\n")
+    else:
+        print(f"NOTE: both arms on year_bias={yb}; static replays {src}.\n")
 
     # ---- 1. trajectory: retrieval calls per question -- did the loop converge or spin ----
     iters = [r["iterations"] for r in rows]
@@ -763,7 +889,7 @@ def cmd_analyze(args: argparse.Namespace) -> None:
          lambda r: [(a, b) for a, b, _ in r["trajectory"][0]["top_k"]]),
         ("arm6 all iters (union)", "union",
          lambda r: dedupe((a, b) for t in r["trajectory"] for a, b, _ in t["top_k"])),
-        ("static (RETR-39)", "static",
+        ("static (replayed)", "static",
          lambda r: [(a, b) for a, b, _ in r["static_baseline"]["top_k"]]),
     )
     means = {}
@@ -856,13 +982,40 @@ def main() -> None:
             "  * The union retrieval row is scored at k=len(got) (up to 40 chunks) while "
             "the static row is recall@10, so the two are NOT comparable (AGENT-22). The "
             "like-for-like pair is printed underneath.\n"
-            "  * The whole run predates the AGENT-25 company-filter fix, so 69.2% answer "
-            "accuracy is a FLOOR for the loop, not its ceiling. AGENT-21's yes/no replay "
-            "is printed beside the headline, never instead of it."),
+            "  * The static row is a REPLAY, so it is only like-for-like if it was built "
+            "under the same retrieval config retrieve() runs today. It was not between "
+            "RETR-43 and 2026-09-16; the header line now says which. AGENT-21's yes/no "
+            "replay is printed beside the headline, never instead of it."),
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--results", type=Path, default=RESULTS_DEFAULT,
                    help=f"(default: {_rel(RESULTS_DEFAULT)})")
     p.set_defaults(fn=cmd_analyze)
+
+    p = sub.add_parser(
+        "restatic",
+        help="regenerate only the static half of a results file (cheap; needs Postgres)",
+        description=(
+            "Rebuild the paired baseline against the ranking STATIC_SCORES:STATIC_CELL "
+            "names today, keeping the loop half byte-for-byte.\n\n"
+            "MONEY: one answer call per question, ~$0.0116/question (~$2.32 for 200) -- the "
+            "static arm only. Refuses to start without --allow-paid-run.\n\n"
+            "WHY IT EXISTS: when the replayed baseline goes stale relative to retrieve() -- "
+            "as it did when RETR-43 made year_bias the default against a pre-year_bias "
+            "ranking -- the loop rows are still correct and must not be re-bought. Running "
+            "`run` again would spend the full $0.0205/question AND resample a "
+            "non-deterministic model, destroying the pairing with the loop answers you "
+            "already have.\n\n"
+            "Needs Postgres up: the baseline reads chunk TEXT for its answer prompt, even "
+            "though it replays the ranking rather than retrieving."),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--results", type=Path, required=True,
+                   help="existing results file whose loop half is kept")
+    p.add_argument("--out", type=Path, required=True,
+                   help="new results file; never written in place")
+    p.add_argument("--allow-paid-run", action="store_true",
+                   help=f"required. ~${STATIC_COST_PER_Q_USD:.4f}/question")
+    p.add_argument("--split", default="dev", help="(default: %(default)s)")
+    p.set_defaults(fn=cmd_restatic)
 
     args = ap.parse_args()
     args.fn(args)

@@ -10,7 +10,10 @@ Thresholds:
     recall@10   may not drop more than 2.0 points below baseline
     nDCG@10     may not drop more than 2.0 points below baseline
     recall@50   same tolerance; it is the candidate pool, so it moves for different reasons
-    numeric-match accuracy   may not drop AT ALL -- skipped until a baseline exists
+    numeric-match accuracy   may not drop AT ALL, against AGENT-29's post-fix static-arm
+                             figure. Dev, n=200 -- it was never re-run on test (that needs
+                             the paid `07_arm6_loop.py run`), so this leg guards the scorer,
+                             not a published headline.
 
 p95 latency and cost per query are the gate's other two legs. Neither is here: both need a
 measurement in the serving container (DEPLOY-1), not a replay.
@@ -27,11 +30,28 @@ from pathlib import Path
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
 
+from rag_sec.answer_eval import (  # noqa: E402
+    gold_is_scoreable,
+    gold_values,
+    is_correct,
+    parse_reason,
+)
 from rag_sec.eval import mean_and_stderr, ndcg_at_k, recall_at_k  # noqa: E402
 
 FIXTURE = _ROOT / "data" / "ci_retrieval_fixture.jsonl"
 BASELINE = _ROOT / "data" / "ci_retrieval_baseline.json"
 TOLERANCE = 0.02  # a metric may fall 2 points below baseline before the build fails
+
+# Answers are a different artifact and a different population from the retrieval fixture --
+# 200 generated answers, not 400 stored rankings -- so they cannot share that file's baseline
+# block, whose `n` the guard below asserts. Hence a constant here.
+ANSWERS = _ROOT / "data" / "day9_arm6_dev_results.jsonl"
+ANSWER_N = 200
+# AGENT-29, as corrected 2026-09-16. Its logged 66.0% used a 200 denominator; COST-21 excludes
+# the 27 unscoreable-gold questions, so the base is 173 and the replay gives 115/173 = 0.6647,
+# matching what `07_arm6_loop.py analyze` prints.
+ANSWER_BASELINE = 115 / 173  # 0.6647; DECISIONS.md's "66.5%" is this to one decimal. Written
+# as the fraction because the leg has no tolerance, so a rounded 0.665 fails on rounding alone.
 
 
 def score(rows: list[dict]) -> dict[str, float]:
@@ -43,6 +63,21 @@ def score(rows: list[dict]) -> dict[str, float]:
         metrics["recall_50"].append(recall_at_k(got, rel, 50))
         metrics["ndcg_10"].append(ndcg_at_k(got, rel, 10))
     return {k: mean_and_stderr(v)[0] for k, v in metrics.items()}
+
+
+def score_answers(rows: list[dict]) -> tuple[float, int]:
+    """Static-arm numeric-match accuracy, scored the way 07_arm6_loop.py's paired leg scores
+    its static half: answer_eval's own functions, and no yes/no mapping -- AGENT-27 keeps that
+    a labelled sensitivity, not the metric. Unscoreable gold is excluded, not counted wrong
+    (COST-21), so the denominator is the scoreable subset and is reported with the result."""
+    hits = scored = 0
+    for r in rows:
+        if not gold_is_scoreable(r["program_answer"], r["original_answer"]):
+            continue
+        scored += 1
+        pred, _ = parse_reason(r["static_baseline"]["final_answer"])
+        hits += is_correct(pred, gold_values(r["program_answer"], r["original_answer"]))
+    return (hits / scored if scored else 0.0), scored
 
 
 def main() -> int:
@@ -74,8 +109,8 @@ def main() -> int:
     failures = []
     print(f"{'metric':<12} {'baseline':>9} {'now':>9} {'delta':>8}")
     for k in sorted(want):
-        # A baselined metric this replay cannot compute -- numeric_match needs a generation
-        # pass, not a stored ranking. Reported as ungated rather than raising KeyError.
+        # A baselined metric this replay cannot compute from stored rankings. Reported as
+        # ungated rather than raising KeyError.
         if k not in got:
             print(f"{k:<12} {want[k]:>9.4f} {'n/a':>9} {'n/a':>8}  not scored here")
             continue
@@ -87,8 +122,27 @@ def main() -> int:
             flag = "  FAIL"
         print(f"{k:<12} {want[k]:>9.4f} {got[k]:>9.4f} {delta:>+8.4f}{flag}")
 
-    if "numeric_match" not in want:
-        print("\nnote: answer-accuracy leg not gated -- no baseline yet (pending Day 9)")
+    # The answers file is tracked, so absence means a pruned checkout rather than a
+    # regression; the leg drops out the way an uncomputable metric does above, and only the
+    # gate's two required inputs exit non-zero when missing.
+    if not ANSWERS.exists():
+        print(f"\nnote: answer-accuracy leg not gated -- {ANSWERS.name} absent")
+    else:
+        answers = [json.loads(ln) for ln in ANSWERS.read_text().splitlines() if ln.strip()]
+        answers = [r for r in answers if "error" not in r]  # as cmd_analyze drops them
+        if len(answers) != ANSWER_N:
+            print(f"error: {ANSWERS.name} has {len(answers)} answered questions, baseline "
+                  f"was measured on {ANSWER_N}", file=sys.stderr)
+            return 1
+        acc, n_scored = score_answers(answers)
+        delta = acc - ANSWER_BASELINE
+        flag = ""
+        if acc < ANSWER_BASELINE:  # may not drop at all
+            failures.append(f"numeric_match: {acc:.4f} vs baseline {ANSWER_BASELINE:.4f} "
+                            f"({delta:+.4f}, no tolerance)")
+            flag = "  FAIL"
+        print(f"{'numeric_match':<12} {ANSWER_BASELINE:>9.4f} {acc:>9.4f} {delta:>+8.4f}"
+              f"{flag}   ({n_scored}/{len(answers)} scoreable, dev)")
 
     if failures:
         print(f"\nGATE FAILED on {len(failures)} metric(s):", file=sys.stderr)

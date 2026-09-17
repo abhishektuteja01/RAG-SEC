@@ -463,6 +463,13 @@ def write_worst_failures(path, title: str, per_question: list[dict], filing_key:
 # so the CI guard and the agent run cannot drift apart on which cell they mean.
 SHIPPED_CELL = "filtered_stripped"
 
+# The same arm with RETR-43's year-proximity nudge, which is retrieve()'s default since
+# RETR-43 -- so this, not SHIPPED_CELL, is what a replayed baseline must use to stay
+# comparable with a live retrieve(). Distinct name on purpose: the score files carry no
+# config block, so the cell name is the only provenance a replay can check, and
+# scripts/checks/static_replay_provenance.py checks exactly that.
+YEAR_BIAS_CELL = f"{SHIPPED_CELL}_year_bias"
+
 
 class _AllCells:
     """Sentinel type for `load_ranking(cell=ALL_CELLS)` -- see ALL_CELLS."""
@@ -606,12 +613,38 @@ def load_ranking(
                         )
                 value = entries
 
+            elif "scores" in rec:
+                # TWO different artefacts carry a 'scores' key and BOTH must be refused, for
+                # different reasons -- so name the real one by measuring the entry, never by
+                # assuming. The message used to assert "5-tuples" unconditionally, which is
+                # false for the year-bias files and invites the next reader to conclude the
+                # guard is broken and override it.
+                first = next((e for e in rec["scores"] if isinstance(e, list)), None)
+                width = len(first) if first is not None else None
+                if width == 3:
+                    why = (
+                        "this is a UNION-POOL score file (`year_bias_recall10_{dev,test}_"
+                        "scores.jsonl`): its entries are [stem, idx, score] over the union of "
+                        "the base AND year-biased candidate pools, one rerank pass answering a "
+                        "two-condition question. Sorting it and taking top-k scores a merged "
+                        "pool as if it were one condition's ranking. Score it with "
+                        "`scripts/archive/year_bias_recall10_score.py`, which rebuilds each "
+                        "condition's pool from `base_pool`/`biased_pool` in the payload"
+                    )
+                else:
+                    why = (
+                        f"this is a SLICE file ({width}-wide entries of slice positions, not "
+                        "chunk rankings) -- different unit, not loadable here"
+                    )
+                raise ValueError(
+                    f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
+                    f"keys were {sorted(rec)}. {why}."
+                )
+
             else:
                 raise ValueError(
                     f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
-                    f"keys were {sorted(rec)}. A 'scores' key means this is a SLICE file "
-                    "(5-tuples of slice positions, not chunk rankings) -- different unit, "
-                    "not loadable here."
+                    f"keys were {sorted(rec)}."
                 )
 
             out[rec["id"]] = (value, rec.get("latency_s")) if with_latency else value

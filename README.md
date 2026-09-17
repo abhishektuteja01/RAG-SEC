@@ -14,8 +14,9 @@ gold labels, n=1545 (`DECISIONS.md` `RETR-39`):
 | + company filter | 0.644 ± 0.011 |
 | + query strip | 0.632 ± 0.012 |
 | **+ both** | **0.747 ± 0.010** |
+| **+ year-proximity RRF nudge (shipped default)** | **0.771 ± 0.010** |
 
-**Together they are worth 2.3x their separate gains.** Once every candidate is already the
+Company filter + query strip **together are worth 2.3x their separate gains.** Once every candidate is already the
 right company, the company name left in the query only rewards whichever chunk repeats the
 most boilerplate. The interaction is the finding, not either piece.
 
@@ -27,8 +28,8 @@ Every number is recomputed from `data/` at generation time and cross-checked aga
 
 ## Reproduce it in 90 seconds
 
-The rerank scores are committed, so the headline replays with no GPU, no Postgres, no API key
-and no money:
+The rerank scores are committed, so the filter+strip cell (0.747, one row above the shipped
+default) replays with no GPU, no Postgres, no API key and no money:
 
 ```bash
 uv run scripts/pipeline/05_arm3_rerank.py score \
@@ -47,10 +48,10 @@ every delta is attributable. recall@10 is dev, from `RETR-39`:
 |---|---|---|---|
 | 1 | dense BGE-M3 vectors | 0.337 | the baseline everything else is measured against |
 | 2 | + BM25/RRF fusion | 0.514 | kept — the largest single gain |
-| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.760 with company filter + query strip |
+| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`) |
 | 4 | table layouts B and C | — | lost — whole-table A wins on every metric (`ARM4-10`) |
 | 5 | multi-vector late interaction | — | never built: ~378 GB of vectors (`ARM5-1`) |
-| 6 | agentic LangGraph loop | — | wins on answer accuracy, loses on retrieval (`AGENT-19`) |
+| 6 | agentic LangGraph loop | — | loses on retrieval; its answer-accuracy win does not survive a fair baseline (`AGENT-30`) |
 
 `/explain-arm 3` in Claude Code walks through any one of them.
 
@@ -74,10 +75,11 @@ Postgres (pgvector + pg_search)  ◄── read by retrieve.py
 ```
 
 Every module is under `src/rag_sec/`. `api.py` serves Arm 3 as `POST /ask` and is **deployed**:
-both containers on one Graviton3 `c7g.2xlarge` EC2 host, Postgres self-hosted from
-`Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly and
-is not interactive — 157.7 s per question, 99.5% of it the reranker (`DEPLOY-18`). Arm 6's
-traces and dashboards are in `images/langfuse_*.png`.
+both containers on one `g4dn.xlarge` (Tesla T4) EC2 host, Postgres self-hosted from
+`Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly, and
+it is interactive since the GPU cutover: **fp16 rerank mean 3.27 s against the CPU host's 157.7 s**,
+with exact top-5 parity on every test question (`DEPLOY-21`, `DEPLOY-22`). Arm 6's traces and
+dashboards are in `images/langfuse_*.png`.
 
 Eval set: [T²-RAGBench](https://huggingface.co/datasets/G4KMU/t2-ragbench) (FinQA + ConvFinQA,
 799 unique filings).
