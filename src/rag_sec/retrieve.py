@@ -262,7 +262,14 @@ def retrieve(
             if fallback_reason:
                 with _fallback_lock:
                     _fallback_reasons[fallback_reason] += 1
-            rerank_query = strip_entity_framing(query) if strip_query else query
+            # aliases_from, not `query`: the name is looked up in the ORIGINAL question for
+            # the same reason the two calls around this one use resolve_from (AGENT-35). The
+            # rewritten query is still what gets stripped and searched.
+            rerank_query = (
+                strip_entity_framing(query, aliases_from=resolve_from or query)
+                if strip_query
+                else query
+            )
             # resolve_from, not query: same reason resolve_with_reason uses it -- an agent's
             # rewritten query can drop a year the same way AGENT-25 found it drops the
             # company name, and this must not silently go quiet.
