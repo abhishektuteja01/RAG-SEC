@@ -59,6 +59,12 @@ EXPECTED = {
         "SELECT filing_stem, chunk_index, text FROM chunks WHERE variant = 'A' "
         "AND filing_stem = ANY(['AAPL_2019_320193'])",
     ),
+    "chunk text fetch, exact pairs": (
+        lambda conn: C.chunk_texts_exact(conn, PAIRS, "A"),
+        "SELECT filing_stem, chunk_index, text FROM chunks WHERE variant = 'A' "
+        "AND (filing_stem, chunk_index) IN (SELECT s, i FROM "
+        "unnest(['AAPL_2019_320193', 'AAPL_2019_320193']::text[], [3, 7]::int[]) AS t(s, i))",
+    ),
 }
 
 

@@ -86,6 +86,14 @@ CELL_SPEC = {
     "filtered_raw": ("cands_filtered", "question"),
     "unfiltered_stripped": ("cands_unfiltered", "question_stripped"),
     "filtered_stripped": ("cands_filtered", "question_stripped"),
+    # The arms comparison. All three rerank against the STRIPPED question -- they differ in
+    # how their 50 candidates were chosen, never in what the cross-encoder is asked. Keep
+    # this table in step with 05_arm3_rerank.POOL_GROUP; scripts/checks/cell_config.py fails
+    # the run if they disagree, because a mismatch here silently reranks one arm against
+    # another arm's pool and every number downstream is wrong but plausible.
+    "deployed": ("cands_deployed", "question_stripped"),
+    "n18d": ("cands_n18d", "question_stripped"),
+    "n18d_p10": ("cands_n18d_p10", "question_stripped"),
 }
 
 
@@ -101,14 +109,39 @@ def load_done_ids(output_path: Path) -> set[str]:
     return done
 
 
+def parse_shard(arg: str) -> tuple[int, int]:
+    """`k/n` -> (k, n). Raises on anything else rather than guessing."""
+    try:
+        k, n = (int(x) for x in arg.split("/"))
+    except ValueError:
+        raise SystemExit(f"bad shard {arg!r}: expected k/n, e.g. 0/2") from None
+    if n < 1 or not 0 <= k < n:
+        raise SystemExit(f"bad shard {arg!r}: need 0 <= k < n and n >= 1")
+    return k, n
+
+
 def main() -> None:
-    if len(sys.argv) != 3:
-        print("Usage: python rerank_hpc.py <payload.json> <output.jsonl>")
+    if len(sys.argv) not in (3, 4):
+        print("Usage: python rerank_hpc.py <payload.json> <output.jsonl> [k/n]")
         sys.exit(1)
     payload_path, output_path = Path(sys.argv[1]), Path(sys.argv[2])
+    shard_k, shard_n = parse_shard(sys.argv[3]) if len(sys.argv) == 4 else (0, 1)
 
     payload = json.loads(payload_path.read_text())
     texts, questions = payload["texts"], payload["questions"]
+    if shard_n > 1:
+        # SHARD BEFORE the resume filter, so each shard resumes against its OWN output file
+        # and the two never consider the same question. Sharding by position in the payload,
+        # which is a fixed file, so the split is deterministic and re-runnable.
+        #
+        # This exists because the obvious way to parallelise -- two jobs, one output file --
+        # silently does the OPPOSITE. `load_done_ids` is read once at startup, so both jobs
+        # compute the identical `remaining` list: double the GPU hours for the same work, and
+        # an output file carrying every question twice, which `load_ranking` then resolves
+        # last-wins with no error. Give each shard its own output file and `cat` them after.
+        questions = [q for i, q in enumerate(questions) if i % shard_n == shard_k]
+        print(f"shard {shard_k}/{shard_n}: {len(questions)} of "
+              f"{len(payload['questions'])} questions")
     done = load_done_ids(output_path)
     remaining = [q for q in questions if q["id"] not in done]
     print(f"{len(questions)} total, {len(done)} already done, {len(remaining)} remaining")

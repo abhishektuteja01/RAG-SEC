@@ -8,6 +8,7 @@ import difflib
 import json
 import math
 import os
+import random
 import re
 from collections import Counter
 from collections.abc import Hashable, Sequence
@@ -425,6 +426,45 @@ def mean_and_stderr(values: list[float]) -> tuple[float, float]:
     mean = sum(values) / n
     variance = sum((v - mean) ** 2 for v in values) / (n - 1) if n > 1 else 0.0
     return mean, math.sqrt(variance / n)
+
+
+def exact_mcnemar(n10: int, n01: int) -> float:
+    """Two-sided exact binomial p on the discordant pairs (H0: p = 0.5).
+
+    The discordant counts, not the marginals: two arms that are both right on 900 questions
+    and differ on 20 are being compared on those 20, and a test that pools the agreements
+    reports a confidence the data does not carry (`AGENT-33` is the worked example -- a
+    -1.0pt retrieval "deficit" that was two question-points, p=1.000).
+    """
+    n = n10 + n01
+    if n == 0:
+        return 1.0
+    k = min(n10, n01)
+    tail = sum(math.comb(n, i) for i in range(0, k + 1)) / 2**n
+    return min(1.0, 2 * tail)
+
+
+def paired_bootstrap_ci(
+    deltas: Sequence[float], n_boot: int = 10000, seed: int = 20260917, alpha: float = 0.05
+) -> tuple[float, float, float]:
+    """(mean, lo, hi) percentile CI by resampling PER-QUESTION deltas, not the two arms.
+
+    Paired, because the arms are scored on the same questions: the between-question spread
+    is enormous next to the between-arm difference, so an unpaired interval on two means is
+    wide enough to hide any real effect this project has ever shipped (`RETR-41`).
+    """
+    d = list(deltas)
+    n = len(d)
+    if n == 0:
+        return 0.0, 0.0, 0.0
+    rng = random.Random(seed)
+    means = []
+    for _ in range(n_boot):
+        means.append(sum(d[rng.randrange(n)] for _ in range(n)) / n)
+    means.sort()
+    lo = means[int(alpha / 2 * n_boot)]
+    hi = means[min(n_boot - 1, int((1 - alpha / 2) * n_boot))]
+    return sum(d) / n, lo, hi
 
 
 def percentile(values: Sequence[float], q: float) -> float:
