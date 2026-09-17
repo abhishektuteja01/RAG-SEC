@@ -647,7 +647,7 @@ def cmd_score(args: argparse.Namespace) -> None:
     print("\nAn arm positive in aggregate and negative on `mismatch` has NOT earned a ship "
           "(RETR-45; depth-200 alone fails exactly here).")
 
-    # ── rerank wall time, which RUNBOOK.md asks every GPU pass to log ───────────
+    # ── rerank wall time, so a GPU pass publishes its own cost ─────────────────
     lat = []
     with open(args.scores) as fh:
         for line in fh:
