@@ -5,35 +5,54 @@ dense embeddings, hybrid BM25 fusion and cross-encoder reranking each actually b
 
 ## The result
 
-Held-out **test** split, best arm — dense + BM25/RRF + `bge-reranker-v2-m3`, coverage-based
-gold labels, n=1545 (`DECISIONS.md` `RETR-39`):
+Held-out **test** split, cumulative — dense + BM25/RRF + `bge-reranker-v2-m3`, coverage-based
+gold labels, n=1545:
 
-| Cell | recall@10 |
-|---|---|
-| reranked baseline | 0.607 ± 0.012 |
-| + company filter | 0.644 ± 0.011 |
-| + query strip | 0.632 ± 0.012 |
-| **+ both** | **0.747 ± 0.010** |
-| **+ year-proximity RRF nudge (shipped default)** | **0.771 ± 0.010** |
+| Cell | recall@10 | recall@50 |
+|---|---|---|
+| reranked baseline | 0.607 ± 0.012 | — |
+| + company filter | 0.644 ± 0.011 | — |
+| + query strip | 0.632 ± 0.012 | — |
+| **+ both** (`RETR-39`) | **0.747 ± 0.010** | 0.785 |
+| **+ year-proximity RRF nudge** (`RETR-40`, serving default) | **0.771 ± 0.010** | 0.825 |
+| **+ dense leg embeds the stripped query** (`RETR-51`) | **0.814 ± 0.009** | 0.885 |
+| **+ chunk-year candidate list at read depth 200** (`RETR-52`) | **0.831 ± 0.008** | 0.915 |
+
+The last two rows are **measured, not yet serving**: the code is committed but both default
+off, so `/ask` currently answers at the 0.771 configuration. They are query-side and
+first-stage only — the reranker still scores 50 candidates, so they cost nothing per answer.
+Every paired confidence interval excludes zero, McNemar p<0.0001, and no subgroup regresses
+(`RETR-51`/`RETR-52`).
 
 Company filter + query strip **together are worth 2.3x their separate gains.** Once every candidate is already the
 right company, the company name left in the query only rewards whichever chunk repeats the
 most boilerplate. The interaction is the finding, not either piece.
 
+The two newest gains are **reachability, not ranking**: recall@50 moves +0.090 against
+recall@10's +0.059, so most of the win is gold reaching the candidate pool at all, and the
+reranker converts only part of it.
+
 ![Retrieval quality by pipeline stage](images/results_chart.png)
 
-Regenerate it with `uv run --with matplotlib scripts/archive/results_chart.py` (~3-4 min).
-Every number is recomputed from `data/` at generation time and cross-checked against
-`DECISIONS.md`'s baseline table; a mismatch aborts rather than shipping a stale chart.
+The chart covers Arms 1-3 and stops at the published ablation, so it does not yet show the
+last two rows above. Regenerate it with
+`uv run --with matplotlib scripts/archive/results_chart.py` (~3-4 min). Every number is
+recomputed from `data/` at generation time and cross-checked against `DECISIONS.md`'s
+baseline table; a mismatch aborts rather than shipping a stale chart.
 
 ## Reproduce it in 90 seconds
 
-The rerank scores are committed, so the filter+strip cell (0.747, one row above the shipped
-default) replays with no GPU, no Postgres, no API key and no money:
+The rerank scores are committed, so both the published ablation and the newest arms replay
+with no GPU, no Postgres, no API key and no money:
 
 ```bash
+# the 2x2 ablation -- filter+strip, 0.747
 uv run scripts/pipeline/05_arm3_rerank.py score \
     --scores data/retr7_rr_test_scores.jsonl --split test
+
+# the two first-stage additions -- 0.771 -> 0.814 -> 0.831, with paired CIs and subgroups
+uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
+    --scores data/arms_scores.jsonl --split test
 ```
 
 One prerequisite: gold labels resolve against `data/chunks/`, so a fresh clone first runs
@@ -48,7 +67,7 @@ every delta is attributable. recall@10 is dev, from `RETR-39`:
 |---|---|---|---|
 | 1 | dense BGE-M3 vectors | 0.337 | the baseline everything else is measured against |
 | 2 | + BM25/RRF fusion | 0.514 | kept — the largest single gain |
-| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`) |
+| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`), and 0.847 measured with the two first-stage additions (`RETR-51`/`RETR-52`, not yet default) |
 | 4 | table layouts B and C | — | lost — whole-table A wins on every metric (`ARM4-10`) |
 | 5 | multi-vector late interaction | — | never built: ~378 GB of vectors (`ARM5-1`) |
 | 6 | agentic LangGraph loop | — | loses on retrieval; its answer-accuracy win does not survive a fair baseline (`AGENT-30`) |
