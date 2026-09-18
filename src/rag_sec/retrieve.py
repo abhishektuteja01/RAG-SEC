@@ -247,12 +247,15 @@ def retrieve(
     `extract_years` scan over the pre-cut union, partly paid for by `chunk_texts_exact` being
     CHEAPER than the per-filing fetch it replaces (10.5ms vs 26.9ms filtered).
 
-    `year_text_fusion` is NOT free of accuracy risk per question, only on aggregate: a gold
-    chunk whose own TEXT does not restate the question's year is excluded from the third list
-    while most of the union qualifies, and the demotion can push it past the 50-cut. Measured
-    on `finqa_test_1` -- gold at base rank 20 -> 58, out of the pool, answer 14.46 (correct)
-    -> INSUFFICIENT. Kept because `RETR-52`'s +1.7pt over `RETR-51` is measured on 1546 test
-    questions against this one; see `DEPLOY-25`.
+    `year_text_fusion` is NOT free of accuracy risk per question, only on aggregate: against
+    `deployed` it wins 109 test questions and **loses 15**. One demonstrated pathway for a
+    loss is a gold chunk whose own TEXT never restates the question's year -- it is excluded
+    from the third list while most of the union qualifies, and the demotion pushes it past the
+    50-cut (`finqa_test_1`: base rank 20 -> 58, out of the pool, answer 14.46 correct ->
+    INSUFFICIENT). That pathway does NOT explain the losses in general: across the 15, only
+    3 of 19 gold chunks fail the year test, so the other losses are ordinary RRF reordering.
+    Do not quote it as the characterisation of the failure mode; it is one worked example.
+    Kept because +1.7pt over `RETR-51` is measured on 1545 scored test questions; `DEPLOY-25`.
 
     Depth 200 is free because HNSW visits `ef_search` candidates regardless of `LIMIT`: dense
     measured 55.6ms at depth 50 against 50.9ms at 200. That it returns a FULL 200 rows was
