@@ -658,8 +658,11 @@ def cmd_score(args: argparse.Namespace) -> None:
     if lat:
         lat.sort()
         p50, p95 = percentile(lat, 50), percentile(lat, 95)
+        # sum(lat) is the PER-CELL series, so the total must be multiplied back up by the
+        # number of cells or it under-reports the GPU bill by exactly that factor.
         print(f"\nrerank wall time per question per cell: p50 {p50:.3f}s  p95 {p95:.3f}s  "
-              f"n={len(lat)}  (total {sum(lat) / 3600:.2f} h of rerank)")
+              f"n={len(lat)}  (total {sum(lat) * len(cells) / 3600:.2f} GPU-h across "
+              f"{len(cells)} cells)")
         if p50 == p95:
             # The cluster leg writes ONE averaged latency for a whole batch of 20 questions,
             # so every line in such a file carries the same number and the "distribution" is
