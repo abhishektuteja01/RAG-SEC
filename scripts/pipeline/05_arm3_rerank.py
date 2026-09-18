@@ -178,20 +178,40 @@ ARM_CELLS = ("deployed", "n18d", "n18d_p10")
 # defaults it ON -- so the local leg had silently stopped reproducing the table it claims to
 # reproduce, while the cluster leg (which builds its own pools in `prepare`) had not. Pinning
 # it here is what makes the two legs comparable again and keeps the 2x2 a reproduction rather
-# than a new measurement. The ARMS cells take the shipped default, which is what they are for.
+# than a new measurement. The ARMS cells pinned it to the shipped value instead of inheriting
+# it -- and as of DEPLOY-25 no cell here inherits ANY flag from retrieve(), see below.
+#
+# EVERY cell now pins strip_dense/read_depth/year_text_fusion too, and that is not tidiness.
+# `DEPLOY-25` flipped all three ON in retrieve()'s signature, so a cell that LEFT them out
+# would inherit the new serving defaults and stop measuring the arm its name promises -- the
+# 2x2 would quietly become four P10 cells, and `deployed` would become `n18d_p10`, reporting
+# a delta of zero against itself. The pool builder happens to read these through
+# `kw.get(..., <literal>)` rather than through retrieve(), so nothing breaks TODAY; pinning
+# them makes that an invariant of this table instead of a coincidence two files apart.
+# This is the same failure `RETR-53` fixed for the prepare/local legs, one flag-set later.
 CELL_FLAGS = {
-    "unfiltered_raw": dict(company_filter=False, strip_query=False, year_bias=False),
-    "filtered_raw": dict(company_filter=True, strip_query=False, year_bias=False),
-    "unfiltered_stripped": dict(company_filter=False, strip_query=True, year_bias=False),
-    "filtered_stripped": dict(company_filter=True, strip_query=True, year_bias=False),
-    # The shipped arm as deployed today: filter + strip + year_bias (RETR-40). This is the
-    # baseline the two candidates must beat, and it is re-scored rather than read off
-    # data/retr7_rr_*_scores.jsonl on purpose -- that artifact predates the RETR-50 ef_search
-    # fix, so reusing it would fold a ~0.08pt confound into every delta.
-    "deployed": dict(company_filter=True, strip_query=True, year_bias=True),
+    "unfiltered_raw": dict(company_filter=False, strip_query=False, year_bias=False,
+                           strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False),
+    "filtered_raw": dict(company_filter=True, strip_query=False, year_bias=False,
+                         strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False),
+    "unfiltered_stripped": dict(company_filter=False, strip_query=True, year_bias=False,
+                                strip_dense=False, read_depth=READ_DEPTH,
+                                year_text_fusion=False),
+    "filtered_stripped": dict(company_filter=True, strip_query=True, year_bias=False,
+                              strip_dense=False, read_depth=READ_DEPTH,
+                              year_text_fusion=False),
+    # The arm deployed UP TO `DEPLOY-25`: filter + strip + year_bias (RETR-40), and the
+    # baseline the two candidates had to beat. It is no longer what `retrieve()` serves --
+    # the name is kept because `rerank_hpc.CELL_SPEC` keys off it and `cell_config.py`
+    # checks the two agree, so renaming it here alone would fail that guard. Re-scored
+    # rather than read off data/retr7_rr_*_scores.jsonl on purpose -- that artifact predates
+    # the RETR-50 ef_search fix, so reusing it would fold a ~0.08pt confound into every delta.
+    "deployed": dict(company_filter=True, strip_query=True, year_bias=True,
+                     strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False),
     # N18d: the dense leg embeds the stripped query. Query-side only, same pool size, same
     # rerank bill.
-    "n18d": dict(company_filter=True, strip_query=True, year_bias=True, strip_dense=True),
+    "n18d": dict(company_filter=True, strip_query=True, year_bias=True, strip_dense=True,
+                 read_depth=READ_DEPTH, year_text_fusion=False),
     # N18d + P10: a third RRF list preferring chunks whose TEXT names the question's fiscal
     # year, choosing which 50 of a 200-deep candidate set survive. Pool and rerank unchanged;
     # P10 is worth ~0 at depth 50, so the depth is part of the cell, not a separate knob.

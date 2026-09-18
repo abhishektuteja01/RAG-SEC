@@ -14,15 +14,23 @@ gold labels, n=1545:
 | + company filter | 0.644 ± 0.011 | — |
 | + query strip | 0.632 ± 0.012 | — |
 | **+ both** (`RETR-39`) | **0.747 ± 0.010** | 0.785 |
-| **+ year-proximity RRF nudge** (`RETR-40`, serving default) | **0.771 ± 0.010** | 0.825 |
+| **+ year-proximity RRF nudge** (`RETR-40`) | **0.771 ± 0.010** | 0.825 |
 | **+ dense leg embeds the stripped query** (`RETR-51`) | **0.814 ± 0.009** | 0.885 |
-| **+ chunk-year candidate list at read depth 200** (`RETR-52`) | **0.831 ± 0.008** | 0.915 |
+| **+ chunk-year candidate list at read depth 200** (`RETR-52`, **serving**) | **0.831 ± 0.008** | 0.915 |
 
-The last two rows are **measured, not yet serving**: the code is committed but both default
-off, so `/ask` currently answers at the 0.771 configuration. They are query-side and
-first-stage only — the reranker still scores 50 candidates, so they cost nothing per answer.
-Every paired confidence interval excludes zero, McNemar p<0.0001, and no subgroup regresses
-(`RETR-51`/`RETR-52`).
+`/ask` now answers at the **0.831 configuration** — the last two rows went from measured to
+serving in `DEPLOY-25`, once they were timed on the deploy host and turned out to be free:
+paired over 110 test questions in the deployed container, all three flags on cost retrieval a
+mean **-0.011s, 95% CI [-0.051, +0.031]**. The recall figure itself is the offline GPU rerank
+pass's, not a re-score through the HTTP path; the two share one candidate generator
+(`candidates.first_stage`, `RETR-53`) and the flags were verified identical in the running
+container, which is why the number transfers. They are query-side and first-stage only — the reranker still scores 50
+candidates, so they cost nothing per answer. Every paired confidence interval excludes zero,
+McNemar p<0.0001, and no subgroup regresses (`RETR-51`/`RETR-52`).
+
+Individual questions can still regress even though no subgroup does, and `DEPLOY-25` documents
+a measured case: a gold chunk whose own text never restates the year the question asks for is
+excluded from `RETR-52`'s year list and can fall out of the candidate pool.
 
 Company filter + query strip **together are worth 2.3x their separate gains.** Once every candidate is already the
 right company, the company name left in the query only rewards whichever chunk repeats the
@@ -96,9 +104,14 @@ Postgres (pgvector + pg_search)  ◄── read by retrieve.py
 Every module is under `src/rag_sec/`. `api.py` serves Arm 3 as `POST /ask` and is **deployed**:
 both containers on one `g4dn.xlarge` (Tesla T4) EC2 host, Postgres self-hosted from
 `Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly, and
-it is interactive since the GPU cutover: **fp16 rerank mean 3.27 s against the CPU host's 157.7 s**,
-with exact top-5 parity on every test question (`DEPLOY-21`, `DEPLOY-22`). Arm 6's traces and
-dashboards are in `images/langfuse_*.png`.
+the GPU cutover cut rerank from the CPU host's 157.7 s to **fp16 rerank mean 3.27 s**, with exact
+top-5 parity on every test question (`DEPLOY-21`, `DEPLOY-22`).
+
+That is the rerank stage, not the round trip. Measured end to end on the fixed ten questions
+every latency decision here uses, `POST /ask` is **p50 6.7 s** — about 3.4 s of retrieval and
+3 s of Gemini generation (`DEPLOY-25`). So it is usable but **not yet inside the 2-5 s
+interactive target**, and the remaining headroom is generation-side, not retrieval-side. Arm 6's
+traces and dashboards are in `images/langfuse_*.png`.
 
 Eval set: [T²-RAGBench](https://huggingface.co/datasets/G4KMU/t2-ragbench) (FinQA + ConvFinQA,
 799 unique filings).

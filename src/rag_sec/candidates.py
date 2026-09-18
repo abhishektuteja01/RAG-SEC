@@ -24,6 +24,13 @@ CANDIDATE_K = 50  # POOL size: how many candidates reach the reranker. Re-export
 # what store.HNSW_EF_SEARCH is derived from: ef_search must cover the DEEPEST read, not
 # the pool. Deriving it from CANDIDATE_K would put RETR-50 straight back at depth 200.
 READ_DEPTH = 50  # default: unchanged from when this was CANDIDATE_K's second job
+# What `retrieve()` SERVES at, since DEPLOY-25 flipped RETR-51/RETR-52 on. Deliberately a
+# second constant rather than a new value for READ_DEPTH: the offline cells in
+# `05_arm3_rerank.py` fall back to READ_DEPTH for every arm that predates a read-depth knob,
+# so moving it would silently re-measure Arms 1-3 at depth 200 and quietly invalidate every
+# number they published. Two constants because they answer two different questions -- what
+# the shipped path reads, and what the historical arms read.
+SERVING_READ_DEPTH = 200
 READ_DEPTH_MAX = 200
 RRF_K = 60  # standard constant from Cormack et al. 2009's original RRF paper
 LIVE_VARIANT = "A"  # the only variant in the live index (ARM4-3)

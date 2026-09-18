@@ -321,9 +321,15 @@ _ORPHAN = re.compile(
 def strip_entity_framing(question: str, *, aliases_from: str | None = None) -> str:
     """Question with company identity and filing-provenance wording removed.
 
-    Only for the cross-encoder. Returns the original unchanged if stripping would leave
-    too little behind -- a query stripped down to "what was the percentage change" scores
-    nothing usefully, so the guard matters more than the stripping.
+    TWO consumers since `RETR-51`, not one: the cross-encoder, and -- when `strip_dense` is
+    on, which `DEPLOY-25` made the serving default -- the dense leg's embedding input. BM25
+    still sees the raw question deliberately; in OR-mode those tokens decide which documents
+    qualify at all. Anything added here now moves first-stage recall, not just rerank order.
+
+    Returns the original unchanged if stripping would leave too little behind -- a query
+    stripped down to "what was the percentage change" scores nothing usefully, so the guard
+    matters more than the stripping. That fallback fired on 8 of 110 test questions measured
+    in `DEPLOY-25`, which is why `strip_dense` is a no-op on some questions rather than all.
 
     `aliases_from` is a SECOND text to look for company names in, searched in ADDITION to
     `question` -- not instead of it (AGENT-35). Neither source alone is reliable when the

@@ -15,6 +15,7 @@ from rag_sec.candidates import (  # noqa: F401
     LIVE_VARIANT,
     READ_DEPTH,
     READ_DEPTH_MAX,
+    SERVING_READ_DEPTH,
     bm25,
     chunk_texts,
     first_stage,
@@ -187,9 +188,9 @@ def retrieve(
     reserve: int = 0,
     resolve_from: str | None = None,
     year_bias: bool = True,
-    strip_dense: bool = False,
-    read_depth: int = READ_DEPTH,
-    year_text_fusion: bool = False,
+    strip_dense: bool = True,
+    read_depth: int = SERVING_READ_DEPTH,
+    year_text_fusion: bool = True,
 ) -> list[dict]:
     """Dense+BM25/RRF candidates, reranked by the cross-encoder, top-k returned as dicts
     (LLM-readable as a LangGraph tool result, and scoreable as eval input).
@@ -237,13 +238,29 @@ def retrieve(
     there is nothing extra to choose between -- so the measured arm is all three together:
     `strip_dense=True, read_depth=200, year_text_fusion=True`.
 
-    All three default OFF and the pool, and so the rerank bill, is unchanged either way. They
-    are off because the +5.8pt behind them was measured on stored candidate dumps by an
-    offline sweep, never end to end on this code: turning them on by default would move every
-    published number before anything here had re-derived one. Flip them once a run on this
-    machine has reproduced deployed recall@10 (dev 0.7906 / test 0.7708) and then measured the
-    new cell -- and note the rerank scores are zipped onto first-stage order, so a replay that
-    forgets to sort reads 0.5668 and looks like a catastrophic regression (`AGENT-16`).
+    All three default ON since `DEPLOY-25`, and the pool -- so the rerank bill -- is unchanged
+    either way. They were off while the +5.8pt behind them had only been measured offline;
+    what unblocked the flip was the missing half, a latency measurement on the serving host.
+    Paired over 110 test questions in the deployed container, turning all three on costs
+    `total_s` a mean -0.011s, 95% CI [-0.051, +0.031] -- indistinguishable from zero. The only
+    effect that clears zero is +0.031s of `search_s` [+0.019, +0.043], which is the
+    `extract_years` scan over the pre-cut union, partly paid for by `chunk_texts_exact` being
+    CHEAPER than the per-filing fetch it replaces (10.5ms vs 26.9ms filtered).
+
+    `year_text_fusion` is NOT free of accuracy risk per question, only on aggregate: a gold
+    chunk whose own TEXT does not restate the question's year is excluded from the third list
+    while most of the union qualifies, and the demotion can push it past the 50-cut. Measured
+    on `finqa_test_1` -- gold at base rank 20 -> 58, out of the pool, answer 14.46 (correct)
+    -> INSUFFICIENT. Kept because `RETR-52`'s +1.7pt over `RETR-51` is measured on 1546 test
+    questions against this one; see `DEPLOY-25`.
+
+    Depth 200 is free because HNSW visits `ef_search` candidates regardless of `LIMIT`: dense
+    measured 55.6ms at depth 50 against 50.9ms at 200. That it returns a FULL 200 rows was
+    verified by counting them, not inferred from the LIMIT -- a short read would have made
+    this feature look free while doing nothing, which is `RETR-50`'s defect exactly.
+
+    Note the rerank scores are zipped onto first-stage order, so a replay that forgets to sort
+    reads 0.5668 and looks like a catastrophic regression (`AGENT-16`).
     """
     if read_depth > READ_DEPTH_MAX:
         # store.HNSW_EF_SEARCH is derived from READ_DEPTH_MAX, so a deeper read is one the
