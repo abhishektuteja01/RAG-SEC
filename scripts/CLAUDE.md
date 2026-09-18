@@ -13,8 +13,12 @@
 | `05_arm3_rerank.py` | Arm 3 |
 | `06_arm4_tables.py` | Arm 4 |
 | `07_arm6_loop.py` | Arm 6 |
+| `08_convfinqa_turns.py` | ConvFinQA's real multi-turn dialogues — **not an arm** |
 
 There is no phase for Arm 5. It was costed on paper and dropped before building (`ARM5-1`).
+
+Phase 08 is not part of the run order either: 01-07 neither produce nor consume it, and
+nothing scored so far is multi-turn. It recovers a free public dataset (`DATA-10`) and stops.
 
 ## What spends real money
 

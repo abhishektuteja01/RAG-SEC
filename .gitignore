@@ -41,6 +41,11 @@ research_latency/research_latency.md
 # ignored -- it is the shared, committable half.
 .claude/settings.local.json
 
+# Upstream ConvFinQA release (DATA-10), re-downloaded free from GitHub by
+# scripts/pipeline/08_convfinqa_turns.py. The join it feeds is what gets tracked
+# (data/convfinqa_turns.jsonl, 2.8 MB); the 46 MB source is not.
+data/convfinqa_upstream/
+
 # Regeneratable data (raw filings, parsed/chunked output) -- large,
 # reproducible from scripts/pipeline/01_corpus.py.
 # Keep: logs (*.jsonl) and day2_findings.md.

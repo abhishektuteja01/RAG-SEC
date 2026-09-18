@@ -401,6 +401,16 @@ the only thing that can score B and C.
 - Its static baseline is where `AGENT-16` was found — the rankings it slices are not in
   descending score order as stored, and `checks/static_ranking_order.py` now guards that.
 
+**`08_convfinqa_turns.py`** — recovers ConvFinQA's real multi-turn dialogues from the
+original public release and joins them to our `convfinqa_N` ids (`DATA-10`). **Free**, network
+only, no GPU/Postgres/API. Not an arm and not in the 01-07 run order: nothing scored so far is
+multi-turn, and no mechanism consumes it yet — `/ask` takes one string with no history and
+`retrieve()` takes one query. The join is **positional** (`convfinqa_N` indexes into
+`train.json + dev.json`), an order nobody upstream promised, so it aborts unless every row
+agrees positionally on both `filename` and the first turn's executed answer; an order-free
+content key is reported alongside as corroboration. **It does not touch `dataset.py`** —
+`SUBSET_FILES` stays turn-0-only so the stored score files keep their denominator.
+
 ### `scripts/pipeline/hpc/` — the two cluster legs
 
 **`embed_hpc.py`** — BGE-M3 embedding on a cluster GPU node. **Unchanged** from the day-5
@@ -422,7 +432,7 @@ Both import nothing from `rag_sec`; do not add an import.
 
 ## `scripts/checks/` — guards and regression tests
 
-Twelve Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
+Seventeen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
 them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
 reproduces a behaviour rather than asserting one, so nothing should gate on it.
 
@@ -479,6 +489,15 @@ work because it tests the deferred multi-step loop, not compression; its docstri
 the cost warning.
 
 ---
+
+**`convfinqa_turn_join.py`** — guards `data/convfinqa_turns.jsonl` (`DATA-10`). Three legs, each
+skipped rather than failed when its input is absent: the artifact is well formed; it still agrees
+with the upstream ConvFinQA release positionally and matches a fresh build; and its id set is still
+exactly the ConvFinQA ids `load_matched_questions()` yields. That last one is the point — adding
+turn files to `dataset.py`'s `SUBSET_FILES` would grow the question set past the ids in the stored
+score files and silently shrink every scored denominator, with no error anywhere. Carries a negative
+control (upstream rotated by one row must fail the join). **Not wired to CI**: all three legs would
+skip there, since CI has neither `data/chunks/` nor the upstream cache.
 
 ## `scripts/archive/` — one-offs and superseded scripts
 

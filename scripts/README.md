@@ -1,7 +1,8 @@
 # `scripts/` — how the project was actually run
 
 Three folders, three jobs. **`pipeline/`** is the reproduction path: seven numbered phases,
-in order, plus the two scripts that run on a GPU cluster. **`checks/`** is twelve guards —
+in order, plus phase 08 which stands outside that order, plus the two scripts that run on a
+GPU cluster. **`checks/`** is seventeen guards —
 each one locks a property that a real bug broke; five fail CI and one fails the container
 build. **`archive/`** is thirty one-off measurements whose findings are already recorded in
 [`DECISIONS.md`](../DECISIONS.md), plus the producer for the README's chart; nothing in the
@@ -55,6 +56,7 @@ Commands are copy-pasteable and were each confirmed against the script's own `--
 | 05 | **Arm 3 — the headline arm.** Rerank + company filter + query strip | `data/retr7_rr_{dev,test}_scores.jsonl`, `data/retr7_arm3_{dev,test}_results.json` | see the three legs below | 08-28 first HPC pass; 08-30 rescored; **09-04 the published `retr7_*` dev+test passes** | `ARM3-1`, `ARM3-2`, `RETR-5`, `RETR-6`, `RETR-16`, `RETR-18`, `RETR-24`, `RETR-30`, `RETR-39`, `AGENT-16`, `AGENT-24` |
 | 06 | Arm 4: A/B/C table layouts — **a dead end**, kept because `score --variant A` is a live control | `data/day6_arm4_{A,B,C}_dev_results.json`, `data/day6_table_summaries.json` | `uv run scripts/pipeline/06_arm4_tables.py score --variant A --overwrite` | 08-29 gold tables + C summaries; **08-30 the whole A/B/C run** (results 19:09–19:12). Not 09-04 — the re-index touched variant A only | `ARM4-2`…`ARM4-10`, `GOLD-5`, `INFRA-17`, `RETR-22`, `RETR-29`, `RETR-31` |
 | 07 | Arm 6: LangGraph loop vs. the static shipped arm | `data/day9_arm6_dev_results.jsonl` | `uv run scripts/pipeline/07_arm6_loop.py analyze` (free)<br>`uv run scripts/pipeline/07_arm6_loop.py run --allow-paid-run -n 200` (**paid**) | started 2026-09-04 20:10, finished 2026-09-05 01:55 — 200/200, 0 errors, 339.6 min, serial, on mains power | `AGENT-1`, `AGENT-4`, `AGENT-5`, `AGENT-8`, `AGENT-10`, `AGENT-15`…`AGENT-17`, `AGENT-19`, `AGENT-21`, `AGENT-22`, `AGENT-24`, `AGENT-25`, `COST-21`, `COST-30`, `COST-36`, `OBS-10`, `OBS-13` |
+| 08 | **Outside the run order.** ConvFinQA's real multi-turn dialogues, joined to our question ids | `data/convfinqa_turns.jsonl` | `uv run scripts/pipeline/08_convfinqa_turns.py build` | 2026-09-17 | `DATA-10` |
 
 ### Phase 03 — the cluster route
 
@@ -192,6 +194,7 @@ not pytest, to match the rest of `scripts/`.
 | `atom_replay.py` | the packer replayed from `data/parsed/` reproduces `data/chunks/` byte-for-byte, and chunks have enough atoms for compression to have any purchase | — |
 | `unanswerable_validate.py` | the unanswerable set really is unanswerable, for the 30 of 47 questions where that is machine-checkable | — |
 | `agent_loop_smoke_test.py` | the agentic loop end to end. **Paid** — see the cost table | — |
+| `convfinqa_turn_join.py` | `data/convfinqa_turns.jsonl` still agrees with upstream positionally, and its id set is still exactly the ConvFinQA ids `load_matched_questions()` yields — the tripwire on a `SUBSET_FILES` change silently moving the scored denominator (`DATA-10`). Each leg skips rather than fails when its input is absent, so it is **not** wired to CI, where all three would skip | — |
 
 The CI workflow is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): a `guards` job
 (seconds; no corpus, no database, no network) then a `gate` job. Deliberately absent, with reasons: the
