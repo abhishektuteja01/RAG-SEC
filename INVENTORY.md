@@ -449,7 +449,7 @@ Both import nothing from `rag_sec`; do not add an import.
 
 ## `scripts/checks/` — guards and regression tests
 
-Eighteen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
+Nineteen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
 them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
 reproduces a behaviour rather than asserting one, so nothing should gate on it.
 
@@ -530,6 +530,8 @@ traffic.
 **`bm25_only_recall.py`** — `CI-4`'s standing probe: BM25 alone, no filter, fusion or reranker, as
 a floor that should not move. A large move means the corpus, split or labels changed. Needs
 Postgres with the BM25 index. **Keep.**
+
+**`citation_grounding.py`** — `EVAL-4`'s standing probe: replays stored answers (the fair Arm 6 file, `COST-13`'s prompts and responses) and asks whether the ANSWER line's number is in the delivered evidence or follows from it by written arithmetic. Two negative controls exit 1 if they do not fall. Free, no API; reads `data/chunks/`, so not in CI. **Keep.**
 
 **`agent_loop_smoke_test.py`** — **the dangerous one.** It looks like a test, but every run makes live
 paid model calls (about $0.04) and writes rows into your database. There is **no dry-run and no
