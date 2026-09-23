@@ -63,8 +63,9 @@ uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
     --scores data/arms_scores.jsonl --split test
 ```
 
-One prerequisite: gold labels resolve against `data/chunks/`, so a fresh clone first runs
-`uv run scripts/pipeline/01_corpus.py` — ~1 h, resumable, no GPU.
+A fresh clone runs these as-is: without the gitignored `data/chunks/`, gold labels come from
+the tracked `data/gold_chunk_ids.json` (`INFRA-28`). The first run needs network, to fetch the
+question set from Hugging Face.
 
 ## How it works
 

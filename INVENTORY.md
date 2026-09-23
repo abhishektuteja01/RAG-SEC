@@ -449,20 +449,27 @@ Both import nothing from `rag_sec`; do not add an import.
 
 ## `scripts/checks/` — guards and regression tests
 
-Nineteen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
+Twenty Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
 them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
 reproduces a behaviour rather than asserting one, so nothing should gate on it.
 
-Nine are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
+Ten are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
 `candidate_sql.py`, `static_ranking_order.py`, `tracing_offline.py`, `cell_config.py`,
 `static_replay_provenance.py`, `short_limit.py --static-only`, `latency_budget.py`,
-`retrieval_gate.py` — and `container_wordlist.py` is invoked by the `Dockerfile` at both build
-and runtime. **Those ten
+`gold_cache.py check --static-only`, `retrieval_gate.py` — and `container_wordlist.py` is
+invoked by the `Dockerfile` at both build and runtime. **Those eleven
 filenames are load-bearing outside this repo's Python; moving one breaks a pipeline, not an
 import.** Four more are described only in passing below and are worth a pass of their own:
 `ci_fixture_build.py` (distils the gitignored scores + chunks into the one committed ~1 MB
 fixture the retrieval gate replays, `CI-1`), `retrieval_gate.py` (the gate itself, `CI-2`),
 `container_wordlist.py`, and `unanswerable_validate.py`.
+
+**`gold_cache.py`** — builds `data/gold_chunk_ids.json` (the gold labels, cached so a clone
+with no corpus can score) from `data/chunks/`, using `eval.py`'s own label code, and checks it.
+`check` recomputes every label from the corpus and fails on any difference; with no corpus it
+fails unless told `--static-only`, which CI runs: the cache still matches the label code's
+fingerprint and covers every id in the tracked score files. `build` refuses to write a file
+that moves any label unless `--allow-label-change` is passed (`INFRA-28`). **Keep.**
 
 **`variant_predicates.py`** — checks the project's own code for the query bug.
 **Keep**, but it's a safety check, not an investigation. The same check now runs automatically.
@@ -767,9 +774,10 @@ effectively irreplaceable. **Keep.**
 **Keep — actively read** during compression.
 
 **`chunks/`** — 382 MB, 799 files, not in git. The ~900-word chunks. **Keep — actively read.**
-Scoring resolves gold labels through these, so **the cheap no-GPU replay does not work without
-them** — a fresh clone must run `01_corpus.py` first. Every chunk number in every results file is
-meaningless without this folder.
+Scoring resolves gold labels through these when present; without them it reads the same labels
+from `gold_chunk_ids.json`, so **the cheap no-GPU replay no longer needs them** (`INFRA-28`).
+Chunk text still does: Arms 1–2, the label-audit and failure scripts, compression and
+`heading_fix.py`. Every chunk number in every results file points into this folder.
 
 **`label_audit/`** — 38 MB, not in git. The blind label audit's shards, cases and answer key
 (`KEY_do_not_give_to_auditors.json`). Replays from `scripts/archive/label_audit_prepare.py` at a
@@ -863,6 +871,12 @@ can measure depends on it. It is frozen: reproduce against it, never regenerate 
 
 **`day7_gold_evidence_resolved.json`** (2.4 MB, in git) — **Keep.** Rebuildable only from the file
 above plus raw dataset files that are not present on this machine.
+
+**`gold_chunk_ids.json`** (184 KB, in git) — **Keep.** `gold_relevant_chunk_ids()` for every
+dev and test question, plus the corpus's file names, cached from `data/chunks/` by
+`scripts/checks/gold_cache.py build`. A record of what the frozen labels resolve to, not a new
+labeling: `eval.py` reads it only when the corpus is absent, and refuses it if the label code or
+its inputs have changed since the build (`INFRA-28`).
 
 **`day6_gold_labeling_audit_v2.txt`** (1.2 MB, in git) — **Keep as archive.** A hand audit, so it
 cannot be regenerated, but nothing reads it. Its superseded v1 is **gone** (`64de14e`).

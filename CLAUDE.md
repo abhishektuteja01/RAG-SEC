@@ -30,9 +30,11 @@ uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
 Drop `--table arms` and pass `--scores data/retr7_rr_test_scores.jsonl` for the older 2x2
 ablation (0.747, `RETR-39`).
 
-Prerequisite: scoring reads `data/chunks/`, which is gitignored. A fresh clone runs
-`uv run scripts/pipeline/01_corpus.py` first. That is still the short path — it skips the
-local embed and Postgres entirely. Only Arms 1–2 need those.
+A fresh clone needs no corpus for this. Gold labels resolve against the gitignored
+`data/chunks/` when it exists; without it, `eval.py` reads the same labels from the tracked
+`data/gold_chunk_ids.json` (`INFRA-28`). The question set still comes from Hugging Face, so the
+first run needs network. `data/chunks/` (`01_corpus.py`, ~1 h) is still needed for anything
+that reads chunk text, and Arms 1–2 also need the local embed and Postgres.
 
 ## Vocabulary
 
