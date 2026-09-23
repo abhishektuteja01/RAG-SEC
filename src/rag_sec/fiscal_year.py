@@ -1,6 +1,6 @@
 """Fiscal-year signal for retrieval: extracts years mentioned in a query and blends them into
-candidate ranking as an additive nudge, never a hard filter -- RETR-5 found the extraction
-signal only 75-82% accurate, and a hard year filter at that accuracy deletes the right answer
+candidate ranking as an additive nudge, never a hard filter -- the extraction signal is only
+75-82% accurate (figure's source untraced, see RETR-40), and a hard year filter at that accuracy deletes the right answer
 on every miss. Chunk-side year comes from `filing_stem`'s own naming convention
 (`TICKER_YEAR_CIK`, verified against all 799 filings), not a query-side guess.
 """
