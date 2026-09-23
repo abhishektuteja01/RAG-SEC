@@ -246,7 +246,7 @@ a reader can walk back from a number to the script that produced it.
 | `slice_floor.py` | `COST-7` |
 | `slice_prepare.py` | `COST-5`, `COST-7`, `COST-8`, `COST-17`, `RETR-16`, `RETR-29` |
 | `slice_rerank_hpc.py`, `slice_rerank_hpc.sbatch` | `COST-7`, `COST-11` |
-| `trt_export_onnx.py`, `trt_rerank_parity.py` | none yet — TensorRT rerank ruled out 2026-09-14 (9/10 top-5 parity, not faster than torch fp16); the one finding here with no `DECISIONS.md` row |
+| `trt_export_onnx.py`, `trt_rerank_parity.py` | `DEPLOY-26` |
 | `stratum_b_channel.py` | `COST-23`, `COST-25`, `COST-26` |
 | `unanswerable_run.py` | `COST-34`, `AGENT-10`, `AGENT-17` |
 | `year_bias_sweep.py` | `RETR-40`, `RETR-49` |
