@@ -1,6 +1,7 @@
-"""AST scan that fails any read of `chunks` whose WHERE clause omits `variant`
-(DECISIONS.md RETR-24). Lives here, not in the diagnostics script, so it is importable and
-runs automatically on the first `get_conn()`; variant_predicates.py is a CLI over it.
+"""AST scan that fails any read of `chunks` whose WHERE clause omits `variant`.
+
+The table has a `variant` column (only 'A' is live). A read without a `variant` predicate
+would silently mix in any other rows loaded later. Runs on the first `get_conn()`.
 """
 
 import ast
@@ -15,9 +16,6 @@ WHERE = re.compile(r"\bwhere\b", re.I)
 # Unconstrained reads that are safe, and why. Keyed by normalized SQL, so editing a query
 # revokes its exemption and the check fires again -- fail-closed on edit.
 ALLOWED = {
-    "SELECT DISTINCT filing_stem FROM chunks": "build-time bookkeeping: which filings are already loaded, variant-agnostic by design",
-    "SELECT count(*) FROM chunks": "build-time progress count, not a candidate pool",
-    "SELECT filing_stem, chunk_index, variant, text FROM chunks WHERE filing_stem = ANY(%s)": "Arm 4 text fetch: returns all variants on purpose, caller keys by the (stem, index, variant) 3-tuple",
     "SELECT variant, count(*), count(embedding) FROM chunks GROUP BY variant": "the corpus assertion itself -- it must see every variant to compare them",
 }
 
@@ -37,7 +35,7 @@ def variant_predicate_violations() -> list[str]:
     """Reads of `chunks` whose WHERE clause doesn't constrain `variant`.
 
     Checks post-WHERE specifically: naming `variant` in the SELECT list says nothing
-    about which rows come back, and two Arm 4 queries do exactly that.
+    about which rows come back.
     """
     violations = []
     for scan_dir in SCAN_DIRS:
@@ -49,12 +47,9 @@ def variant_predicate_violations() -> list[str]:
             try:
                 tree = ast.parse(path.read_text())
             except (SyntaxError, UnicodeDecodeError):
-                # UnicodeDecodeError is not hypothetical: macOS tar writes AppleDouble
-                # `._name.py` sidecars, and those match rglob("*.py") while being binary.
-                # Uncaught, this crashed the CONTAINER at startup rather than failing a
-                # lint run, because get_conn() calls this guard on the serving path.
-                # Skipping is correct rather than lenient -- Python source is UTF-8 by
-                # definition, so an undecodable file is not a module this guard can miss.
+                # macOS tar writes binary AppleDouble `._name.py` sidecars that match
+                # rglob("*.py"). Uncaught, this crashed the container at startup. Python
+                # source is UTF-8, so an undecodable file is not a module this could miss.
                 continue
             for lineno, sql in _sql_literals(tree):
                 if not FROM_CHUNKS.search(sql):
@@ -75,8 +70,7 @@ def assert_variant_predicates() -> None:
     violations = variant_predicate_violations()
     if violations:
         raise RuntimeError(
-            f"{len(violations)} read(s) of `chunks` without a `variant` predicate "
-            "(DECISIONS.md RETR-24):\n\n  "
+            f"{len(violations)} read(s) of `chunks` without a `variant` predicate:\n\n  "
             + "\n\n  ".join(violations)
             + "\n\nAdd `variant = 'A'` to the WHERE clause, or -- if the query genuinely"
             "\nwants every variant -- add its normalized SQL to ALLOWED in preflight.py"

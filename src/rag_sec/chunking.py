@@ -1,6 +1,8 @@
 """Packs parsed blocks into token-budgeted chunks that never split a table mid-row.
-Budgets come from T2-RAGBench's own evidence spans (median ~800 tokens, p90 ~1300); Arm 4's
-per-table B/C variants are a post-packing splice -- DECISIONS.md CHUNK-2/ARM4-*.
+Budgets come from T2-RAGBench's own evidence spans (median ~800 tokens, p90 ~1300).
+
+Only used to rebuild the corpus (scripts/rebuild/corpus.py). The gold labels are chunk
+indices, so any change here that moves a chunk boundary invalidates every score.
 """
 
 from __future__ import annotations
@@ -9,14 +11,11 @@ import os
 import re
 from collections import Counter
 from dataclasses import dataclass
-from typing import Callable, Literal
 
 from transformers import AutoTokenizer
 
-from rag_sec.config import EMBED_MODEL_NAME
+from rag_sec.config import EMBED_MODEL_NAME, EMBED_MODEL_REVISION
 from rag_sec.parsing import Block, TableBlock, TextBlock
-
-TableStrategy = Literal["A", "B", "C"]
 
 
 def _flag(name: str, default: bool) -> bool:
@@ -24,17 +23,10 @@ def _flag(name: str, default: bool) -> bool:
     return default if value is None else value.strip().lower() in {"1", "true", "yes", "on"}
 
 
-# RETR-7/RETR-8, both reversible from the environment without a code edit: the only way to
-# learn whether they helped is a re-index, and the comparison run has to be byte-identical
-# to the old packer, not "close".
-#
-# They default ON as of the 2026-09-04 re-index (`RETR-39`). They shipped OFF, because
-# `rag_sec.compress` replays this packer from data/parsed/ and requires it to reproduce the
-# stored data/chunks/ byte-for-byte (scripts/checks/atom_replay.py asserts exactly that) --
-# so before the re-index, ON would have made compression select from a different document
-# than the one embedded. After it, OFF has that same effect in reverse: measured 2026-09-04,
-# default-off replay matched only 52,342/99,654 chunks (52.52%), which is precisely the
-# 52.5% RETR-7 left untouched. The default has to track whichever corpus is stored.
+# Two heading fixes (record every heading a chunk spans; never let page furniture become a
+# heading). Both ON in the stored corpus, and they MUST stay on: with them off the packer
+# reproduces only 52,342 of the 99,654 stored chunks. Kept as flags so the old packer can
+# still be reproduced byte for byte.
 MULTI_HEADING = _flag("RAG_SEC_MULTI_HEADING", True)
 STRIP_TITLE_FURNITURE = _flag("RAG_SEC_STRIP_TITLE_FURNITURE", True)
 
@@ -43,11 +35,11 @@ TARGET_CHUNK_TOKENS = 900
 MAX_CHUNK_TOKENS = 1500
 # sec-parser types a long bold paragraph (exhibit-index entry, signature block) as a
 # TitleElement. All 16 titles >100 tokens in the 100-filing sample were checked by hand and
-# none was a real heading (CHUNK-3). Empirical, but the failure mode is soft: a genuine long
+# none was a real heading. Empirical, but the failure mode is soft: a genuine long
 # heading would only lose its grouping role, not corrupt anything.
 MAX_TITLE_TOKENS = 100
 
-# RETR-8. sec-parser already drops PageHeaderElement/PageNumberElement (parsing.py), so
+# sec-parser already drops PageHeaderElement/PageNumberElement (parsing.py), so
 # everything here is furniture it typed as a *TitleElement* -- the element-type filter
 # cannot catch it and a text test is the only option left. Structural classes, not a list
 # of the strings we happened to see; each share is of the 122,524 title instances in the
@@ -81,7 +73,7 @@ def _running_header_titles(blocks: list[Block]) -> set[str]:
 
 
 def is_furniture_title(text: str, running_headers: frozenset[str] | set[str] = frozenset()) -> bool:
-    """True if this title is page furniture rather than a section heading (RETR-8)."""
+    """True if this title is page furniture rather than a section heading."""
     stripped = text.strip()
     if not stripped:
         return True
@@ -98,7 +90,7 @@ def _tokenizer():
     if _TOKENIZER is None:
         # Budget against the actual embedding model's tokenizer (rag_sec.config) so
         # chunk sizes match what the embed step sees, not a generic proxy.
-        _TOKENIZER = AutoTokenizer.from_pretrained(EMBED_MODEL_NAME)
+        _TOKENIZER = AutoTokenizer.from_pretrained(EMBED_MODEL_NAME, revision=EMBED_MODEL_REVISION)
     return _TOKENIZER
 
 
@@ -140,7 +132,7 @@ def _split_text(text: str) -> list[str]:
 
     Filers that never restate "Item N" as a body heading leave sec-parser no structural
     break, so it merges whole Items into one 18k-token element (JPM_2007) -- which without
-    this would be a single unembeddable chunk, past BGE-M3's 8192 limit (CHUNK-3).
+    this would be a single unembeddable chunk, past BGE-M3's 8192 limit.
     """
     normalized = " ".join(text.split())
     sentences = _SENTENCE_SPLIT.split(normalized)
@@ -176,49 +168,19 @@ class Atom:
     tokens: int
     is_title: bool
     is_table: bool
-    # forces its own chunk, bypassing the token-packer -- see DECISIONS.md ARM4-1/ARM4-2
+    # forces its own chunk, bypassing the token-packer. Nothing sets it today (it was used
+    # by the dropped table-layout variants); kept so the packer stays byte-identical.
     is_standalone: bool = False
-    # 0-based position among TableBlocks only (None for text atoms) -- lets
-    # chunk_blocks_with_variant splice one table's atoms out after packing (ARM4-4)
+    # 0-based position among TableBlocks only (None for text atoms)
     table_idx: int | None = None
-    # RETR-8: a title that is page furniture. Still `is_title`, so it keeps its
+    # a title that is page furniture. Still `is_title`, so it keeps its
     # flush-triggering role and chunk boundaries do not move -- it just never becomes a
     # heading, and the section heading it used to clobber survives it.
     is_furniture: bool = False
 
 
-def _table_rows_to_atoms_b(rows: list[list[str]]) -> list[Atom]:
-    """Arm 4 Strategy B: one atom per data row, header row repeated in each -- DECISIONS.md ARM4-1."""
-    if not rows:
-        return []
-    header_text = " | ".join(rows[0])
-    atoms = []
-    for row in rows[1:]:
-        text = f"{header_text}\n{' | '.join(row)}"
-        atoms.append(Atom(text=text, tokens=count_tokens(text), is_title=False, is_table=True, is_standalone=True))
-    return atoms
-
-
-def _table_rows_to_atoms_c(rows: list[list[str]], summarize_table: Callable[[list[list[str]]], str]) -> list[Atom]:
-    """Arm 4 Strategy C: the raw table (unchanged from Strategy A's own serialization,
-    split the same way if oversized) plus a standalone LLM-summary atom -- DECISIONS.md ARM4-2."""
-    atoms = []
-    table_text = _table_to_text(rows)
-    tokens = count_tokens(table_text)
-    if tokens > MAX_CHUNK_TOKENS:
-        for part in _split_table(rows):
-            atoms.append(Atom(text=part, tokens=count_tokens(part), is_title=False, is_table=True))
-    else:
-        atoms.append(Atom(text=table_text, tokens=tokens, is_title=False, is_table=True))
-    summary = summarize_table(rows)
-    atoms.append(Atom(text=summary, tokens=count_tokens(summary), is_title=False, is_table=True, is_standalone=True))
-    return atoms
-
-
 def _blocks_to_atoms(blocks: list[Block]) -> list[Atom]:
-    """Always builds plain Strategy-A atoms (every table serialized whole) -- variant
-    overrides are applied later, as a post-packing splice, not here. See
-    chunk_blocks_with_variant and DECISIONS.md ARM4-4."""
+    """One atom per block (every table serialized whole, split by rows only if oversized)."""
     atoms = []
     table_idx = 0
     running_headers = _running_header_titles(blocks) if STRIP_TITLE_FURNITURE else frozenset()
@@ -266,16 +228,14 @@ class Chunk:
 
 
 def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
-    """The token-budget packer. Returns each Chunk paired with the atoms that made it up, so
-    chunk_blocks_with_variant can splice one table's atoms out afterwards rather than
-    re-running this with different-sized atoms, which moves every later boundary (ARM4-4)."""
+    """The token-budget packer. Returns each Chunk paired with the atoms that made it up."""
     packed: list[tuple[Chunk, list[Atom]]] = []
-    # RETR-7: the heading each atom actually sits under, recorded when the atom is buffered
+    # The heading each atom actually sits under, recorded when the atom is buffered
     # rather than read off `current_heading` at flush time. That single mutable variable was
     # the bug -- a short section's text was emitted under the *next* section's heading,
     # wrong for 49.7% of atoms, and unrelated to the true topic in 54.7% of those.
     packed_headings: list[tuple[str, ...]] = []
-    # Token count each chunk WOULD have had under the pre-RETR-7 heading. The fold-back
+    # Token count each chunk WOULD have had under the old single-heading rule. The fold-back
     # below thresholds on a count that includes the heading line, so changing the heading
     # silently changes which tiny chunks get folded -- which moves boundaries, which moves
     # the chunk indices eval.py's gold labels are. Deciding on the legacy count keeps
@@ -311,8 +271,7 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
         legacy_tokens = tokens if heading == legacy_heading else count_tokens(legacy_text)
         # a tiny trailing chunk (e.g. one short leftover paragraph) is mostly
         # index noise -- fold it into the previous chunk instead, unless that
-        # previous chunk is a standalone table row/summary (Arm 4 B/C), which
-        # must stay isolated or it loses the point of being a small chunk
+        # previous chunk is standalone
         if (
             packed
             and not packed[-1][0].standalone
@@ -352,7 +311,7 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
             # have a reasonable amount of content
             if current_tokens >= TARGET_CHUNK_TOKENS:
                 flush()
-            # RETR-8: furniture still reaches the flush check above -- suppressing that too
+            # Furniture still reaches the flush check above -- suppressing that too
             # would move chunk boundaries, and the whole point of doing this without a
             # re-chunk is that boundaries stay put. It just never becomes the heading, so
             # the real section heading it used to overwrite survives it.
@@ -397,69 +356,6 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
     return packed
 
 
-def chunk_blocks_with_atoms(blocks: list[Block]) -> list[tuple[Chunk, list[Atom]]]:
-    """Each chunk paired with the atoms it was packed from. `chunk_blocks` drops the
-    atoms; rag_sec.compress needs them -- they are the structure-aware block boundaries
-    (table vs prose, one atom per source TableBlock) that would otherwise have to be
-    re-derived from the flattened chunk text by regex."""
-    return _pack_atoms(_blocks_to_atoms(blocks))
-
-
 def chunk_blocks(blocks: list[Block]) -> list[Chunk]:
-    return [chunk for chunk, _ in chunk_blocks_with_atoms(blocks)]
+    return [chunk for chunk, _ in _pack_atoms(_blocks_to_atoms(blocks))]
 
-
-def _build_chunk_from_atoms(atoms: list[Atom], heading: str | None) -> Chunk:
-    body = "\n\n".join(a.text for a in atoms)
-    text = f"# {heading}\n\n{body}" if heading else body
-    return Chunk(text=text, n_tokens=count_tokens(text), heading=heading)
-
-
-def chunk_blocks_with_variant(
-    blocks: list[Block],
-    table_variant_map: dict[int, TableStrategy],
-    summarize_table: Callable[[list[list[str]]], str] | None = None,
-) -> list[Chunk]:
-    """Builds Strategy-A chunk boundaries first (`_pack_atoms`, identical to `chunk_blocks`),
-    then splices each targeted table's atoms out of whichever chunk(s) they landed in and
-    replaces them with its B/C atoms -- surrounding chunks, and any leading/trailing
-    narrative sharing a chunk with the table, are left byte-identical to Strategy A because
-    the packer runs exactly once, on plain atoms (DECISIONS.md ARM4-4).
-    """
-    if summarize_table is None and "C" in table_variant_map.values():
-        raise ValueError("Strategy C needs a summarize_table callable (see rag_sec.summarize)")
-    table_rows_by_idx = {i: b.rows for i, b in enumerate(blk for blk in blocks if isinstance(blk, TableBlock))}
-    packed = _pack_atoms(_blocks_to_atoms(blocks))
-
-    already_replaced: set[int] = set()
-    output: list[Chunk] = []
-    for chunk, chunk_atoms in packed:
-        groups: list[tuple[int | None, list[Atom]]] = []
-        for atom in chunk_atoms:
-            key = atom.table_idx if atom.table_idx in table_variant_map else None
-            if groups and groups[-1][0] == key:
-                groups[-1][1].append(atom)
-            else:
-                groups.append((key, [atom]))
-
-        if len(groups) == 1 and groups[0][0] is None:
-            output.append(chunk)  # no targeted table in this chunk -- untouched
-            continue
-
-        for key, group_atoms in groups:
-            if key is None:
-                output.append(_build_chunk_from_atoms(group_atoms, chunk.heading))
-                continue
-            if key in already_replaced:
-                continue  # this table's atoms were already emitted from an earlier chunk
-            already_replaced.add(key)
-            strategy = table_variant_map[key]
-            rows = table_rows_by_idx[key]
-            repl_atoms = (
-                _table_rows_to_atoms_b(rows) if strategy == "B" else _table_rows_to_atoms_c(rows, summarize_table)
-            )
-            for atom in repl_atoms:
-                text = f"# {chunk.heading}\n\n{atom.text}" if chunk.heading else atom.text
-                output.append(Chunk(text=text, n_tokens=count_tokens(text), heading=chunk.heading, standalone=True))
-
-    return output

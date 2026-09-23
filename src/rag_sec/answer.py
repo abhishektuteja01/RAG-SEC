@@ -1,0 +1,119 @@
+"""Answer generation: build the prompt from retrieved chunks, call Gemini, parse the ANSWER line.
+
+Uses the `google-genai` SDK directly. It reads GOOGLE_API_KEY from the environment.
+"""
+
+import re
+from functools import lru_cache
+
+from rag_sec.config import GENERATION_MODEL
+
+ANSWER_PROMPT = """Question: {question}
+
+Evidence gathered:
+{evidence}
+
+Answer the question using only this evidence. If the evidence is insufficient, say so
+plainly rather than guessing.
+
+Give the numeric value in the same units as the evidence -- do not expand thousands or
+millions. End your response with a single line:
+ANSWER: <number>
+or, if the evidence does not contain the answer:
+ANSWER: INSUFFICIENT"""
+
+# Medium, not low: this is the level every stored answer-accuracy number was measured with.
+THINKING_LEVEL = "MEDIUM"
+
+
+def dedupe_chunks(chunks: list[dict]) -> list[dict]:
+    """Drop repeated (filing_stem, chunk_index) pairs, keeping first-seen order."""
+    seen = set()
+    deduped = []
+    for c in chunks:
+        key = (c["filing_stem"], c["chunk_index"])
+        if key not in seen:
+            seen.add(key)
+            deduped.append(c)
+    return deduped
+
+
+def evidence_text(chunks: list[dict]) -> str:
+    return "\n\n".join(
+        f"[{c['filing_stem']} chunk {c['chunk_index']}] {c['text']}" for c in dedupe_chunks(chunks)
+    )
+
+
+@lru_cache(maxsize=1)
+def _client():
+    from google import genai
+
+    return genai.Client()
+
+
+def generate_answer(question: str, chunks: list[dict]) -> str:
+    """One Gemini call over the retrieved chunks. Returns the response text (thoughts excluded)."""
+    from google.genai import types
+
+    prompt = ANSWER_PROMPT.format(question=question, evidence=evidence_text(chunks))
+    response = _client().models.generate_content(
+        model=GENERATION_MODEL,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVEL),
+        ),
+    )
+    return response.text or ""
+
+
+# ── parsing the ANSWER line ──────────────────────────────────────────────────────────
+# STRICT: the ANSWER line is required and must hold a number (or a yes/no-style word).
+# There is no "last number in the text" fallback: that turned `ANSWER: Insufficient
+# information` into 2007.0, a year lifted out of the reasoning.
+_ANSWER_LINE = re.compile(r"ANSWER\s*:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
+_REFUSAL = re.compile(r"insufficient|cannot|not (?:provided|available|stated|found)|unknown", re.IGNORECASE)
+_NUMBER = re.compile(r"-?\$?\d[\d,]*(?:\.\d+)?%?")
+# Matched against the first word only, so a sentence that merely mentions "no" later on
+# cannot misfire.
+_BOOL_TRUE = {"yes", "true", "higher", "greater", "increase", "increased", "more"}
+_BOOL_FALSE = {"no", "false", "lower", "less", "decrease", "decreased", "fewer"}
+
+
+def _to_float(token: str) -> float | None:
+    t = token.strip().replace(",", "").replace("$", "").replace("%", "").strip()
+    t = t.rstrip(".")
+    try:
+        return float(t)
+    except ValueError:
+        return None
+
+
+def _bool_value(token: str) -> float | None:
+    words = token.strip().lower().split()
+    if not words:
+        return None
+    first = words[0].strip(".,;:")
+    if first in _BOOL_TRUE:
+        return 1.0
+    if first in _BOOL_FALSE:
+        return 0.0
+    return None
+
+
+def parse_answer(text: str) -> tuple[float | None, str]:
+    """(value, reason). Reasons: `ok`, `refused` (ANSWER line declines), `no_number` (ANSWER
+    line unparseable), `no_answer_line` (format not followed), `empty`."""
+    if not text or not text.strip():
+        return None, "empty"
+    m = _ANSWER_LINE.search(text)
+    if not m:
+        return None, "no_answer_line"
+    body = m.group(1)
+    nums = _NUMBER.findall(body)
+    if not nums:
+        bv = _bool_value(body)
+        if bv is not None:
+            return bv, "ok"
+        return None, "refused" if _REFUSAL.search(body) else "no_number"
+    v = _to_float(nums[0])
+    return (v, "ok") if v is not None else (None, "no_number")

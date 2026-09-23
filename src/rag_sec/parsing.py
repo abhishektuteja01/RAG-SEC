@@ -1,7 +1,7 @@
 """Parses 10-K HTML into text/table blocks with sec-parser, whose only parser is
 Edgar10QParser (pinned 0.58.1) -- so the 10-Q top-section step is stripped and Item
-boundaries are derived here by regex. DECISIONS.md CHUNK-1 has the Docling fallback if a
-version bump breaks the internal classes imported below.
+boundaries are derived here by regex. A sec-parser version bump can break the internal
+classes imported below; Docling is the fallback that was considered.
 """
 
 from __future__ import annotations
@@ -140,7 +140,7 @@ def parse_filing(html: str) -> list[Block]:
 def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
     """Finds (block_index, item_number, item_title) for each 'Item N. ...' title block.
 
-    Known gap (CHUNK-1, accepted): some filers (e.g. JPM_2007) never restate "Item N" as a
+    Known gap (accepted): some filers (e.g. JPM_2007) never restate "Item N" as a
     body heading, using business-narrative headings instead, so this returns an empty list
     for them rather than guessing from the TOC.
     """
@@ -155,10 +155,9 @@ def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
 
 
 def load_parsed_blocks(path) -> list[Block]:
-    """Inverse of what scripts/pipeline/01_corpus.py writes to data/parsed/. Shared by the
-    chunker and by rag_sec.compress so the two can never disagree about how a stored block
-    is rebuilt -- a divergent copy of this (bool vs string `is_title`) silently reshuffles
-    every chunk boundary while still looking like it worked."""
+    """Inverse of what scripts/rebuild/corpus.py writes to data/parsed/. Keep one copy: a
+    divergent one (bool vs string `is_title`) silently reshuffles every chunk boundary
+    while still looking like it worked."""
     data = json.loads(Path(path).read_text())
     return [
         TableBlock(rows=d["rows"]) if "rows" in d else TextBlock(text=d["text"], is_title=d["is_title"])

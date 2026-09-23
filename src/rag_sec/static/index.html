@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAG-SEC</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 860px; margin: 0 auto; padding: 1rem; color: #1a1a1a; }
+  h1 { font-size: 1.3rem; margin-bottom: 0.2rem; }
+  .sub { color: #666; margin-top: 0; font-size: 0.9rem; }
+  #log { display: flex; flex-direction: column; gap: 1rem; margin: 1rem 0 6rem; }
+  .q { align-self: flex-end; background: #e8f0fe; padding: 0.6rem 0.8rem; border-radius: 8px; max-width: 80%; white-space: pre-wrap; }
+  .a { background: #f5f5f5; padding: 0.8rem; border-radius: 8px; }
+  .answer { white-space: pre-wrap; }
+  .meta { font-size: 0.85rem; color: #555; margin-top: 0.6rem; }
+  .meta table { border-collapse: collapse; }
+  .meta td { padding: 0 0.8rem 0 0; }
+  details { margin-top: 0.3rem; }
+  details pre { white-space: pre-wrap; font-size: 0.8rem; background: #fff; padding: 0.5rem; max-height: 240px; overflow: auto; }
+  .err { color: #b00020; }
+  form { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #ddd; padding: 0.8rem; }
+  form div { max-width: 860px; margin: 0 auto; display: flex; gap: 0.5rem; }
+  textarea { flex: 1; font: inherit; padding: 0.5rem; resize: vertical; min-height: 2.5rem; }
+  button { font: inherit; padding: 0 1.2rem; }
+</style>
+</head>
+<body>
+<h1>RAG-SEC</h1>
+<p class="sub">Ask a question about a company's 10-K filing, e.g. "What was Visa Inc.'s net revenue in 2015?"
+Each question is answered on its own; earlier messages are not used as context.</p>
+<div id="log"></div>
+<form id="f">
+  <div>
+    <textarea id="q" placeholder="Ask about a 10-K filing..." required></textarea>
+    <button id="send" type="submit">Ask</button>
+  </div>
+</form>
+<script>
+const log = document.getElementById("log");
+const form = document.getElementById("f");
+const input = document.getElementById("q");
+const send = document.getElementById("send");
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function renderAnswer(box, data) {
+  box.textContent = "";
+  box.appendChild(el("div", "answer", data.answer));
+
+  const sources = el("div", "meta");
+  sources.appendChild(el("strong", null, "Sources"));
+  for (const c of data.citations) {
+    const d = el("details");
+    d.appendChild(el("summary", null, `${c.filing_stem} chunk ${c.chunk_index} (score ${c.score.toFixed(3)})`));
+    d.appendChild(el("pre", null, c.text || ""));
+    sources.appendChild(d);
+  }
+  box.appendChild(sources);
+
+  const timing = el("div", "meta");
+  timing.appendChild(el("strong", null, "Timings (seconds)"));
+  const table = el("table");
+  const rows = Object.entries(data.stage_latency).concat([["end to end", data.latency_s]]);
+  for (const [name, secs] of rows) {
+    const tr = el("tr");
+    tr.appendChild(el("td", null, name));
+    tr.appendChild(el("td", null, Number(secs).toFixed(3)));
+    table.appendChild(tr);
+  }
+  timing.appendChild(table);
+  box.appendChild(timing);
+}
+
+form.addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const question = input.value.trim();
+  if (!question) return;
+  log.appendChild(el("div", "q", question));
+  const box = el("div", "a", "Thinking...");
+  log.appendChild(box);
+  input.value = "";
+  send.disabled = true;
+  box.scrollIntoView({ behavior: "smooth" });
+  try {
+    const res = await fetch("/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, include_text: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail));
+    renderAnswer(box, data);
+  } catch (err) {
+    box.textContent = "";
+    box.appendChild(el("div", "err", "Error: " + err.message));
+  } finally {
+    send.disabled = false;
+    input.focus();
+  }
+});
+
+input.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); form.requestSubmit(); }
+});
+</script>
+</body>
+</html>

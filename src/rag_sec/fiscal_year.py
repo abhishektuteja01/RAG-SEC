@@ -1,7 +1,6 @@
 """Fiscal-year signal for retrieval: extracts years mentioned in a query and blends them into
-candidate ranking as an additive nudge, never a hard filter -- the extraction signal is only
-75-82% accurate (figure's source untraced, see RETR-40), and a hard year filter at that accuracy deletes the right answer
-on every miss. Chunk-side year comes from `filing_stem`'s own naming convention
+candidate ranking as an additive nudge, never a hard filter -- the extraction is not always
+right, and a hard year filter deletes the right answer on every miss. Chunk-side year comes from `filing_stem`'s own naming convention
 (`TICKER_YEAR_CIK`, verified against all 799 filings), not a query-side guess.
 """
 
@@ -49,7 +48,7 @@ def chunk_year(filing_stem: str) -> int:
 def year_distance_bonus(filing_stem: str, query_years: list[int], alpha: float) -> float:
     """Additive nudge toward chunks whose fiscal year is close to a year the query mentions.
     Zero when the query mentions no year, so a missed extraction just fails to help -- it can
-    never actively demote a candidate the way a hard filter would (RETR-5's rejected fix).
+    never actively demote a candidate the way a hard filter would.
     """
     if not query_years:
         return 0.0
