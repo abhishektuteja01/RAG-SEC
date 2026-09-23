@@ -655,7 +655,7 @@ reproduces the published `filtered_stripped` top-10 on every dev question. Free,
 
 **`trt_export_onnx.py`** / **`trt_rerank_parity.py`** — the TensorRT rerank backend on the T4
 host, ruled out 2026-09-14: 9/10 top-5 parity and no faster than torch fp16, so nothing was
-wired into `retrieve.py`. Needs the GPU host. Not yet a `DECISIONS.md` row.
+wired into `retrieve.py`. Needs the GPU host (`DEPLOY-26`).
 
 **`onnx_rerank_export.py`** / **`onnx_rerank_parity.py`** / **`ort_fp32_latency.py`** — the
 `DEPLOY-6`/`DEPLOY-11` reranker route: export the cross-encoder to ONNX, quantise to int8, and
