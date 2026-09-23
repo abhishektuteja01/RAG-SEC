@@ -3,9 +3,10 @@
 THE HEADLINE ARM. Two tables live here:
   2x2   the published ablation, test recall@10 **0.747** (dev 0.760), `RETR-39`. Measured
         BEFORE `RETR-40` shipped the year nudge, so its cells pin `year_bias=False`.
-  arms  `deployed` vs `n18d` vs `n18d_p10` -- the shipped configuration (filter + strip +
+  arms  `deployed` vs `n18d` vs `n18d_p10` -- the pre-`DEPLOY-25` default (filter + strip +
         year_bias, dev 0.791 / test 0.771) against the two first-stage candidates, with
-        paired CIs, McNemar counts and the `RETR-45` subgroup split.
+        paired CIs, McNemar counts and the `RETR-45` subgroup split. `n18d_p10` is what
+        `retrieve()` serves since `DEPLOY-25` (test 0.831).
 
 PRODUCES
     data/retr7_rr_{dev,test}_scores.jsonl    raw rerank scores, one line per question
@@ -32,7 +33,7 @@ THE 2x2 (cells), from one candidate pool per side:
     unfiltered_raw       as-was                             -> the control
     filtered_raw         + company filter                   -> isolates RETR-5
     unfiltered_stripped  + entity framing stripped          -> isolates RETR-6
-    filtered_stripped    + both                             -> THE SHIPPED ARM
+    filtered_stripped    + both                             -> the 2x2's winner
 The fourth cell is what makes the result attributable: without the control, a better
 number cannot be assigned to the filter or to the query cleanup.
 
@@ -140,6 +141,7 @@ from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device  # n
 from rag_sec.fiscal_year import chunk_year, extract_years  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
     ALL_CELLS,
+    YEAR_BIAS_CELL,
     _filing_stem,
     exact_mcnemar,
     gold_relevant_chunk_ids,
@@ -533,6 +535,10 @@ def cmd_score(args: argparse.Namespace) -> None:
     # the published dev 0.791/0.843 to four places. The cell is named differently there, so
     # the rename is explicit rather than guessed.
     if args.arm_baseline:
+        # setdefault used to keep --scores' own cell and still print "merged" -- refuse instead.
+        if any(baseline_cell in byc for byc in ranked.values()):
+            sys.exit(f"--arm-baseline: {args.scores} already has a {baseline_cell!r} cell, so "
+                     f"{args.arm_baseline} would be ignored. Pass a --scores without it.")
         merged = 0
         for qid, byc in load_ranking(args.arm_baseline, ALL_CELLS).items():
             if qid in ranked and args.arm_baseline_cell in byc:
@@ -787,8 +793,9 @@ def main() -> None:
                         "instead of reranking it again (e.g. "
                         "data/retr7_rr_dev_scores_year_bias.jsonl, which reproduces the "
                         "published dev 0.791/0.843). Carries the pre-RETR-50 ef_search "
-                        "confound -- a same-run baseline does not")
-    p.add_argument("--arm-baseline-cell", default="filtered_stripped_year_bias",
+                        "confound -- a same-run baseline does not. Refused if --scores already has "
+                        "a `deployed` cell")
+    p.add_argument("--arm-baseline-cell", default=YEAR_BIAS_CELL,
                    help="cell name to read from --arm-baseline (default: %(default)s)")
     p.add_argument("--boot", type=int, default=10000,
                    help="bootstrap resamples for the paired CI (default: %(default)s)")
