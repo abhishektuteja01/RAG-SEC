@@ -97,8 +97,8 @@ def rrf_fuse_year_biased(
     alpha: float = YEAR_BIAS_ALPHA,
     k: int = RRF_K,
 ) -> list[Pair]:
-    """RRF fusion plus an additive year-proximity nudge -- soft, not a filter. `RETR-5`
-    rejected a hard year gate: the extraction signal is only 75-82% accurate, and a hard
+    """RRF fusion plus an additive year-proximity nudge -- soft, not a filter. `RETR-40`
+    rejected a hard year gate: the extraction signal is only 75-82% accurate (source untraced), and a hard
     filter at that accuracy deletes the right answer whenever it misses. `query_years` empty
     (no year extracted from the question) makes every bonus 0, identical to plain `rrf_fuse`.
     `alpha` is untuned -- see `YEAR_BIAS_ALPHA`."""
