@@ -146,7 +146,7 @@ WIDGETS = [
     },
     {
         "name": "Stage latency p50/p95 (ms), loop arm",
-        "description": "Per-stage latency. Day 13's budget is gated on the p95 column.",
+        "description": "Per-stage latency, laptop Arm 6 run, pre-AGENT-24. Not serving latency: see DEPLOY-25.",
         "view": "observations",
         "chartType": "PIVOT_TABLE",
         "dimensions": [{"field": "name"}],

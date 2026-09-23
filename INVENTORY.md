@@ -167,7 +167,7 @@ corrected. ~3-4 min, no GPU, no database, no spend; `--reuse-scored` skips the t
 dashboard and of one Arm 6 trace. **Keep — these cannot be regenerated.** The dashboard itself is
 code (`scripts/archive/build_langfuse_dashboard.py`), but the Langfuse Hobby tier drops traces
 after a short retention window, so the rendered views behind these are already gone. They are the
-only surviving evidence that the observability work ran on real traffic.
+only surviving evidence that the observability work ran on real traffic. The stage-latency tile in `_1_cost_latency` is laptop, pre-`AGENT-24` data, not serving latency (`OBS-13`); quote `DEPLOY-25` for that.
 
 **`.venv/`** — 1.2 GB, not in git. Rebuilt any time with `uv sync`. **Status: Rebuildable.**
 
