@@ -69,14 +69,9 @@ def _strip_suffix(name: str) -> str:
 
 @lru_cache(maxsize=1)
 def _english_words() -> frozenset[str]:
-    """System wordlist, used only to reject aliases that are ordinary English -- without it
-    GAP/CAT/KEY/ALL and names like Target or Visa fire on unrelated prose and filter to the
-    wrong company, the one failure mode that deletes gold. A missing wordlist degrades to no
-    guard, which is why the ticker path also demands an uppercase match in the original.
-
-    That degradation warns rather than passing silently: it is invisible in the results
-    (recall just drops on the questions whose alias is an English word), so a run on a
-    machine without a wordlist has to be attributable after the fact."""
+    """English wordlist, used only to reject aliases that are ordinary words. Without it,
+    names like Target or Visa fire on unrelated prose and filter to the wrong company. A
+    missing list warns: nothing crashes, recall just drops."""
     for path in WORDLIST_CANDIDATES:
         if path is not None and path.exists():
             return frozenset(w.strip().lower() for w in path.read_text(errors="ignore").splitlines())
@@ -151,11 +146,8 @@ def _ticker_set() -> frozenset[str]:
 
 
 def build_lexicon(path: Path = LEXICON_PATH) -> dict:
-    """Build the alias table from the corpus's own company metadata and cache it to JSON.
-
-    Kept out of the retrieval import path: it pulls in pandas and the HF dataset loader,
-    which retrieval has no other reason to depend on.
-    """
+    """Build the alias table from the question set's company metadata and cache it to JSON.
+    Only runs if data/company_lexicon.json is missing."""
     from rag_sec.eval import load_matched_questions
 
     df = load_matched_questions()
@@ -256,11 +248,8 @@ def matched_aliases(question: str) -> list[tuple[str, tuple[str, ...]]]:
 
 
 def resolve_with_reason(question: str) -> tuple[list[str], str | None]:
-    """Same result as `resolve`, plus WHY an empty list came back. `resolve`'s bare `[]`
-    conflates two different situations that a caller falling back to unfiltered search
-    cannot otherwise tell apart: no company named at all
-    (`"no_match"`) vs. companies matched but discarded as spurious/over-broad
-    (`"too_many"`, `MAX_TICKERS`). Reason is `None` whenever tickers are returned.
+    """`resolve`'s tickers, plus why an empty list came back: `"no_match"` (no company
+    named) or `"too_many"` (more than MAX_TICKERS matched). None when tickers are returned.
     """
     hits: set[str] = set()
     for _alias, syms in matched_aliases(question):
@@ -321,21 +310,11 @@ _ORPHAN = re.compile(
 )
 
 
-def strip_entity_framing(question: str, *, aliases_from: str | None = None) -> str:
-    """Question with company identity and filing-provenance wording removed.
+def strip_entity_framing(question: str) -> str:
+    """Question with company identity and filing wording removed.
 
-    TWO consumers: the cross-encoder, and -- when `strip_dense` is on (the default) -- the
-    dense leg's embedding input. BM25 still sees the raw question deliberately; in OR-mode
-    those tokens decide which documents qualify at all. Anything added here moves
-    first-stage recall, not just rerank order.
-
-    Returns the original unchanged if stripping would leave too little behind -- a query
-    stripped down to "what was the percentage change" scores nothing usefully, so the guard
-    matters more than the stripping (it fired on 8 of 110 sampled test questions).
-
-    `aliases_from` is a SECOND text to look for company names in, searched in ADDITION to
-    `question` -- useful when `question` is a rewrite and the original holds the name. The
-    union strips whatever either text identifies. None -> `question` alone.
+    Used for the dense search and the reranker; BM25 keeps the raw question. Returns the
+    original unchanged if stripping would leave fewer than four words.
     """
     if not question:
         return question
@@ -344,12 +323,7 @@ def strip_entity_framing(question: str, *, aliases_from: str | None = None) -> s
         out = rx.sub(" ", out)
     # Remove the company's own name, longest alias first, plus any preposition leading it.
     # Same acceptance test as `resolve` -- see `matched_aliases`.
-    # union, longest-first: `matched_aliases` guarantees that order per call, and the
-    # consumed-span rule only holds within one call, so re-sort after merging or a short
-    # alias from one text can fire inside a longer one from the other.
     aliases = dict(matched_aliases(question))
-    if aliases_from:
-        aliases.update(matched_aliases(aliases_from))
     for alias in sorted(aliases, key=len, reverse=True):
         pattern = (
             _NAME_LEAD

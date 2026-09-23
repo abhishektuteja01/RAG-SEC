@@ -1,17 +1,10 @@
 """Fails if the company resolver's English-word guard is off or reading a different wordlist.
 
-The failure it catches is invisible: with no wordlist `_english_words()` returns an empty
-set, `is_risky` stops flagging aliases that are ordinary English, and the resolver filters
-to the wrong company on some questions -- nothing crashes, recall just drops. The container
-runs this at build AND at startup so that state cannot boot.
-
-Three assertions, cheapest first:
-  1. a wordlist is found at all (the RuntimeWarning is promoted to an error);
-  2. it is the one the benchmark read -- macOS/BSD `web2`, identified by content rather than
-     by path. Debian's `wamerican` is NOT a substitute: it carries proper nouns, so
-     lowercased it makes 'intel', 'merck', 'nike' and 21 other in-corpus aliases risky and
-     the resolver stops matching them in lowercase questions;
-  3. the two behaviours the guard exists for, end to end through `resolve`.
+Without the list nothing crashes: the resolver just filters to the wrong company on some
+questions. So the container runs this at build AND at startup. It checks that a list is
+found, that it is the macOS/BSD `web2` list the numbers were measured with (Debian's
+`wamerican` has proper nouns like 'intel', so it is not a substitute), and that
+'visa applications' stays unfiltered while 'Visa Inc.' resolves.
 
 Usage (needs rag_sec importable, e.g. `uv run`):
     python deploy/container_wordlist.py

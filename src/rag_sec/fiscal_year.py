@@ -1,7 +1,7 @@
-"""Fiscal-year signal for retrieval: extracts years mentioned in a query and blends them into
-candidate ranking as an additive nudge, never a hard filter -- the extraction is not always
-right, and a hard year filter deletes the right answer on every miss. Chunk-side year comes from `filing_stem`'s own naming convention
-(`TICKER_YEAR_CIK`, verified against all 799 filings), not a query-side guess.
+"""Years for retrieval: the years a question (or chunk) mentions, and a small ranking bonus
+for filings near them. A bonus, never a filter: the extraction is not always right, and a
+filter would delete the right answer on every miss. A filing's year comes from its name,
+`TICKER_YEAR_CIK`.
 """
 
 import re
@@ -16,13 +16,9 @@ _UNIT_AFTER_RE = re.compile(
 
 
 def extract_years(text: str) -> list[int]:
-    """Years mentioned in free text. Bare 4-digit years, skipping ones immediately preceded
-    by `$` or followed by a unit word (a dollar amount or share count that happens to fall in
-    year range, not a year) -- measured at 1 false positive in ~5,000 real questions, so this
-    guard alone is enough; a cue-word requirement ("in", "fiscal", ...) was tried and tested
-    worse, dropping the true-year hit rate from 86% to 22%, since most real phrasing doesn't
-    place a cue word next to the year. Also matches `FY19`-style shorthand (0.26% of
-    questions), windowed at the standard pivot: >50 -> 19xx, <=50 -> 20xx.
+    """Years mentioned in free text: bare 4-digit years, skipping ones right after `$` or
+    right before a unit word (a dollar amount or share count, not a year). Also `FY19`-style
+    shorthand: >50 -> 19xx, <=50 -> 20xx.
     """
     years: set[int] = set()
     for m in _YEAR_RE.finditer(text):
@@ -38,18 +34,12 @@ def extract_years(text: str) -> list[int]:
 
 
 def chunk_year(filing_stem: str) -> int:
-    """Fiscal year from a chunk's filing stem, `TICKER_YEAR_CIK` -- verified against all 799
-    filings under `data/chunks`, always a clean 3-part stem with a 4-digit year in the middle.
-    The last part is the CIK, not the year: `split('_')[1]`, not `[-1]`.
-    """
+    """Fiscal year from a filing stem, `TICKER_YEAR_CIK`. The last part is the CIK."""
     return int(filing_stem.split("_")[1])
 
 
 def year_distance_bonus(filing_stem: str, query_years: list[int], alpha: float) -> float:
-    """Additive nudge toward chunks whose fiscal year is close to a year the query mentions.
-    Zero when the query mentions no year, so a missed extraction just fails to help -- it can
-    never actively demote a candidate the way a hard filter would.
-    """
+    """Bonus for a filing whose year is close to a year the query mentions; 0 if none."""
     if not query_years:
         return 0.0
     distance = min(abs(chunk_year(filing_stem) - qy) for qy in query_years)

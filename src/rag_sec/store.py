@@ -1,6 +1,5 @@
-"""Postgres connection and chunk schema: pgvector for dense search, pg_search (ParadeDB)
-for real BM25 in the same table -- not tsvector/ts_rank, which has neither length
-normalization nor term saturation.
+"""Postgres connection and chunk schema: pgvector for dense search, and pg_search (ParadeDB)
+for real BM25 in the same table (Postgres's built-in ts_rank is not BM25).
 """
 
 import os
@@ -8,17 +7,14 @@ import os
 import psycopg
 from pgvector.psycopg import register_vector
 
-from rag_sec.candidates import READ_DEPTH_MAX
-from rag_sec.preflight import assert_variant_predicates
+from rag_sec.candidates import READ_DEPTH, VARIANT
 
-EMBEDDING_DIM = 1024  # BGE-M3's dense output size, not an independent choice
+EMBEDDING_DIM = 1024  # BGE-M3's dense output size
 
-# The HNSW index carries no `variant` column, so `WHERE variant = 'A'` POST-filters the rows
-# the index already returned: a `LIMIT k` scan that visits ef_search candidates can hand back
-# fewer than k. pgvector's default 40 returned a median of 35 rows for a LIMIT 50.
-# Derived from READ_DEPTH_MAX -- the DEEPEST read any caller may ask for -- so it cannot
-# drift below it; 4x is where dev fused-pool recall stops moving.
-HNSW_EF_SEARCH = 4 * READ_DEPTH_MAX
+# How many index entries an HNSW search visits. It must be well above READ_DEPTH: the
+# `variant` condition is applied after the index scan, so too small a value returns fewer
+# rows than asked for, with no error. 4x is where recall stops moving.
+HNSW_EF_SEARCH = 4 * READ_DEPTH
 
 SCHEMA_SQL = f"""
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -32,10 +28,7 @@ CREATE TABLE IF NOT EXISTS chunks (
     n_tokens INT,
     text TEXT NOT NULL,
     embedding VECTOR({EMBEDDING_DIM}),
-    -- Table-layout variant. 'A' (whole tables) is the only live one; the column
-    -- stays so every read can constrain it (see preflight.py).
     variant TEXT NOT NULL DEFAULT 'A',
-    excluded_by_variant TEXT[] NOT NULL DEFAULT '{{}}',
     UNIQUE (filing_stem, chunk_index, variant)
 );
 """
@@ -51,20 +44,14 @@ ON chunks USING bm25 (id, text)
 WITH (key_field='id');
 """
 
-
-# Pinned per-variant, not as a total: rows of another variant entering the table would move
-# only the total. Any row outside variant 'A' fails the check below.
-EXPECTED_CHUNK_COUNTS = {"A": 99654}
+EXPECTED_CHUNK_COUNTS = {VARIANT: 99654}
 
 _preflight_done = False
 
 
 def preflight(conn) -> None:
-    """Fail if the corpus isn't the one every published number was measured on.
-
-    Once per process, not per connection -- retrieve.py opens one per search. ~10ms.
-    The other half (a read missing its `variant` predicate) is checked in get_conn.
-    """
+    """Fail unless the table holds exactly the corpus every number was measured on: 99,654
+    variant-A chunks, each with an embedding, and nothing else. Once per process, ~10 ms."""
     global _preflight_done
     if _preflight_done:
         return
@@ -87,17 +74,12 @@ def preflight(conn) -> None:
             "chunks table does not match EXPECTED_CHUNK_COUNTS:\n"
             + "\n".join(problems)
             + "\n\nIf this change was intentional, update EXPECTED_CHUNK_COUNTS in store.py."
-            "\nNew non-A rows are only safe if every read constrains `variant`. Writers that"
-            "\nlegitimately move these counts should call get_conn(check=False)."
+            "\nWriters that legitimately move these counts should call get_conn(check=False)."
         )
     _preflight_done = True
 
 
 def get_conn(check: bool = True) -> psycopg.Connection:
-    if check:
-        # No DB needed, so it runs before connecting -- a forgotten `variant` predicate
-        # is caught even when Postgres is unreachable.
-        assert_variant_predicates()
     conn = psycopg.connect(
         host=os.environ.get("POSTGRES_HOST", "localhost"),
         port=int(os.environ.get("POSTGRES_PORT", 5432)),
@@ -106,14 +88,14 @@ def get_conn(check: bool = True) -> psycopg.Connection:
         dbname=os.environ["POSTGRES_DB"],
     )
     register_vector(conn)
-    conn.execute(f"SET hnsw.ef_search = {int(HNSW_EF_SEARCH)}")  # not parameterizable
+    conn.execute(f"SET hnsw.ef_search = {int(HNSW_EF_SEARCH)}")  # SET takes no parameters
     if check:
         preflight(conn)
     return conn
 
 
 def init_schema() -> None:
-    # Table may not exist or be empty yet; nothing to assert about the corpus.
+    # The table may not exist or be empty yet, so there is nothing to check.
     with get_conn(check=False) as conn:
         conn.execute(SCHEMA_SQL)
         conn.commit()

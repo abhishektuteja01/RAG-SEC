@@ -14,14 +14,12 @@ GENERATION_MODEL = "gemini-3.7-flash"
 
 
 def pick_device() -> str:
-    """cuda > mps > cpu, unless RAG_SEC_DEVICE forces one.
+    """cuda > mps > cpu, unless RAG_SEC_DEVICE forces one. mps and cpu give the same scores
+    (to 2e-6), so the device is a speed choice.
 
-    Torch's MPS backend is not thread-safe: concurrent model construction or model calls
-    segfault the process with no traceback. retrieve.py serialises model calls with a lock
-    and the API runs one worker; `RAG_SEC_DEVICE=cpu` is the escape hatch. mps and cpu were
-    measured score-identical (to 2e-6), so the device is a speed choice, not an accuracy one.
-
-    torch is imported lazily: the chunking/eval paths never touch a GPU.
+    Torch's MPS backend is not thread-safe: concurrent model loading or model calls crash the
+    process with no traceback. retrieve.py puts model calls behind a lock and the API runs one
+    worker; `RAG_SEC_DEVICE=cpu` is the escape hatch.
     """
     forced = os.environ.get("RAG_SEC_DEVICE")
     if forced:

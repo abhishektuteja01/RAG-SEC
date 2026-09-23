@@ -408,7 +408,7 @@ def gold_relevant_chunk_ids(row: pd.Series, chunks_dir: str = CHUNKS_DIR) -> lis
 
 
 # Everything a cached label depends on besides the corpus. Editing any of it revokes the
-# cache until it is rebuilt, fail-closed, as preflight.ALLOWED does for SQL.
+# cache until it is rebuilt.
 _LABEL_CODE = (
     _normalize_words, _numeric_tokens, _row_label_words, _table_row_relevant_chunks,
     _clustered_align_relevant_chunks, _index_filenames, load_matched_questions,
@@ -465,35 +465,7 @@ def _gold_cache() -> dict:
     return cache
 
 
-def gold_relevant_chunk_evidence_db(row: pd.Series, conn, variant: str) -> dict[tuple[int, str], dict]:
-    """Per-chunk relevance evidence over Arm 4's per-variant pool: `variant='A'` rows not
-    superseded for `variant`, plus `variant`'s own rows -- the same WHERE clause the Arm 4
-    retrieval script uses, so scoring and retrieval see one candidate set. Keyed by
-    (chunk_index, variant) because A and B/C each number chunks from 0 (ARM4-*).
-    `ORDER BY chunk_index` is load-bearing: Layers 2/3 need document order.
-    """
-    stem = _filing_stem(row)
-    rows = conn.execute(
-        """SELECT chunk_index, variant, text FROM chunks
-           WHERE filing_stem = %s
-             AND ((variant = 'A' AND NOT (%s = ANY(excluded_by_variant))) OR variant = %s)
-           ORDER BY chunk_index""",
-        (stem, variant, variant),
-    ).fetchall()
-    candidates = [((r[0], r[1]), r[2]) for r in rows]
-    resolved = _gold_evidence_resolved().get(row["id"])
-    gold_summaries = _gold_summaries_for_row(row, stem)
-    return _relevance_evidence(resolved, row["context"], candidates, gold_summaries)
-
-
-def gold_relevant_chunk_ids_db(row: pd.Series, conn, variant: str) -> list[tuple[int, str]]:
-    """(chunk_index, variant) pairs of chunks overlapping the gold context, from the DB's
-    per-variant candidate pool -- see `gold_relevant_chunk_evidence_db`."""
-    return sorted(gold_relevant_chunk_evidence_db(row, conn, variant).keys())
-
-
-# Chunk ids are opaque to the metrics -- callers pass a bare index, a (stem, index) pair or
-# a (stem, index, variant) triple depending on the arm; only hashing and equality matter.
+# Chunk ids are opaque to the metrics: only hashing and equality matter.
 def recall_at_k(retrieved_ids: Sequence[Hashable], relevant_ids: Sequence[Hashable], k: int) -> float:
     if not relevant_ids:
         return float("nan")

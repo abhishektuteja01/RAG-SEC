@@ -43,12 +43,7 @@ sys.path.insert(0, str(_ROOT / "src"))
 from rag_sec.chunking import chunk_blocks  # noqa: E402
 from rag_sec.dataset import load_t2_ragbench  # noqa: E402
 from rag_sec.edgar import download_filing, find_10k_accession  # noqa: E402
-from rag_sec.parsing import (  # noqa: E402
-    TableBlock,
-    find_item_boundaries,
-    load_parsed_blocks,
-    parse_filing,
-)
+from rag_sec.parsing import TableBlock, load_parsed_blocks, parse_filing  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
 # EXPECTED_FILINGS is an assertion, not a limit: 799 is the measured size of the
@@ -61,10 +56,8 @@ PARSED_DIR = DATA_DIR / "parsed"        # parse output, the input to --rechunk
 CHUNKS_DIR = DATA_DIR / "chunks"        # what index.py embeds
 LOG_PATH = DATA_DIR / "ingest_log.jsonl"  # append-only; one line per filing attempt
 
-# T2-RAGBench subset selector. "all" then dropna on company_cik/report_year is what
-# leaves FinQA+ConvFinQA's 799 — TAT-DQA rows carry neither column and drop out here.
-# Selecting the two subsets by name instead would give the same set today but
-# would silently diverge if a third CIK-bearing subset were added.
+# "all", then dropping rows without company_cik/report_year, leaves FinQA + ConvFinQA's 799
+# filings: TAT-DQA rows carry neither column.
 DATASET_SUBSET = "all"
 
 
@@ -120,11 +113,9 @@ def process_one(target: dict, rechunk: bool, reparse: bool) -> str:
     try:
         if parsed_path.exists() and not reparse:
             blocks = load_parsed_blocks(parsed_path)
-            n_items = None
         else:
             html = raw_path.read_text(encoding="utf-8", errors="replace")
             blocks = parse_filing(html)
-            n_items = len(find_item_boundaries(blocks))
             parsed_path.write_text(
                 json.dumps([dataclasses.asdict(b) for b in blocks], ensure_ascii=False)
             )
@@ -154,7 +145,6 @@ def process_one(target: dict, rechunk: bool, reparse: bool) -> str:
             "chunk_s": round(chunk_s, 2),
             "n_blocks": len(blocks),
             "n_tables": sum(1 for b in blocks if isinstance(b, TableBlock)),
-            "n_items_found": n_items,
             "n_chunks": len(chunks),
             "median_tokens": sorted(sizes)[len(sizes) // 2] if sizes else 0,
             "max_tokens": max(sizes) if sizes else 0,

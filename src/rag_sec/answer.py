@@ -22,25 +22,13 @@ ANSWER: <number>
 or, if the evidence does not contain the answer:
 ANSWER: INSUFFICIENT"""
 
-# Medium, not low: this is the level every stored answer-accuracy number was measured with.
+# The level the answer-accuracy numbers were measured with.
 THINKING_LEVEL = "MEDIUM"
-
-
-def dedupe_chunks(chunks: list[dict]) -> list[dict]:
-    """Drop repeated (filing_stem, chunk_index) pairs, keeping first-seen order."""
-    seen = set()
-    deduped = []
-    for c in chunks:
-        key = (c["filing_stem"], c["chunk_index"])
-        if key not in seen:
-            seen.add(key)
-            deduped.append(c)
-    return deduped
 
 
 def evidence_text(chunks: list[dict]) -> str:
     return "\n\n".join(
-        f"[{c['filing_stem']} chunk {c['chunk_index']}] {c['text']}" for c in dedupe_chunks(chunks)
+        f"[{c['filing_stem']} chunk {c['chunk_index']}] {c['text']}" for c in chunks
     )
 
 
@@ -67,9 +55,8 @@ def generate_answer(question: str, chunks: list[dict]) -> str:
 
 
 # ── parsing the ANSWER line ──────────────────────────────────────────────────────────
-# STRICT: the ANSWER line is required and must hold a number (or a yes/no-style word).
-# There is no "last number in the text" fallback: that turned `ANSWER: Insufficient
-# information` into 2007.0, a year lifted out of the reasoning.
+# Strict: the ANSWER line is required and must hold a number (or a yes/no-style word).
+# No "last number in the text" fallback: that would read a year out of the reasoning.
 _ANSWER_LINE = re.compile(r"ANSWER\s*:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
 _REFUSAL = re.compile(r"insufficient|cannot|not (?:provided|available|stated|found)|unknown", re.IGNORECASE)
 _NUMBER = re.compile(r"-?\$?\d[\d,]*(?:\.\d+)?%?")

@@ -7,7 +7,6 @@ indices, so any change here that moves a chunk boundary invalidates every score.
 
 from __future__ import annotations
 
-import os
 import re
 from collections import Counter
 from dataclasses import dataclass
@@ -17,18 +16,6 @@ from transformers import AutoTokenizer
 from rag_sec.config import EMBED_MODEL_NAME, EMBED_MODEL_REVISION
 from rag_sec.parsing import Block, TableBlock, TextBlock
 
-
-def _flag(name: str, default: bool) -> bool:
-    value = os.environ.get(name)
-    return default if value is None else value.strip().lower() in {"1", "true", "yes", "on"}
-
-
-# Two heading fixes (record every heading a chunk spans; never let page furniture become a
-# heading). Both ON in the stored corpus, and they MUST stay on: with them off the packer
-# reproduces only 52,342 of the 99,654 stored chunks. Kept as flags so the old packer can
-# still be reproduced byte for byte.
-MULTI_HEADING = _flag("RAG_SEC_MULTI_HEADING", True)
-STRIP_TITLE_FURNITURE = _flag("RAG_SEC_STRIP_TITLE_FURNITURE", True)
 
 MIN_CHUNK_TOKENS = 200
 TARGET_CHUNK_TOKENS = 900
@@ -168,33 +155,24 @@ class Atom:
     tokens: int
     is_title: bool
     is_table: bool
-    # forces its own chunk, bypassing the token-packer. Nothing sets it today (it was used
-    # by the dropped table-layout variants); kept so the packer stays byte-identical.
-    is_standalone: bool = False
-    # 0-based position among TableBlocks only (None for text atoms)
-    table_idx: int | None = None
-    # a title that is page furniture. Still `is_title`, so it keeps its
-    # flush-triggering role and chunk boundaries do not move -- it just never becomes a
-    # heading, and the section heading it used to clobber survives it.
+    # a title that is page furniture: it still triggers a flush like any title, but it
+    # never becomes a heading
     is_furniture: bool = False
 
 
 def _blocks_to_atoms(blocks: list[Block]) -> list[Atom]:
     """One atom per block (every table serialized whole, split by rows only if oversized)."""
     atoms = []
-    table_idx = 0
-    running_headers = _running_header_titles(blocks) if STRIP_TITLE_FURNITURE else frozenset()
+    running_headers = _running_header_titles(blocks)
     for block in blocks:
         if isinstance(block, TableBlock):
-            idx = table_idx
-            table_idx += 1
             table_text = _table_to_text(block.rows)
             tokens = count_tokens(table_text)
             if tokens > MAX_CHUNK_TOKENS:
                 for part in _split_table(block.rows):
-                    atoms.append(Atom(text=part, tokens=count_tokens(part), is_title=False, is_table=True, table_idx=idx))
+                    atoms.append(Atom(text=part, tokens=count_tokens(part), is_title=False, is_table=True))
             else:
-                atoms.append(Atom(text=table_text, tokens=tokens, is_title=False, is_table=True, table_idx=idx))
+                atoms.append(Atom(text=table_text, tokens=tokens, is_title=False, is_table=True))
         else:
             tokens = count_tokens(block.text)
             is_title = block.is_title and tokens <= MAX_TITLE_TOKENS
@@ -202,11 +180,7 @@ def _blocks_to_atoms(blocks: list[Block]) -> list[Atom]:
                 for part in _split_text(block.text):
                     atoms.append(Atom(text=part, tokens=count_tokens(part), is_title=False, is_table=False))
             else:
-                furniture = (
-                    STRIP_TITLE_FURNITURE
-                    and is_title
-                    and is_furniture_title(block.text, running_headers)
-                )
+                furniture = is_title and is_furniture_title(block.text, running_headers)
                 atoms.append(
                     Atom(
                         text=block.text,
@@ -224,31 +198,23 @@ class Chunk:
     text: str
     n_tokens: int
     heading: str | None
-    standalone: bool = False
 
 
 def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
     """The token-budget packer. Returns each Chunk paired with the atoms that made it up."""
     packed: list[tuple[Chunk, list[Atom]]] = []
-    # The heading each atom actually sits under, recorded when the atom is buffered
-    # rather than read off `current_heading` at flush time. That single mutable variable was
-    # the bug -- a short section's text was emitted under the *next* section's heading,
-    # wrong for 49.7% of atoms, and unrelated to the true topic in 54.7% of those.
+    # the headings of every packed chunk, recorded per atom when it is buffered
     packed_headings: list[tuple[str, ...]] = []
-    # Token count each chunk WOULD have had under the old single-heading rule. The fold-back
-    # below thresholds on a count that includes the heading line, so changing the heading
-    # silently changes which tiny chunks get folded -- which moves boundaries, which moves
-    # the chunk indices eval.py's gold labels are. Deciding on the legacy count keeps
-    # boundaries identical by construction rather than by hoping the drift is small.
+    # "Legacy" = an older, single-heading rule: the last title seen, furniture included.
+    # The fold-back below decides on the token count a chunk would have had under that rule,
+    # because the stored chunk boundaries (and so the gold labels) were cut with it. Deciding
+    # on the real count would move boundaries.
     packed_legacy_tokens: list[int] = []
     current: list[Atom] = []
     current_headings: list[str | None] = []
     current_tokens = 0
     current_heading: str | None = None
-    # what `current_heading` would have been under the pre-fix rule, where every title --
-    # furniture included -- overwrote it. Only used to size the fold-back decision, never
-    # emitted. Without it, stripping furniture changes `current_heading`, which changes the
-    # token count, which changes which chunks get folded, which moves boundaries.
+    # the legacy heading; only sizes the fold-back decision, never emitted
     legacy_heading: str | None = None
 
     def render(headings: tuple[str, ...]) -> str | None:
@@ -258,11 +224,8 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
         nonlocal current, current_headings, current_tokens
         if not current:
             return
-        if MULTI_HEADING:
-            # every section this chunk actually spans, in order, deduped
-            headings = tuple(dict.fromkeys(h for h in current_headings if h))
-        else:
-            headings = (current_heading,) if current_heading else ()
+        # every section this chunk actually spans, in order, deduped
+        headings = tuple(dict.fromkeys(h for h in current_headings if h))
         heading = render(headings)
         body = "\n\n".join(a.text for a in current)
         text = f"# {heading}\n\n{body}" if heading else body
@@ -270,30 +233,19 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
         legacy_text = f"# {legacy_heading}\n\n{body}" if legacy_heading else body
         legacy_tokens = tokens if heading == legacy_heading else count_tokens(legacy_text)
         # a tiny trailing chunk (e.g. one short leftover paragraph) is mostly
-        # index noise -- fold it into the previous chunk instead, unless that
-        # previous chunk is standalone
+        # index noise -- fold it into the previous chunk instead
         if (
             packed
-            and not packed[-1][0].standalone
             and legacy_tokens < MIN_CHUNK_TOKENS
             and packed_legacy_tokens[-1] + legacy_tokens <= MAX_CHUNK_TOKENS
         ):
-            prev, prev_atoms = packed[-1]
-            # the fold-back is where flushing on every title would have re-introduced the
-            # bug: it merges across a section boundary, so the merged chunk has to own both
-            # headings rather than silently keep the earlier one
-            merged_atoms = prev_atoms + list(current)
-            if MULTI_HEADING:
-                merged = tuple(dict.fromkeys(packed_headings[-1] + headings))
-                merged_heading = render(merged)
-                merged_body = "\n\n".join(a.text for a in merged_atoms)
-                merged_text = f"# {merged_heading}\n\n{merged_body}" if merged_heading else merged_body
-                merged_chunk = Chunk(text=merged_text, n_tokens=count_tokens(merged_text), heading=merged_heading)
-            else:
-                merged = packed_headings[-1]
-                merged_chunk = Chunk(
-                    text=f"{prev.text}\n\n{body}", n_tokens=prev.n_tokens + tokens, heading=prev.heading
-                )
+            # the merge crosses a section boundary, so the merged chunk owns both headings
+            merged_atoms = packed[-1][1] + list(current)
+            merged = tuple(dict.fromkeys(packed_headings[-1] + headings))
+            merged_heading = render(merged)
+            merged_body = "\n\n".join(a.text for a in merged_atoms)
+            merged_text = f"# {merged_heading}\n\n{merged_body}" if merged_heading else merged_body
+            merged_chunk = Chunk(text=merged_text, n_tokens=count_tokens(merged_text), heading=merged_heading)
             packed_headings[-1] = merged
             packed_legacy_tokens[-1] += legacy_tokens
             packed[-1] = (merged_chunk, merged_atoms)
@@ -311,25 +263,9 @@ def _pack_atoms(atoms: list[Atom]) -> list[tuple[Chunk, list[Atom]]]:
             # have a reasonable amount of content
             if current_tokens >= TARGET_CHUNK_TOKENS:
                 flush()
-            # Furniture still reaches the flush check above -- suppressing that too
-            # would move chunk boundaries, and the whole point of doing this without a
-            # re-chunk is that boundaries stay put. It just never becomes the heading, so
-            # the real section heading it used to overwrite survives it.
             legacy_heading = atom.text
             if not atom.is_furniture:
                 current_heading = atom.text
-            continue
-
-        if atom.is_standalone:
-            flush()
-            text = f"# {current_heading}\n\n{atom.text}" if current_heading else atom.text
-            chunk = Chunk(text=text, n_tokens=count_tokens(text), heading=current_heading, standalone=True)
-            packed.append((chunk, [atom]))
-            packed_headings.append((current_heading,) if current_heading else ())
-            legacy_sa = f"# {legacy_heading}\n\n{atom.text}" if legacy_heading else atom.text
-            packed_legacy_tokens.append(
-                chunk.n_tokens if legacy_heading == current_heading else count_tokens(legacy_sa)
-            )
             continue
 
         # a table's evidence usually only makes sense with the paragraph

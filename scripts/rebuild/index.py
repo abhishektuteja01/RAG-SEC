@@ -4,7 +4,7 @@ You do not need this if you restore the database dump (scripts/setup_db.sh). It 
 machine without the dump gets a corpus: ~1.4 chunks/s on an Apple M3 (MPS), so roughly
 9-10 hours for all 99,654 chunks; a CUDA GPU is much faster.
 
-Writes variant 'A' only -- the only live variant. Both legs are resumable/idempotent.
+Writes variant 'A' rows. Both legs are safe to re-run.
 
     local   embed every filing not yet loaded with BGE-M3, INSERT, then build HNSW
     bm25    build the pg_search BM25 index over the text already loaded (no GPU)
@@ -29,7 +29,7 @@ from pathlib import Path
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
 
-from rag_sec.candidates import LIVE_VARIANT  # noqa: E402
+from rag_sec.candidates import VARIANT  # noqa: E402
 from rag_sec.config import EMBED_MODEL_NAME, EMBED_MODEL_REVISION, pick_device  # noqa: E402
 from rag_sec.store import (  # noqa: E402
     BM25_INDEX_SQL,
@@ -65,7 +65,7 @@ def run_local() -> None:
 
     # check=False: the corpus assertion compares row counts, and this script moves them.
     with get_conn(check=False) as conn:
-        done = {r[0] for r in conn.execute(DONE_STEMS_SQL, (LIVE_VARIANT,)).fetchall()}
+        done = {r[0] for r in conn.execute(DONE_STEMS_SQL, (VARIANT,)).fetchall()}
         print(f"{len(done)}/{len(paths)} filings already indexed, skipping those")
 
         for i, path in enumerate(paths, 1):
@@ -80,7 +80,7 @@ def run_local() -> None:
                 show_progress_bar=False, normalize_embeddings=True,
             )
             rows = [
-                (stem, idx, c.get("heading"), c.get("n_tokens"), c["text"], emb, LIVE_VARIANT)
+                (stem, idx, c.get("heading"), c.get("n_tokens"), c["text"], emb, VARIANT)
                 for idx, (c, emb) in enumerate(zip(chunks, embeddings))
             ]
             with conn.cursor() as cur:
@@ -100,8 +100,8 @@ def run_bm25() -> None:
         print("Building BM25 index (pg_search)...")
         conn.execute(BM25_INDEX_SQL)
         conn.commit()
-        n = conn.execute(COUNT_SQL, (LIVE_VARIANT,)).fetchone()[0]
-    print(f"Done. BM25 index covers {n} variant-{LIVE_VARIANT} chunks.")
+        n = conn.execute(COUNT_SQL, (VARIANT,)).fetchone()[0]
+    print(f"Done. BM25 index covers {n} variant-{VARIANT} chunks.")
 
 
 def main() -> None:

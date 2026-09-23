@@ -1,5 +1,5 @@
-"""HTTP API: `POST /ask` retrieves with `retrieve()`'s defaults (the best measured setup) and
-answers with Gemini. `GET /` serves a one-page chat UI. `/health` and `/ready` for the host.
+"""HTTP API: `POST /ask` retrieves with `retrieve()` and answers with Gemini. `GET /` serves
+a one-page chat UI. `/health` and `/ready` for the host.
 
 Run: uv run --env-file .env uvicorn rag_sec.api:app --workers 1
 One worker on purpose: two would load two copies of both models, and concurrent model
@@ -15,7 +15,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from rag_sec.answer import dedupe_chunks, generate_answer, parse_answer
+from rag_sec.answer import generate_answer, parse_answer
 from rag_sec.retrieve import TOP_K, last_call_stats, retrieve
 from rag_sec.store import get_conn
 
@@ -48,8 +48,8 @@ class AskResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Model construction is ~19s. Pay it at boot so no user request carries it, and so a
-    # failed model load fails the deploy, not a request. RAG_SEC_WARM=0 skips it.
+    # Load both models at boot, so no user request pays for it and a failed load fails the
+    # start, not a request. RAG_SEC_WARM=0 skips it.
     if os.environ.get("RAG_SEC_WARM", "1") == "1":
         retrieve("warmup", k=1)
     yield
@@ -84,9 +84,8 @@ def ready() -> dict:
 @app.post("/ask", response_model=AskResponse)
 def ask(req: AskRequest) -> AskResponse:
     t0 = time.perf_counter()
-    chunks = dedupe_chunks(retrieve(req.question, k=req.k))
-    # A whitelist: last_call_stats() also holds the full candidate list, and the lock-wait
-    # keys are already inside embed_s/rerank_s, and model_init_s is one-off warm-up.
+    chunks = retrieve(req.question, k=req.k)
+    # model_init_s is left out: it is one-off warm-up.
     timings = last_call_stats().get("timings", {})
     stages = {k: timings[k] for k in STAGES if k in timings}
     if not chunks:
