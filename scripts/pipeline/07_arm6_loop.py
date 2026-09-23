@@ -62,8 +62,12 @@ DECISIONS.md ROWS THIS BACKS
               queries. Fixed AFTER the published run. Measured value of the fix, same 200
               questions: the loop's iteration-1 retrieval deficit narrows from -3.3pt to
               -1.0pt. Still a deficit.
-    AGENT-30  the 2026-09-16 rerun and the stale-replay bug it exposed; see the results-file
-              table above. `scripts/checks/static_replay_provenance.py` guards it.
+    AGENT-30  the 2026-09-16 rerun: the answer win does not survive a fair baseline. See
+              the results-file table below.
+    AGENT-31  the stale-replay bug that rerun exposed. `retrieve_node` now passes
+              `rag_sec.agent.ARM6_RETRIEVE_SETTINGS` instead of retrieve()'s defaults, so a
+              later default flip (DEPLOY-25) cannot move the loop off its baseline's stack;
+              `scripts/checks/static_replay_provenance.py` fails the run if the two differ.
     COST-21   two gold answer fields that disagree on 10.1% of dev; both are stored per
               row and `rag_sec.answer_eval` scores against either.
     COST-30   Arm 6 runs on DEV ONLY. The holdout is not spent on a hypothesis that has
@@ -154,6 +158,7 @@ from langgraph.checkpoint.postgres import PostgresSaver  # noqa: E402
 from psycopg_pool import ConnectionPool  # noqa: E402
 
 from rag_sec.agent import (  # noqa: E402
+    ARM6_RETRIEVE_SETTINGS,
     MAX_ITERATIONS,
     _ANSWER_PROMPT,
     _answer_llm,
@@ -168,7 +173,7 @@ from rag_sec.answer_eval import (  # noqa: E402
     is_correct,
     parse_reason,
 )
-from rag_sec.candidates import LIVE_VARIANT, chunk_texts  # noqa: E402
+from rag_sec.candidates import LIVE_VARIANT, READ_DEPTH, chunk_texts  # noqa: E402
 from rag_sec.config import pick_device  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
     YEAR_BIAS_CELL,
@@ -226,6 +231,17 @@ RESULTS_DEFAULT = DATA_DIR / "day9_arm6_dev_results.jsonl"
 # scripts/checks/static_replay_provenance.py now fails the run if these two drift again.
 STATIC_SCORES = DATA_DIR / "retr7_rr_dev_scores_year_bias.jsonl"
 STATIC_CELL = YEAR_BIAS_CELL
+# What STATIC_SCORES:STATIC_CELL was BUILT under, one entry per retrieve() setting. Declared by
+# hand because the scores file records no config -- it is a claim about a file, kept apart from
+# ARM6_RETRIEVE_SETTINGS (a claim about code) so the provenance check compares two things, not
+# one thing with itself. Evidence: `filtered_stripped` = filter + strip (RETR-31); `_year_bias`
+# = RETR-40's nudge; the payload's pools are 50 deep and its unbiased leg reproduces the
+# published depth-50 ranking 1235/1235 (year_bias_static_ranking.py's parity gate); and it
+# predates strip_dense/read_depth/year_text_fusion (ac6855b), so none of them could be on.
+STATIC_RETRIEVE_SETTINGS = dict(
+    k=TOP_K, company_filter=True, strip_query=True, reserve=0, year_bias=True,
+    strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False,
+)
 
 # Measured cost of the published pass, for --help and for the money gate's refusal text.
 # Measured on the published pass: $4.10 across 200 questions. Stated per question as well,
@@ -274,20 +290,6 @@ def _rel(path: Path) -> str:
     """Repo-relative, for --help text. Absolute paths in a --help make the help unreadable
     and machine-specific; the constants themselves stay absolute so cwd cannot matter."""
     return str(Path(path).relative_to(_ROOT))
-
-
-def _retrieve_default(name: str):
-    """A `retrieve()` keyword's live default, read from the signature.
-
-    Recording a hand-typed literal is what failed: the row said nothing about `year_bias`,
-    RETR-43 flipped it, and the config block kept describing a stack that no longer ran.
-    Reading the signature means the row cannot disagree with the function it describes.
-    """
-    import inspect
-
-    from rag_sec.retrieve import retrieve
-
-    return inspect.signature(retrieve).parameters[name].default
 
 
 # ─── STEP 1: the money gate ─────────────────────────────────────────────────────
@@ -402,11 +404,11 @@ def static_baseline(row, rankings) -> dict:
     """Arm 3 + filter + strip on the same question: one answer call over the PUBLISHED
     ranking.
 
-    Retrieval is NOT re-run. `data/retr7_rr_dev_scores.jsonl` already holds the reranked
-    `filtered_stripped` list for every dev question on the post-RETR-7 corpus -- that is
-    the exact arm RETR-39 published, so reusing it makes the baseline literally the
-    published one instead of a re-run that could drift. It also saves ~28s of reranking per
-    question.
+    Retrieval is NOT re-run. `STATIC_SCORES` (`retr7_rr_dev_scores_year_bias.jsonl`) already
+    holds the reranked `filtered_stripped_year_bias` list for every dev question on the
+    post-RETR-7 corpus -- RETR-39's arm plus RETR-40's year nudge, built under
+    `STATIC_RETRIEVE_SETTINGS` -- so reusing it makes the baseline a fixed published ranking
+    instead of a re-run that could drift. It also saves ~28s of reranking per question.
 
     Only the answer call is new, and it imports `_ANSWER_PROMPT`/`_answer_llm` from the loop
     so the two arms cannot differ in prompt wording or thinking level: the single change
@@ -531,14 +533,17 @@ def run_one(graph, checkpointer, row, rankings) -> dict:
         "static_baseline": static,
         "config": {
             "arm": ARM, "top_k": TOP_K, "candidate_k": CANDIDATE_K,
-            "max_iterations": MAX_ITERATIONS, "company_filter": True,
-            "strip_query": True,
-            # Read off retrieve()'s real signature, never re-typed. RETR-43 flipped this
-            # default after the published pass and nothing in the row recorded it, so two
-            # runs on different retrieval stacks were distinguishable only by `device`.
-            # That is what let the stale static replay go unnoticed.
-            "year_bias": _retrieve_default("year_bias"),
+            "max_iterations": MAX_ITERATIONS,
+            # The exact kwargs retrieve_node passed, from the same constant it reads -- never
+            # re-typed, never read off retrieve()'s defaults (which Arm 6 no longer uses).
+            # Unrecorded config is what let the stale static replay go unnoticed (AGENT-31).
+            # The flat keys are kept because `analyze` and older rows read them.
+            "retrieve_settings": dict(ARM6_RETRIEVE_SETTINGS),
+            "company_filter": ARM6_RETRIEVE_SETTINGS["company_filter"],
+            "strip_query": ARM6_RETRIEVE_SETTINGS["strip_query"],
+            "year_bias": ARM6_RETRIEVE_SETTINGS["year_bias"],
             "static_source": f"{_rel(STATIC_SCORES)}:{STATIC_CELL}",
+            "static_retrieve_settings": dict(STATIC_RETRIEVE_SETTINGS),
             "plan_model": "gemini-3.7-flash/low",
             "judge_model": "gemini-3.1-flash-lite/minimal",
             "answer_model": "gemini-3.7-flash/medium", "service_tier": "standard",
@@ -719,6 +724,16 @@ def cmd_restatic(args: argparse.Namespace) -> None:
         done = {json.loads(ln)["id"] for ln in args.out.read_text().splitlines() if ln.strip()}
     todo = [r for r in rows if r["id"] not in done]
 
+    # The pairing is only like-for-like if the kept loop half ran on the baseline's stack.
+    # Rows from before 2026-09-22 record no `retrieve_settings`, so they cannot be checked.
+    recorded = {json.dumps(r["config"].get("retrieve_settings"), sort_keys=True) for r in rows}
+    if recorded != {json.dumps(None)} and recorded != {json.dumps(STATIC_RETRIEVE_SETTINGS,
+                                                                    sort_keys=True)}:
+        print(f"refusing: the loop half ran with retrieve_settings {sorted(recorded)}, but "
+              f"the replayed baseline was built under {STATIC_RETRIEVE_SETTINGS}",
+              file=sys.stderr)
+        sys.exit(1)
+
     print(f"{args.results.name}: {len(rows)} rows, {len(done)} already restated, "
           f"{len(todo)} to regenerate")
     print(f"static source: {_rel(STATIC_SCORES)}:{STATIC_CELL}")
@@ -742,9 +757,11 @@ def cmd_restatic(args: argparse.Namespace) -> None:
         for i, rec in enumerate(todo, 1):
             new = dict(rec)
             new["static_baseline"] = static_baseline(by_id[rec["id"]], rankings)
+            # The loop half's config is copied, not re-derived: that half was not re-run, so
+            # stamping today's settings on it would describe a run that never happened.
             new["config"] = {**rec.get("config", {}),
-                             "year_bias": _retrieve_default("year_bias"),
                              "static_source": f"{_rel(STATIC_SCORES)}:{STATIC_CELL}",
+                             "static_retrieve_settings": dict(STATIC_RETRIEVE_SETTINGS),
                              "restated_from": _rel(args.results.resolve())}
             fh.write(json.dumps(new) + "\n")
             fh.flush()
@@ -983,8 +1000,8 @@ def main() -> None:
             "the static row is recall@10, so the two are NOT comparable (AGENT-22). The "
             "like-for-like pair is printed underneath.\n"
             "  * The static row is a REPLAY, so it is only like-for-like if it was built "
-            "under the same retrieval config retrieve() runs today. It was not between "
-            "RETR-43 and 2026-09-16; the header line now says which. AGENT-21's yes/no "
+            "under the settings the loop passes (ARM6_RETRIEVE_SETTINGS). It was not "
+            "between RETR-43 and 2026-09-16; the header line now says which. AGENT-21's yes/no "
             "replay is printed beside the headline, never instead of it."),
         formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--results", type=Path, default=RESULTS_DEFAULT,

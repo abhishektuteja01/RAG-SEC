@@ -48,13 +48,10 @@ sys.path.insert(0, str(_ROOT / "src"))
 
 load_dotenv()
 
-from rag_sec.eval import ALL_CELLS, SHIPPED_CELL, load_ranking  # noqa: E402
+from rag_sec.eval import ALL_CELLS, SHIPPED_CELL, YEAR_BIAS_CELL, load_ranking  # noqa: E402
 
 DATA_DIR = _ROOT / "data"
 TOP_K = 10
-# Named, not spelled inline: `07_arm6_loop.py` must import this rather than re-type it, the
-# same rule STATIC_CELL already follows.
-YEAR_BIAS_CELL = f"{SHIPPED_CELL}_year_bias"
 
 
 def build(split: str, out_path: Path) -> int:

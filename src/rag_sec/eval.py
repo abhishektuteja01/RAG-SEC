@@ -503,11 +503,13 @@ def write_worst_failures(path, title: str, per_question: list[dict], filing_key:
 # so the CI guard and the agent run cannot drift apart on which cell they mean.
 SHIPPED_CELL = "filtered_stripped"
 
-# The same arm with RETR-43's year-proximity nudge, which is retrieve()'s default since
-# RETR-43 -- so this, not SHIPPED_CELL, is what a replayed baseline must use to stay
-# comparable with a live retrieve(). Distinct name on purpose: the score files carry no
-# config block, so the cell name is the only provenance a replay can check, and
-# scripts/checks/static_replay_provenance.py checks exactly that.
+# The same arm with RETR-40's year-proximity nudge (made a default by RETR-43): the ranking
+# Arm 6 replays as its static baseline. It does NOT match retrieve()'s current defaults --
+# DEPLOY-25 turned RETR-51/RETR-52 on after it was built -- which is why Arm 6 pins its
+# settings (rag_sec.agent.ARM6_RETRIEVE_SETTINGS) instead of following them. The score files
+# carry no config block, so this name plus 07's STATIC_RETRIEVE_SETTINGS is the provenance;
+# scripts/checks/static_replay_provenance.py checks every setting against the loop's call.
+# Defined once, here: 07 and scripts/archive/year_bias_static_ranking.py both import it.
 YEAR_BIAS_CELL = f"{SHIPPED_CELL}_year_bias"
 
 
