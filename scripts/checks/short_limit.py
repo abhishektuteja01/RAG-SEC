@@ -15,19 +15,27 @@ the two were one constant until P10 split them, and a pool-derived ef_search equ
 depth at depth 200, which is the same bug wearing the fix's clothes.
 
 Two legs. The static one needs no database, so a `HNSW_EF_SEARCH` edited below READ_DEPTH_MAX
-fails in CI where Postgres is absent. The live one needs one, and is skipped (not failed)
-when the connection is refused. Only `dense()` is probed: BM25 legitimately returns fewer
-than `k` when fewer than `k` documents match, so a short list there is not evidence.
+fails in CI, which runs `--static-only` because it has no Postgres. The live one needs one, and
+is skipped (not failed) when the connection is refused; unset POSTGRES_* env is an error, not
+a skip. Only `dense()` is probed: BM25 legitimately returns fewer than `k` when fewer than `k`
+documents match, so a short list there is not evidence.
 
 Usage:
-    python scripts/checks/short_limit.py
+    python scripts/checks/short_limit.py [--static-only]
 """
 
+import argparse
 import sys
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
+
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv()
+
+import psycopg  # noqa: E402
 
 from rag_sec.candidates import LIVE_VARIANT, READ_DEPTH_MAX, dense  # noqa: E402
 from rag_sec.store import EMBEDDING_DIM, HNSW_EF_SEARCH, get_conn  # noqa: E402
@@ -44,6 +52,10 @@ def _probe_vectors() -> list:
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--static-only", action="store_true", help="skip the live leg (CI)")
+    args = ap.parse_args()
+
     failures = []
     if HNSW_EF_SEARCH < READ_DEPTH_MAX:
         failures.append(
@@ -51,11 +63,18 @@ def main() -> int:
             "the index cannot return the depth the retriever asks for"
         )
 
-    try:
-        conn = get_conn()
-    except Exception as exc:  # noqa: BLE001 -- any connection failure, not one driver's
-        print(f"note: no database ({type(exc).__name__}), live leg skipped")
-        conn = None
+    conn = None
+    if args.static_only:
+        print("note: --static-only, live leg skipped")
+    else:
+        try:
+            conn = get_conn()
+        except KeyError as exc:  # store.get_conn reads POSTGRES_* with os.environ[...]
+            print(f"error: {exc.args[0]} not set (no .env?); pass --static-only to skip "
+                  "the live leg on purpose", file=sys.stderr)
+            return 2
+        except psycopg.OperationalError as exc:
+            print(f"note: no database ({type(exc).__name__}), live leg skipped")
 
     if conn is not None:
         with conn:

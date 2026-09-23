@@ -1,7 +1,7 @@
 # The CI quality gate. Two jobs, split on cost, not on tidiness.
 #
-#   guards     static/self-contained checks. No data, no DB, no network. Seconds.
-#   gate       replays the committed retrieval fixture and fails on regression.
+#   guards     static/self-contained checks. No DB, no network, no corpus. Seconds.
+#   gate       replays the committed retrieval fixture and stored answers; fails on regression.
 #
 # The gate's thresholds, against the recorded baseline in data/ci_retrieval_baseline.json
 # (400 dev questions, seed 17, from retr7_rr_dev_scores.jsonl's filtered_stripped cell):
@@ -12,14 +12,16 @@
 #               for different reasons than the ranked metrics
 #   fixture n   asserted equal to the baseline's n=400; a fixture that lost or gained
 #               questions fails rather than comparing two different sets
+#   numeric_match  0.6647 (115/173 scoreable, AGENT-29) -- may not drop at all. Replayed from
+#               the static arm's stored answers in data/day9_arm6_dev_results.jsonl (dev,
+#               n=200), nothing sent, so it guards the answer scorer, not the model
 #
 # What is deliberately NOT here:
-#   - heading_fix.py reads data/chunks/, which is gitignored (the whole corpus). It stays a
-#     local check until the fixture idea is extended to it.
-#   - The answer-accuracy leg -- numeric-match accuracy, which may not drop at all. 2,000
-#     answer sends is $23.62/push at standard rates, and the batch rate that makes it
-#     affordable carries a 24h SLO, so it cannot gate a push (COST-39). It belongs on
-#     merges to the default branch, as a separate workflow.
+#   - heading_fix.py reads data/chunks/, and bm25_only_recall.py plus short_limit.py's live
+#     leg need Postgres with the embedded corpus; CI has neither. short_limit runs its static
+#     leg only (--static-only).
+#   - A live answer-accuracy run. Re-sending answers costs money per run, so it belongs on a
+#     schedule, as a separate workflow (COST-39). Not built yet.
 #   - The p95 latency and cost-per-query legs. Both have to be measured in the serving
 #     container (DEPLOY-1), not replayed.
 
@@ -62,6 +64,12 @@ jobs:
       - name: Tracing degrades to a no-op without keys (OBS-*)
         # Runs with no LANGFUSE_* in the environment on purpose: that IS the property.
         run: .venv/bin/python scripts/checks/tracing_offline.py
+      - name: Laptop and GPU rerank legs agree on cell config (INFRA-22)
+        run: .venv/bin/python scripts/checks/cell_config.py
+      - name: Arm 6's pinned retrieve() settings match its replayed baseline (AGENT-31, AGENT-36)
+        run: .venv/bin/python scripts/checks/static_replay_provenance.py
+      - name: HNSW read depth covers the deepest LIMIT, static leg (RETR-50)
+        run: .venv/bin/python scripts/checks/short_limit.py --static-only
 
   gate:
     runs-on: ubuntu-latest
