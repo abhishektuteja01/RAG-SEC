@@ -20,6 +20,7 @@
 #   - heading_fix.py reads data/chunks/, and bm25_only_recall.py plus short_limit.py's live
 #     leg need Postgres with the embedded corpus; CI has neither. short_limit runs its static
 #     leg only (--static-only).
+#   - citation_grounding.py (EVAL-4) reads data/chunks/ for its Arm 6 sets.
 #   - A live answer-accuracy run. Re-sending answers costs money per run, so it belongs on a
 #     schedule, as a separate workflow (COST-39). Not built yet.
 #   - A live p95 latency leg. p95 must be measured in the serving container (DEPLOY-1), and

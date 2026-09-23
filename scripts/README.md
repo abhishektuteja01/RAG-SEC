@@ -2,7 +2,7 @@
 
 Three folders, three jobs. **`pipeline/`** is the reproduction path: seven numbered phases,
 in order, plus phase 08 which stands outside that order, plus the two scripts that run on a
-GPU cluster. **`checks/`** is eighteen guards —
+GPU cluster. **`checks/`** is nineteen guards and probes —
 each one locks a property that a real bug broke; nine fail CI and one fails the container
 build. **`archive/`** is forty-one files of one-off measurements whose findings are recorded in
 [`DECISIONS.md`](../DECISIONS.md), plus the producer for the README's chart; nothing in the
@@ -203,6 +203,7 @@ not pytest, to match the rest of `scripts/`.
 | `short_limit.py` | `dense()` returns as many rows as its `LIMIT` at `READ_DEPTH_MAX` (`RETR-50`). Static leg needs no database; live leg skips without Postgres | **CI**, static leg only |
 | `latency_budget.py` | stored `/ask` timings are within `DEPLOY-27`'s p95 budget (end to end 8.5s, retrieval 5.0s, rerank 4.5s, generation 4.0s, `g4dn.xlarge`); refuses a file shape it does not recognise, and takes a fresh file from the host as an argument | **CI**, on the two `DEPLOY-25` files |
 | `bm25_only_recall.py` | BM25-only recall@10 stays near where it was measured; a move means corpus, split or labels changed (`CI-4`). Needs Postgres | — |
+| `citation_grounding.py` | the ANSWER number of every stored answer traces to the evidence it was given (`EVAL-4`); exits 1 if the evidence-shuffle or answer-swap control fails to fall below half the real rate. Free, no API. Needs `data/chunks/` | — |
 | `convfinqa_turn_join.py` | `data/convfinqa_turns.jsonl` still agrees with upstream positionally, and its id set is still exactly the ConvFinQA ids `load_matched_questions()` yields — the tripwire on a `SUBSET_FILES` change silently moving the scored denominator (`DATA-10`). Each leg skips rather than fails when its input is absent, so it is **not** wired to CI, where all three would skip | — |
 
 The CI workflow is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): a `guards` job
