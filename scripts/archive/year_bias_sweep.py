@@ -1,5 +1,5 @@
 """Does an additive year-proximity nudge in RRF fusion recover gold chunks lost to
-sibling-year confusion (research.md sec1: 50% of right-company misses are wrong-year)?
+sibling-year confusion (RETR-3: 50% of hand-read misses are the right company's wrong year)?
 
 Same shape as `company_filter_ab.py` (RETR-5's own measurement): recall@50 on the
 CANDIDATE POOL only, no cross-encoder. That recall is a BINARY any-gold-in-pool hit, NOT

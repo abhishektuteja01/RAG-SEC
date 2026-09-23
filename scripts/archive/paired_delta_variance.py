@@ -1,5 +1,5 @@
 """Real per-query paired variance for the arm-to-arm recall@10 deltas we publish, replacing
-the assumed-correlation power bound in research.md sec7 item 3 with a measured number.
+an assumed-correlation power bound with a measured number (DECISIONS.md RETR-41).
 
 Reads only already-stored per-query scores -- no retrieval, no GPU, no spend:
   - data/day3_arm1_dev_results.json, data/day4_arm2_dev_results.json (per-question recall_10,

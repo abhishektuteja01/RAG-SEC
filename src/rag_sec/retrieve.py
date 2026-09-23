@@ -10,18 +10,12 @@ import time
 from collections import Counter
 from functools import lru_cache, wraps
 
-from rag_sec.candidates import (  # noqa: F401
-    CANDIDATE_K,
+from rag_sec.candidates import (
+    CANDIDATE_K,  # also re-exported: 04/06/07 import it from here
     LIVE_VARIANT,
-    READ_DEPTH,
     READ_DEPTH_MAX,
     SERVING_READ_DEPTH,
-    bm25,
-    chunk_texts,
     first_stage,
-    dense,
-    rrf_fuse,
-    rrf_fuse_year_biased,
 )
 from rag_sec.company import resolve_with_reason
 from rag_sec.company import strip_entity_framing
@@ -45,7 +39,7 @@ _last = threading.local()
 _gpu_lock = threading.Lock()
 
 # How often company_filter's fallback-to-unfiltered-search path fires, broken out by reason
-# (research.md sec5b / sec7 item 2). Observability only: nothing here changes what
+# (RETR-42). Observability only: nothing here changes what
 # `resolve_with_reason` returns or which candidates get searched.
 _fallback_lock = threading.Lock()
 _fallback_reasons: Counter[str] = Counter()
@@ -247,13 +241,16 @@ def retrieve(
     `extract_years` scan over the pre-cut union, partly paid for by `chunk_texts_exact` being
     CHEAPER than the per-filing fetch it replaces (10.5ms vs 26.9ms filtered).
 
-    `year_text_fusion` is NOT free of accuracy risk per question, only on aggregate: against
-    `deployed` it wins 109 test questions and **loses 15**. One demonstrated pathway for a
-    loss is a gold chunk whose own TEXT never restates the question's year -- it is excluded
-    from the third list while most of the union qualifies, and the demotion pushes it past the
-    50-cut (`finqa_test_1`: base rank 20 -> 58, out of the pool, answer 14.46 correct ->
-    INSUFFICIENT). That pathway does NOT explain the losses in general: across the 15, only
-    3 of 19 gold chunks fail the year test, so the other losses are ordinary RRF reordering.
+    The flags are NOT free of accuracy risk per question, only on aggregate: against
+    `deployed`, `strip_dense` + `year_text_fusion` together (`n18d_p10`) win 109 test
+    questions and **lose 15** on any-gold-in-top-10 -- a count for both flags, not for
+    `year_text_fusion` alone; 9 of the 15 are already lost under `strip_dense` alone (`n18d`).
+    One demonstrated pathway for a `year_text_fusion` loss is a gold chunk whose own TEXT never
+    restates the question's year -- it is excluded from the third list while most of the
+    union qualifies, and the demotion pushes it past the 50-cut (`finqa_test_1`: base rank
+    20 -> 58, out of the pool, answer 14.46 correct -> INSUFFICIENT). That pathway does NOT
+    explain the losses in general: across the 15, only 3 of 19 gold chunks fail the year test,
+    so the other losses are ordinary RRF reordering.
     Do not quote it as the characterisation of the failure mode; it is one worked example.
     Kept because +1.7pt over `RETR-51` is measured on 1545 scored test questions; `DEPLOY-25`.
 

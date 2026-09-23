@@ -28,8 +28,8 @@ FLAG_SENTINEL = "RAG_SEC_MULTI_HEADING"
 def resolve_baseline() -> str:
     """`rev:path` of the last packer before RETR-7, derived rather than pinned.
 
-    A pinned SHA is not durable here: `ac2d758` was pinned, `INFRA-18` rewrote history, and
-    check 1 then printed SKIP forever instead of failing. So find the commit that introduced
+    A pinned SHA is not durable here: `ac2d758` was pinned, the 2026-09-06 history rewrite
+    changed every earlier SHA, and check 1 then printed SKIP forever instead of failing. So find the commit that introduced
     the flags and take its parent. `git log -S` is newest-first, so the introducer is last.
     """
     out = subprocess.run(["git", "log", "-S", FLAG_SENTINEL, "--format=%H", "--", CHUNKING],

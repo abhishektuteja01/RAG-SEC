@@ -255,7 +255,7 @@ def matched_aliases(question: str) -> list[tuple[str, tuple[str, ...]]]:
 def resolve_with_reason(question: str) -> tuple[list[str], str | None]:
     """Same result as `resolve`, plus WHY an empty list came back. `resolve`'s bare `[]`
     conflates two different situations that a caller falling back to unfiltered search
-    cannot otherwise tell apart (research.md sec5b): no company named at all
+    cannot otherwise tell apart (RETR-42): no company named at all
     (`"no_match"`) vs. companies matched but discarded as spurious/over-broad
     (`"too_many"`, `MAX_TICKERS`). Reason is `None` whenever tickers are returned.
     """
