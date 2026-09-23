@@ -110,7 +110,9 @@ top-5 parity on every test question (`DEPLOY-21`, `DEPLOY-22`).
 That is the rerank stage, not the round trip. Measured end to end on the fixed ten questions
 every latency decision here uses, `POST /ask` is **p50 6.7 s** — about 3.4 s of retrieval and
 3 s of Gemini generation (`DEPLOY-25`). So it is usable but **not yet inside the 2-5 s
-interactive target**, and the remaining headroom is generation-side, not retrieval-side. Arm 6's
+interactive target**, and the remaining headroom is generation-side, not retrieval-side. The
+stated p95 budget on that host is 8.5 s end to end; CI checks it against the stored timings,
+not live traffic (`DEPLOY-27`). Arm 6's
 traces and dashboards are in `images/langfuse_*.png`.
 
 Eval set: [T²-RAGBench](https://huggingface.co/datasets/G4KMU/t2-ragbench) (FinQA + ConvFinQA,

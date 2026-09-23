@@ -171,7 +171,8 @@ reproduces `RETR-39` (`DEPLOY-23`). The four `deploy25_*.jsonl` are `DEPLOY-25`:
 three-config retrieval timing (`flags_3config_110q`), the depth-200 row counts that rule out a
 short read (`depth200_row_counts_50q`), and `/ask` end to end on the fixed ten before and after
 the flip (`ask_baseline_year_bias_10q`, `ask_r51r52_on_10q`). **Keep all** — each is a timing on a
-specific host and a repeat would be a new sample, not the same number.
+specific host and a repeat would be a new sample, not the same number. `ask_r51r52_on_10q` and
+`flags_3config_110q` are also the inputs CI's `latency_budget.py` gates (`DEPLOY-27`).
 
 **`.venv/`** — 1.2 GB, not in git. Rebuilt any time with `uv sync`. **Status: Rebuildable.**
 
@@ -448,14 +449,15 @@ Both import nothing from `rag_sec`; do not add an import.
 
 ## `scripts/checks/` — guards and regression tests
 
-Seventeen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
+Eighteen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
 them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
 reproduces a behaviour rather than asserting one, so nothing should gate on it.
 
-Eight are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
+Nine are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
 `candidate_sql.py`, `static_ranking_order.py`, `tracing_offline.py`, `cell_config.py`,
-`static_replay_provenance.py`, `short_limit.py --static-only`, `retrieval_gate.py` — and
-`container_wordlist.py` is invoked by the `Dockerfile` at both build and runtime. **Those nine
+`static_replay_provenance.py`, `short_limit.py --static-only`, `latency_budget.py`,
+`retrieval_gate.py` — and `container_wordlist.py` is invoked by the `Dockerfile` at both build
+and runtime. **Those ten
 filenames are load-bearing outside this repo's Python; moving one breaks a pipeline, not an
 import.** Four more are described only in passing below and are worth a pass of their own:
 `ci_fixture_build.py` (distils the gitignored scores + chunks into the one committed ~1 MB
@@ -516,6 +518,14 @@ checked at `READ_DEPTH_MAX` (the deepest read any caller may ask for), not the p
 leg needs no database; `--static-only` runs just that, and is what CI runs. Without the flag, a
 missing `.env` (no `POSTGRES_*`) is an error, exit 2, not a skip; only an unreachable database
 skips the live leg. **Keep.**
+
+**`latency_budget.py`** — `DEPLOY-27`'s check. Computes nearest-rank p95 (`eval.percentile`) from a
+stored latency file — end to end, retrieval, rerank, generation, whichever the file has — and fails
+over budget. Defaults to the post-flip `DEPLOY-25` `/ask` file; takes any file as an argument, so
+a fresh measurement from the host is judged the same way. Refuses a shape it does not recognise,
+because `latency_s` also names a batch-split share in the rerank score files. Carries a negative
+control. No database, model or network; in CI. **Keep** — it gates stored timings, not live
+traffic.
 
 **`bm25_only_recall.py`** — `CI-4`'s standing probe: BM25 alone, no filter, fusion or reranker, as
 a floor that should not move. A large move means the corpus, split or labels changed. Needs

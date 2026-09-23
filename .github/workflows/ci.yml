@@ -22,8 +22,12 @@
 #     leg only (--static-only).
 #   - A live answer-accuracy run. Re-sending answers costs money per run, so it belongs on a
 #     schedule, as a separate workflow (COST-39). Not built yet.
-#   - The p95 latency and cost-per-query legs. Both have to be measured in the serving
-#     container (DEPLOY-1), not replayed.
+#   - A live p95 latency leg. p95 must be measured in the serving container (DEPLOY-1), and
+#     re-measuring /ask sends every question to Gemini. guards instead gates the STORED
+#     DEPLOY-25 timings against DEPLOY-27's budget (end to end 8.5s, retrieval 5.0s, rerank
+#     4.5s, generation 4.0s, g4dn.xlarge); a fresh file from the host is checked by hand
+#     with the same script. It catches a changed budget or a broken check, not a slow host.
+#   - The cost-per-query leg, for the same reason.
 
 name: ci
 
@@ -70,6 +74,11 @@ jobs:
         run: .venv/bin/python scripts/checks/static_replay_provenance.py
       - name: HNSW read depth covers the deepest LIMIT, static leg (RETR-50)
         run: .venv/bin/python scripts/checks/short_limit.py --static-only
+      - name: Stored /ask timings are within the p95 budget (DEPLOY-27)
+        run: |
+          .venv/bin/python scripts/checks/latency_budget.py
+          .venv/bin/python scripts/checks/latency_budget.py \
+            research_latency/deploy25_flags_3config_110q.jsonl --config strip_dense+p10
 
   gate:
     runs-on: ubuntu-latest
