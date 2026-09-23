@@ -1,17 +1,24 @@
+# Postgres with pgvector + pg_search (BM25), for local development and evaluation.
+#   docker compose up -d
+# The API runs on the host: uv run --env-file .env uvicorn rag_sec.api:app --workers 1
+# For a GPU host running both services, see deploy/docker-compose.gpu.yml.
 services:
   postgres:
     build:
       context: .
-      dockerfile: Dockerfile.postgres
+      dockerfile: deploy/Dockerfile.postgres
     image: rag-sec-postgres-pgsearch:0.8.6-pg18-trixie
     restart: unless-stopped
     command: ["postgres", "-c", "shared_preload_libraries=pg_search"]
+    # Docker's default 64 MB /dev/shm fails the HNSW index build during restore, with a
+    # misleading "No space left on device".
+    shm_size: 2gb
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"  # host port follows POSTGRES_PORT in .env
     volumes:
       - pgdata:/var/lib/postgresql
 

@@ -1,29 +1,27 @@
-"""HTTP serving layer for the shipped arm: Arm 3 + company filter + query strip + year_bias +
-stripped dense query + chunk-year list (`RETR-51`/`RETR-52`, defaults since `DEPLOY-25`).
+"""HTTP API: `POST /ask` retrieves with `retrieve()` and answers with Gemini. `GET /` serves
+a one-page chat UI. `/health` and `/ready` for the host.
 
-Not Arm 6: the loop is closed as a negative (`AGENT-34`). `retrieve()`'s defaults already ARE
-the serving configuration, so serving it needs no arm selection here.
-
-The answer call imports `_ANSWER_PROMPT`/`_answer_llm`/`_evidence_text` from `agent`, the
-same three `scripts/pipeline/07_arm6_loop.py:static_baseline` imports, so both answer the same
-way. Retrieval is live here; the test 0.831 (`n18d_p10`) is an offline replay of
-`data/arms_scores.jsonl`, and both build candidates through `candidates.first_stage` (`RETR-53`).
+Run: uv run --env-file .env uvicorn rag_sec.api:app --workers 1
+One worker on purpose: two would load two copies of both models, and concurrent model
+construction segfaults on Apple MPS.
 """
 
 import os
 import time
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
-from langchain_core.messages import HumanMessage
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
-from rag_sec.agent import _ANSWER_PROMPT, _answer_llm, _dedupe_chunks, _evidence_text
-from rag_sec.answer_eval import parse_reason
+from rag_sec.answer import generate_answer, parse_answer
 from rag_sec.retrieve import TOP_K, last_call_stats, retrieve
 from rag_sec.store import get_conn
 
-MAX_K = 50  # a request cannot ask the reranker for more work than the eval ever measured
+MAX_K = 50  # the reranker never sees more than the 50-candidate pool anyway
+STATIC_DIR = Path(__file__).parent / "static"
+STAGES = ("resolve_s", "embed_s", "search_s", "rerank_s", "mps_empty_cache_s", "total_s")
 
 
 class AskRequest(BaseModel):
@@ -50,29 +48,31 @@ class AskResponse(BaseModel):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Model construction is ~19s and lands in whichever request runs first otherwise
-    # (retrieve.py times it separately for exactly that reason). Pay it at boot so no
-    # user request carries it, and so a failed model load fails the deploy, not a request.
+    # Load both models at boot, so no user request pays for it and a failed load fails the
+    # start, not a request. RAG_SEC_WARM=0 skips it.
     if os.environ.get("RAG_SEC_WARM", "1") == "1":
         retrieve("warmup", k=1)
     yield
 
 
-app = FastAPI(title="rag-sec", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="rag-sec", version="0.2.0", lifespan=lifespan)
+
+
+@app.get("/", include_in_schema=False)
+def index() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.get("/health")
 def health() -> dict:
-    """Liveness only -- no DB, no models. The container is up."""
+    """Liveness only -- no DB, no models."""
     return {"status": "ok"}
 
 
 @app.get("/ready")
 def ready() -> dict:
-    """Readiness: Postgres reachable AND the corpus is the one the numbers were measured
-    on. `get_conn` runs store.preflight, so a wrong or half-loaded corpus fails here
-    rather than silently serving degraded retrieval.
-    """
+    """Readiness: Postgres reachable AND the corpus is the expected one (`get_conn` runs
+    store.preflight), so a wrong or half-loaded corpus fails here, not in answers."""
     try:
         with get_conn() as conn:
             conn.execute("SELECT 1")
@@ -84,27 +84,21 @@ def ready() -> dict:
 @app.post("/ask", response_model=AskResponse)
 def ask(req: AskRequest) -> AskResponse:
     t0 = time.perf_counter()
-    chunks = _dedupe_chunks(retrieve(req.question, k=req.k))
-    # Timings only: last_call_stats() also carries the full candidate list, several hundred KB
-    # on a k=50 response. An explicit whitelist read out of ["timings"], because DEPLOY-1's p95
-    # gate reads this field and both cheaper spellings were wrong: filtering `_s` off the TOP
-    # level matched nothing (`stage_latency` was always empty, gating nothing), and
-    # `endswith("_s")` inside timings double-counts -- embed/rerank_lock_wait_s are already
-    # inside embed_s/rerank_s, and model_init_s is one-off warm-up.
-    _timings = last_call_stats().get("timings", {})
-    stages = {k: _timings[k] for k in
-              ("embed_s", "resolve_s", "search_s", "rerank_s", "mps_empty_cache_s", "total_s")
-              if k in _timings}
+    chunks = retrieve(req.question, k=req.k)
+    # model_init_s is left out: it is one-off warm-up.
+    timings = last_call_stats().get("timings", {})
+    stages = {k: timings[k] for k in STAGES if k in timings}
     if not chunks:
         raise HTTPException(status_code=404, detail="no candidates retrieved")
 
-    prompt = _ANSWER_PROMPT.format(question=req.question, evidence=_evidence_text(chunks))
-    response = _answer_llm().invoke([HumanMessage(content=prompt)])
-    value, _ = parse_reason(response.text)
+    t_gen = time.perf_counter()
+    text = generate_answer(req.question, chunks)
+    stages["generation_s"] = time.perf_counter() - t_gen
+    value, _ = parse_answer(text)
 
     return AskResponse(
         question=req.question,
-        answer=response.text,
+        answer=text,
         value=value,
         citations=[
             Citation(

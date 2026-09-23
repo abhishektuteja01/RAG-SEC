@@ -1,142 +1,37 @@
-# Python-generated files
+# Python
 __pycache__/
 *.py[oc]
 build/
 dist/
 wheels/
 *.egg-info
-
-# Virtual environments
 .venv
 
-# Local secrets
+# Secrets
 .env
 
-# Personal working notes, kept local and purged from history (2026-09-06). No tracked
-# file cites them: every reference was inlined or dropped on 2026-09-07, so a stranger
-# with only the clone can still follow every claim. DECISIONS.md and INVENTORY.md stay
-# tracked. Do not reintroduce a citation to any file listed below.
-#   CLAUDE.local.md    the owner's working rules, renamed from CLAUDE.md on 2026-09-07.
-#                      The tracked CLAUDE.md is now newcomer orientation instead.
-#   DECISIONS.local.md the personal/process/housekeeping rows pruned out of DECISIONS.md
-#                      on 2026-09-07; no tracked file cites any ID in it, by construction.
-#   RUNBOOK.md         the GPU cluster procedure, untracked on 2026-09-07: it is specific
-#                      to one university cluster and names its hosts.
-#   research_recall/research_recall.md the 2026-09-07 retrieval literature/forensics sweep
-#                      (was research.md until 2026-09-17). Findings, not decisions:
-#                      anything it establishes graduates to DECISIONS.md with its own ID.
-#   research_latency/research_latency.md the 2026-09-11 rerank-latency literature sweep. Same
-#                      rule: findings, not decisions -- anything adopted graduates to
-#                      DECISIONS.md. The folder's baseline JSON is NOT covered by this rule --
-#                      it's measured data backing DEPLOY-19, tracked normally.
+# Local notes, never tracked
 CLAUDE.local.md
-spec.md
-SESSION.md
 DECISIONS.local.md
+SESSION.md
 RUNBOOK.md
-research_recall/research_recall.md
-research_latency/research_latency.md
-
-# Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
-# ignored -- it is the shared, committable half.
+spec.md
+research_*/
 .claude/settings.local.json
 
-# Upstream ConvFinQA release (DATA-10), re-downloaded free from GitHub by
-# scripts/pipeline/08_convfinqa_turns.py. The join it feeds is what gets tracked
-# (data/convfinqa_turns.jsonl, 2.8 MB); the 46 MB source is not.
-data/convfinqa_upstream/
-
-# Regeneratable data (raw filings, parsed/chunked output) -- large,
-# reproducible from scripts/pipeline/01_corpus.py.
-# Keep: logs (*.jsonl) and day2_findings.md.
-data/filings/
-data/parsed/
-data/chunks/
-
-# Regeneratable HPC split-job payloads/outputs (embeddings, rerank scores) --
-# large, reproducible via the split-job phases in scripts/pipeline (03_index, 05_arm3_rerank).
-# Keep the small aggregated *_dev_results.json/*_dev_failures.md instead.
-data/*_embed_payload.json
-data/*_rerank_payload.json
-data/embed_results.jsonl
-data/rerank_scores*.jsonl
-data/*_rerank_scores.jsonl
-
-# CPU smoke-test output (n=5 sanity check before the real HPC run) -- not the
-# recorded numbers, keep only the full *_dev_results.json/*_dev_failures.md.
-data/*_cpu_dev_results.json
-data/*_cpu_dev_failures.md
-
-# Day 8 payloads: HPC round-trip inputs, rebuilt in minutes on the laptop from the
-# scripts that made them. The *scores* they produced are kept (13.5 GPU-hours) --
-# see the exceptions below, which override the *_rerank_payload rules above.
-data/day8_*payload*.json
-
-# Day 8 diagnostic dumps -- regeneratable free (no GPU, no API) from
-# scripts/archive/failure_triage.py; 15MB of raw failure text.
-data/day8_failure_cases.json
-data/day8_failure_cases_retr16v2.json
-data/day8_failure_slices/
-
-# Superseded Day 8 outputs, kept ignored until deleted from disk:
-#   day8_retr16_scores.jsonl        the RETR-22 run, taken on the variant-contaminated
-#                                   pool; superseded by day8_retr16v2_dev_scores.jsonl
-#   day8_slice_scores_t150.jsonl    old (unfiltered, raw-query) ordering; superseded by
-#                                   the _filtered_stripped file per COST-17/COST-18
-#   day8_cost13_smoke.jsonl         n=2 smoke test, not a recorded number
-data/day8_retr16_scores.jsonl
-data/day8_slice_scores_t150.jsonl
-data/day8_cost13_smoke.jsonl
-
-# Label audit (RETR-9/RETR-34) -- 38MB, all of it, deliberately including the verdicts.
-# cases/ and blind/ replay from scripts/archive/label_audit_prepare.py (SEED=17; case_id
-# hashes the question id, not the labels, so ids survive matcher changes). verdicts/ are
-# model-generated, not human, and the audit is closed: its rates, mechanism and the
-# RETR-35 cross-check are all written up in DECISIONS.md RETR-34/RETR-35. Re-running is
-# an API cost, not a lost record. Score with label_audit_score.py before deleting on disk.
-data/label_audit/*
-
-# Batch API request payloads (COST-32). One JSONL per submitted job, regenerated
-# deterministically from data/day8_cost13_payload.json + --thinking, so the file is a
-# transport artifact rather than a record. What matters is kept: the *responses* land in
-# the tracked day8_cost13_responses.jsonl, each row carrying its own tier and thinking
-# level, and the job name is printed at submit time for --resume.
-data/batch_jobs/
-
-# RETR-7/RETR-8 re-index working files (INFRA-12)
-data/retr7_rr_*_payload.json
-data/retr7_rr_*_scores.jsonl
-data/chunks_pre_retr7/
-data/retr7_embed_payload.json
-data/retr7_embed_results.jsonl
-# The RETR-43 HPC input carries chunk texts and passes GitHub's 100 MB cap; the tracked
-# _pools.json beside it is everything the score leg reads.
-data/year_bias_recall10_*_payload.json
-data/ingest_log.jsonl
-.DS_Store
+# Model weights
 models/
-# Resume state for the two ONNX/ORT archive probes -- partial progress, not records.
-# The results they produce are the tracked onnx_parity_results.json and
-# ort_fp32_latency.json. ort_fp32_partial/ was tracked by accident until 2026-09-07;
-# its three files were byte-identical to the legs already inside ort_fp32_latency.json.
-data/onnx_parity_partial/
-data/ort_fp32_partial/
 
-# --- Overrides: GPU/paid outputs the rules above wrongly swept up -----------------
-# A rule that says "regeneratable" is wrong when regenerating costs GPU hours or money.
-# These are records, not working files. ~39MB total.
-#   retr7_rr_*_scores.jsonl        the RETR-39 headline's own rerank pass. Read by
-#                                  ci_fixture_build.py, 07_arm6_loop.py, onnx_rerank_parity.py
-#                                  -- i.e. CI-1, AGENT-16, AGENT-26, DEPLOY-9 all cite it.
-#   day6_arm4_*_rerank_scores      three GPU passes (ARM4-10). A is still the live control.
-#   rerank_scores.jsonl            the original Arm 3 GPU pass (ARM3-1..3).
-#   day8_cost13_payload.json       COST-34 upgraded this to Keep; the day8_*payload* rule
-#                                  above still ignored it. Changing it silently moves both
-#                                  stored arms.
-!data/retr7_rr_dev_scores.jsonl
-!data/retr7_rr_test_scores.jsonl
-!data/day6_arm4_A_rerank_scores.jsonl
-!data/day6_arm4_B_rerank_scores.jsonl
-!data/day6_arm4_C_rerank_scores.jsonl
-!data/rerank_scores.jsonl
-!data/day8_cost13_payload.json
+# data/: only what serving and evaluation need is tracked. Everything else (the corpus in
+# data/chunks/, raw filings, the downloaded DB dump in data/db/, ...) stays local.
+data/*
+!data/company_lexicon.json
+!data/wordlist_web2.txt
+!data/gold_chunk_ids.json
+!data/arms_scores.jsonl
+!data/day6_gold_tables.json
+!data/day6_table_summaries.json
+!data/day7_gold_evidence_resolved.json
+
+.DS_Store
+._*

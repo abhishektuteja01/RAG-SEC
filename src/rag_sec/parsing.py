@@ -1,7 +1,6 @@
-"""Parses 10-K HTML into text/table blocks with sec-parser, whose only parser is
-Edgar10QParser (pinned 0.58.1) -- so the 10-Q top-section step is stripped and Item
-boundaries are derived here by regex. DECISIONS.md CHUNK-1 has the Docling fallback if a
-version bump breaks the internal classes imported below.
+"""Parses 10-K HTML into text/table blocks with sec-parser. Its only parser is
+Edgar10QParser (pinned 0.58.1), so the 10-Q-only top-section step is removed. A sec-parser
+version bump can break the internal classes imported below.
 """
 
 from __future__ import annotations
@@ -39,8 +38,6 @@ _NOISE_TYPES = (EmptyElement, PageHeaderElement, PageNumberElement, TableOfConte
 # from the raw HTML (verified on JPM_2007_19617). Reassemble before storing.
 _OPEN_PAREN_NUM = re.compile(r"^\(-?[\d,]+\.?\d*$")
 _CURRENCY_PREFIX = {"$", "-$"}
-
-ITEM_HEADING_RE = re.compile(r"^\s*item\s+(\d+[a-z]?)[.:]?\s*(.*)$", re.IGNORECASE)
 
 
 @dataclass
@@ -137,28 +134,8 @@ def parse_filing(html: str) -> list[Block]:
     return blocks
 
 
-def find_item_boundaries(blocks: list[Block]) -> list[tuple[int, str, str]]:
-    """Finds (block_index, item_number, item_title) for each 'Item N. ...' title block.
-
-    Known gap (CHUNK-1, accepted): some filers (e.g. JPM_2007) never restate "Item N" as a
-    body heading, using business-narrative headings instead, so this returns an empty list
-    for them rather than guessing from the TOC.
-    """
-    boundaries = []
-    for i, block in enumerate(blocks):
-        if not isinstance(block, TextBlock) or not block.is_title:
-            continue
-        match = ITEM_HEADING_RE.match(block.text)
-        if match:
-            boundaries.append((i, match.group(1).upper(), match.group(2).strip()))
-    return boundaries
-
-
 def load_parsed_blocks(path) -> list[Block]:
-    """Inverse of what scripts/pipeline/01_corpus.py writes to data/parsed/. Shared by the
-    chunker and by rag_sec.compress so the two can never disagree about how a stored block
-    is rebuilt -- a divergent copy of this (bool vs string `is_title`) silently reshuffles
-    every chunk boundary while still looking like it worked."""
+    """Read back what scripts/rebuild/corpus.py writes to data/parsed/."""
     data = json.loads(Path(path).read_text())
     return [
         TableBlock(rows=d["rows"]) if "rows" in d else TextBlock(text=d["text"], is_title=d["is_title"])

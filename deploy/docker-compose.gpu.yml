@@ -1,0 +1,57 @@
+# Both services on one GPU host (e.g. AWS g4dn.xlarge). See deploy/GUIDE.md.
+# Run from the repo root:
+#   docker compose -f deploy/docker-compose.gpu.yml --env-file .env up -d --build
+# `--env-file .env` matters: compose otherwise looks for .env next to this file.
+services:
+  postgres:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.postgres
+    image: rag-sec-postgres-pgsearch:0.8.6-pg18-trixie
+    restart: unless-stopped
+    command: ["postgres", "-c", "shared_preload_libraries=pg_search"]
+    # Docker's default 64 MB /dev/shm fails the HNSW index build during restore.
+    shm_size: 2gb
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+      args:
+        TORCH_BACKEND: cu130
+        DEVICE: cuda
+    image: rag-sec-api:gpu
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  pgdata:

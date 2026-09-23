@@ -1,5 +1,5 @@
 """Fetches real 10-K filings from SEC EDGAR by CIK + fiscal year, so the corpus is whole
-filings rather than the single annotated page T2-RAGBench ships (DECISIONS.md DATA-3).
+filings rather than the single annotated page T2-RAGBench ships.
 """
 
 import os
@@ -49,7 +49,7 @@ def find_10k_accession(cik: int, fiscal_year: int) -> dict | None:
 
     Matches `reportDate` (period of report), not `filingDate`: for non-calendar-fiscal-year
     filers two fiscal years' 10-Ks can share a filingDate window, and EDGAR lists
-    most-recent-first, so date matching returned the later year -- 26/100 wrong (DATA-5).
+    most-recent-first, so date matching returned the later year -- 26/100 wrong.
 
     The "recent" block covers only ~1,000 filings, so older years fall back to the
     paginated files listed under `filings.files`.

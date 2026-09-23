@@ -1,81 +1,36 @@
 [project]
 name = "rag-sec"
-version = "0.1.0"
-description = "RAG pipeline for SEC filings, evaluated on T2-RAGBench finance QA"
+version = "0.2.0"
+description = "Retrieval-augmented QA over SEC 10-K filings: dense + BM25/RRF + cross-encoder rerank"
 readme = "README.md"
 authors = [
     { name = "Abhishek Tuteja", email = "69643534+abhishektuteja01@users.noreply.github.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "anthropic>=1.2.0",
-    "beautifulsoup4>=4.15.0",
+    "fastapi>=0.120.0",
     "google-genai>=2.21.0",
-    "httpx>=0.28.1",
     "huggingface-hub==1.28.0",
-    "langchain-core>=1.6.1",
-    "langchain-google-genai==4.3.7",
-    # Pinned: the tracing wrapper reads v4-only APIs (start_as_current_observation,
-    # create_trace_id) and langfuse renames them across majors.
-    "langfuse==4.15.1",
-    "langgraph==1.2.11",
-    "langgraph-checkpoint-postgres==3.1.2",
     "numpy>=2.0.0,<3.0.0",
-    # Imported directly by the offline tracing guard, which CI runs. Declared so a langfuse
-    # patch release cannot drop it out of the lock and break the build.
-    "opentelemetry-sdk>=1.30.0",
     "pandas>=2.2.2,<3.0.0",
     "pgvector>=0.5.0",
     "psycopg[binary]>=3.3.4",
-    # Arm 6's checkpointer opens a pool directly; psycopg[binary] does not include it.
-    "psycopg-pool>=3.2.0",
-    "python-dotenv>=1.2.3",
-    "sec-parser==0.58.1",
-    # The three that decide what the search models actually compute: pinned exactly so a
-    # routine `uv lock --upgrade` cannot silently move every number in DECISIONS.md.
-    "sentence-transformers==6.0.0",
-    # torch is imported directly in 8 files (device selection); declared so a
-    # sentence-transformers change can never drop it out of the lock silently.
-    "torch>=2.13.0",
-    "tqdm>=4.70.0",
-    "transformers==5.8.1",
-]
-
-# Serving-only, kept OUT of the default dependencies deliberately: `uv run` syncs default
-# groups, and adding a web server there would reinstall into the venv that long eval runs
-# are executing from. The Dockerfile asks for it explicitly with `--extra serve`.
-[project.optional-dependencies]
-serve = [
-    "fastapi>=0.120.0",
-    # api.py imports BaseModel/Field directly; fastapi happens to pull it, but the import
-    # is ours, so the dependency is declared rather than inherited.
+    # api.py imports BaseModel/Field directly, so it is declared rather than inherited.
     "pydantic>=2.9.0",
+    # These decide what the search models compute: pinned exactly so a routine
+    # `uv lock --upgrade` cannot silently move the scores.
+    "sentence-transformers==6.0.0",
+    "torch>=2.13.0",
+    "transformers==5.8.1",
     "uvicorn[standard]>=0.40.0",
 ]
-# Reranker ONNX/int8 export and inference (DEPLOY-6-RESOLVED). Optional for the same reason
-# `serve` is: it drags onnxruntime into any venv that syncs it, and the eval runs execute from
-# the default one. Asked for explicitly with `--extra onnx`.
-#
-# `onnxruntime` ALONE, deliberately not `optimum[onnxruntime]`, which is the documented route:
-# every published optimum-onnx caps transformers at <4.58 and this project pins 5.8.1, so the
-# two cannot coexist. Downgrading transformers to satisfy an export tool would change the
-# tokenizer under the benchmarked models, which is not a trade worth making for convenience.
-# torch.onnx.export + onnxruntime.quantization do the same job with no transformers dependency
-# at all, so the pin stands and the export runs in this venv rather than a second one.
-onnx = [
-    "onnxruntime>=1.20.0",
-    "onnx>=1.17.0",        # quantize_dynamic imports it; onnxruntime does not pull it in
-    "onnxscript>=0.5.0",   # torch.onnx.export(dynamo=True) imports it; torch does not
-]
 
-# For scripts/archive/trt_rerank_parity.py only -- TensorRT rerank was tried and ruled out
-# (2026-09-14: no speed win, worse numerical parity than the shipped torch fp16 backend).
-# Kept declared so that archived, provenance-only script stays reproducible, same reason the
-# `onnx` extra above stays declared for its own archived scripts. Not used by anything
-# shipped. Do not install alongside `onnx` in the same venv -- `onnxruntime` and
-# `onnxruntime-gpu` occupy the same import name.
-tensorrt = [
-    "onnxruntime-gpu>=1.20.0",
+# Only for scripts/rebuild/ (EDGAR fetch + 10-K parsing). `uv run --extra rebuild ...`
+[project.optional-dependencies]
+rebuild = [
+    "beautifulsoup4>=4.15.0",
+    "httpx>=0.28.1",
+    "sec-parser==0.58.1",
 ]
 
 [build-system]
