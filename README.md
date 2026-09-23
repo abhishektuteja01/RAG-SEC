@@ -105,8 +105,9 @@ Postgres (pgvector + pg_search)  ◄── read by retrieve.py
 Every module is under `src/rag_sec/`. `api.py` serves Arm 3 as `POST /ask` and is **deployed**:
 both containers on one `g4dn.xlarge` (Tesla T4) EC2 host, Postgres self-hosted from
 `Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly, and
-the GPU cutover cut rerank from the CPU host's 157.7 s to **fp16 rerank mean 3.27 s**, with exact
-top-5 parity on every test question (`DEPLOY-21`, `DEPLOY-22`).
+the GPU cutover cut rerank from the CPU host's 156.9 s (`DEPLOY-18`) to **fp16 rerank mean 3.27 s**,
+with exact top-5 parity against fp32 on the ten timing questions (`DEPLOY-21`, `DEPLOY-22`) and test
+recall@10 unchanged at 0.747 over the full split (`DEPLOY-23`).
 
 That is the rerank stage, not the round trip. Measured end to end on the fixed ten questions
 every latency decision here uses, `POST /ask` is **p50 6.7 s** — about 3.4 s of retrieval and

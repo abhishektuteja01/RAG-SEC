@@ -52,8 +52,9 @@ DECISIONS.md ROWS THIS BACKS
               discordant 14-1, McNemar exact two-sided p=0.00098, while the loop's
               iteration-1 recall@10 is WORSE (0.703 vs 0.736). Both directions at once
               are the finding, not a contradiction.
-    AGENT-21  four yes/no-gold questions are scored wrong in BOTH arms. `analyze` prints
-              the sensitivity replay beside the headline, never instead of it.
+    AGENT-21  four yes/no-gold questions were scored wrong in BOTH arms. Since AGENT-29,
+              answer_eval maps yes/no itself, so `analyze`'s sensitivity replay now
+              matches the headline; it is still printed beside it, never instead of it.
     AGENT-22  the union retrieval row is NOT comparable to the static row. See TRAPS.
     AGENT-24  `torch.mps.empty_cache()` per retrieval, inherited from
               rag_sec.retrieve.retrieve(). Without it stage latencies drift 2.3x inside
@@ -271,11 +272,11 @@ PRICE = {
 }
 
 # AGENT-21: gold is numeric 1.0/0.0 on four dev questions whose QUESTION is yes/no, and the
-# model answers the word. `rag_sec.answer_eval` requires a number, so both arms score them
-# wrong while being right. The mapping lives HERE and not in `answer_eval` on purpose: the
-# shipped scorer stays exactly as it was when the run was measured, so the headline is the
-# measured one and this is a reported sensitivity beside it, not a metric redefined after
-# seeing its own results.
+# model answers the word. When the run was measured, `rag_sec.answer_eval` required a number,
+# so both arms scored them wrong while being right, and this mapping was a sensitivity kept
+# out of the scorer on purpose (AGENT-27). AGENT-29 reversed that: `answer_eval` now maps
+# yes/no itself (`_BOOL_TRUE`/`_BOOL_FALSE`), so `parse_reason` already returns a value and
+# this fallback no longer changes any score.
 _YESNO = {"yes": 1.0, "no": 0.0}
 
 # Retrieval stage keys printed in this order. model_init_s is one-off warm-up, not
