@@ -10,7 +10,13 @@ import time
 from collections import Counter
 from functools import lru_cache, wraps
 
-from rag_sec.candidates import LIVE_VARIANT, bm25, chunk_texts, dense, rrf_fuse, rrf_fuse_year_biased
+from rag_sec.candidates import (
+    CANDIDATE_K,  # also re-exported: 04/06/07 import it from here
+    LIVE_VARIANT,
+    READ_DEPTH_MAX,
+    SERVING_READ_DEPTH,
+    first_stage,
+)
 from rag_sec.company import resolve_with_reason
 from rag_sec.company import strip_entity_framing
 from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device
@@ -19,7 +25,6 @@ from rag_sec.store import get_conn
 from rag_sec.tracing import embedding, retriever, span
 
 TOP_K = 10
-CANDIDATE_K = 50
 
 # Per-stage timings + the pre-rerank candidate list from the most recent retrieve() call on
 # THIS thread. Stashed rather than returned so the signature stays what every offline arm and
@@ -34,7 +39,7 @@ _last = threading.local()
 _gpu_lock = threading.Lock()
 
 # How often company_filter's fallback-to-unfiltered-search path fires, broken out by reason
-# (research.md sec5b / sec7 item 2). Observability only: nothing here changes what
+# (RETR-42). Observability only: nothing here changes what
 # `resolve_with_reason` returns or which candidates get searched.
 _fallback_lock = threading.Lock()
 _fallback_reasons: Counter[str] = Counter()
@@ -177,6 +182,9 @@ def retrieve(
     reserve: int = 0,
     resolve_from: str | None = None,
     year_bias: bool = True,
+    strip_dense: bool = True,
+    read_depth: int = SERVING_READ_DEPTH,
+    year_text_fusion: bool = True,
 ) -> list[dict]:
     """Dense+BM25/RRF candidates, reranked by the cross-encoder, top-k returned as dicts
     (LLM-readable as a LangGraph tool result, and scoreable as eval input).
@@ -215,17 +223,110 @@ def retrieve(
     just the candidate-pool proxy: recall@10 dev 0.760->0.791 (+3.1pt), test 0.747->0.771
     (+2.4pt), both baselines matching the published `RETR-39` numbers exactly (`RETR-40`).
     Defaults on; the flag stays so earlier arms remain reproducible from this same code path.
+
+    `strip_dense` (N18d) embeds the STRIPPED query for the dense leg instead of the raw one,
+    leaving BM25 on the raw question. `read_depth` is how many rows each leg asks for before
+    fusion cuts back to `CANDIDATE_K`; `year_text_fusion` (P10) adds a third RRF list of
+    candidates whose chunk TEXT names a fiscal year the question names, which is what decides
+    which `read_depth` candidates survive into the pool. P10 is worth nothing at depth 50 --
+    there is nothing extra to choose between -- so the measured arm is all three together:
+    `strip_dense=True, read_depth=200, year_text_fusion=True`.
+
+    All three default ON since `DEPLOY-25`, and the pool -- so the rerank bill -- is unchanged
+    either way. They were off while the +5.8pt behind them had only been measured offline;
+    what unblocked the flip was the missing half, a latency measurement on the serving host.
+    Paired over 110 test questions in the deployed container, turning all three on costs
+    `total_s` a mean -0.011s, 95% CI [-0.051, +0.031] -- indistinguishable from zero. The only
+    effect that clears zero is +0.031s of `search_s` [+0.019, +0.043], which is the
+    `extract_years` scan over the pre-cut union, partly paid for by `chunk_texts_exact` being
+    CHEAPER than the per-filing fetch it replaces (10.5ms vs 26.9ms filtered).
+
+    The flags are NOT free of accuracy risk per question, only on aggregate: against
+    `deployed`, `strip_dense` + `year_text_fusion` together (`n18d_p10`) win 109 test
+    questions and **lose 15** on any-gold-in-top-10 -- a count for both flags, not for
+    `year_text_fusion` alone; 9 of the 15 are already lost under `strip_dense` alone (`n18d`).
+    One demonstrated pathway for a `year_text_fusion` loss is a gold chunk whose own TEXT never
+    restates the question's year -- it is excluded from the third list while most of the
+    union qualifies, and the demotion pushes it past the 50-cut (`finqa_test_1`: base rank
+    20 -> 58, out of the pool, answer 14.46 correct -> INSUFFICIENT). That pathway does NOT
+    explain the losses in general: across the 15, only 3 of 19 gold chunks fail the year test,
+    so the other losses are ordinary RRF reordering.
+    Do not quote it as the characterisation of the failure mode; it is one worked example.
+    Kept because +1.7pt over `RETR-51` is measured on 1545 scored test questions; `DEPLOY-25`.
+
+    Depth 200 is free because HNSW visits `ef_search` candidates regardless of `LIMIT`: dense
+    measured 55.6ms at depth 50 against 50.9ms at 200. That it returns a FULL 200 rows was
+    verified by counting them, not inferred from the LIMIT -- a short read would have made
+    this feature look free while doing nothing, which is `RETR-50`'s defect exactly.
+
+    Note the rerank scores are zipped onto first-stage order, so a replay that forgets to sort
+    reads 0.5668 and looks like a catastrophic regression (`AGENT-16`).
     """
+    if read_depth > READ_DEPTH_MAX:
+        # store.HNSW_EF_SEARCH is derived from READ_DEPTH_MAX, so a deeper read is one the
+        # HNSW index was not configured to fill: `dense()` would quietly return short rather
+        # than error, which is RETR-50 exactly. Fail loudly instead of retrieving less.
+        raise ValueError(
+            f"read_depth={read_depth} exceeds READ_DEPTH_MAX={READ_DEPTH_MAX}; raise it in "
+            "candidates.py so store.HNSW_EF_SEARCH follows, then re-run scripts/checks/short_limit.py"
+        )
     t = {}
     device = _device()
     with _drain_on_error(device), \
             retriever("retrieve-chunks", input=query, k=k, company_filter=company_filter,
                       strip_query=strip_query, reserve=reserve, year_bias=year_bias,
+                      strip_dense=strip_dense, read_depth=read_depth,
+                      year_text_fusion=year_text_fusion,
                       # recorded so a trace states whether AGENT-25's fix was active: without
                       # it, pre- and post-fix traces are indistinguishable on the one
                       # attribute that changed
                       resolve_from=resolve_from) as root:
-        with embedding("embed-query", model=EMBED_MODEL_NAME, input=query, device=device) as sp:
+        # input is what we RESOLVE from, not the search query: tracing `query` here while
+        # resolving from `resolve_from` is what would make AGENT-25's own 59.6% analysis
+        # unreproducible, since it pairs this span's input against its `tickers` output.
+        with span("resolve-company", input=resolve_from or query) as sp:
+            t0 = time.perf_counter()
+            if company_filter:
+                tickers, fallback_reason = resolve_with_reason(resolve_from or query)
+            else:
+                tickers, fallback_reason = [], None
+            if fallback_reason:
+                with _fallback_lock:
+                    _fallback_reasons[fallback_reason] += 1
+            # aliases_from, not `query`: the name is looked up in the ORIGINAL question for
+            # the same reason the two calls around this one use resolve_from (AGENT-35). The
+            # rewritten query is still what gets stripped and searched.
+            rerank_query = (
+                strip_entity_framing(query, aliases_from=resolve_from or query)
+                if strip_query
+                else query
+            )
+            # resolve_from, not query: same reason resolve_with_reason uses it -- an agent's
+            # rewritten query can drop a year the same way AGENT-25 found it drops the
+            # company name, and this must not silently go quiet.
+            # `or year_text_fusion`: P10 reads the same extracted years, so gating them on
+            # year_bias alone would make `year_text_fusion=True, year_bias=False` a SILENT
+            # no-op -- the feature would run, find no years, and change nothing, with no error.
+            query_years = (extract_years(resolve_from or query)
+                           if (year_bias or year_text_fusion) else [])
+            # N18d. `rerank_query` is already computed on every call and, until now, spent on
+            # the cross-encoder alone while both first-stage legs took the raw question. Once
+            # the company filter has fired, every candidate IS that company, so its name is a
+            # token they all share: it cannot discriminate between them, but a dense query is
+            # ONE fixed-length vector and every token still steers its direction. Removing it
+            # points the vector at the part that separates chunks. BM25 deliberately keeps the
+            # raw question -- that pairing is what was measured, and in OR-mode those tokens
+            # decide which documents qualify at all, so stripping them there costs reach.
+            # A no-op when nothing resolves: `strip_entity_framing` returns the question
+            # unchanged, which is why this only ever removes a token every candidate shares.
+            dense_query = rerank_query if strip_dense else query
+            t["resolve_s"] = time.perf_counter() - t0
+            sp.set(output={"tickers": list(tickers), "rerank_query": rerank_query,
+                            "query_years": query_years, "fallback_reason": fallback_reason},
+                   stripped=rerank_query != query, dense_stripped=dense_query != query)
+
+        with embedding("embed-query", model=EMBED_MODEL_NAME, input=dense_query,
+                       device=device) as sp:
             # First-call model construction is timed SEPARATELY, not inside embed_s: it lands
             # in whichever question runs first and is ~19.0s against 0.114s for the identical
             # warm encode, and embed_s is published as a p50/p95. It is recorded
@@ -241,7 +342,7 @@ def retrieve(
             t0 = time.perf_counter()
             with _gpu_lock:
                 compute0 = time.perf_counter()
-                query_emb = embed_model.encode(query, normalize_embeddings=True)
+                query_emb = embed_model.encode(dense_query, normalize_embeddings=True)
                 compute_s = time.perf_counter() - compute0
             t["embed_s"] = time.perf_counter() - t0
             t["embed_lock_wait_s"] = compute0 - t0
@@ -250,57 +351,22 @@ def retrieve(
             sp.set(output={"dim": len(query_emb)}, lock_wait_s=t["embed_lock_wait_s"],
                    compute_s=compute_s)
 
-        # input is what we RESOLVE from, not the search query: tracing `query` here while
-        # resolving from `resolve_from` is what would make AGENT-25's own 59.6% analysis
-        # unreproducible, since it pairs this span's input against its `tickers` output.
-        with span("resolve-company", input=resolve_from or query) as sp:
-            t0 = time.perf_counter()
-            if company_filter:
-                tickers, fallback_reason = resolve_with_reason(resolve_from or query)
-            else:
-                tickers, fallback_reason = [], None
-            if fallback_reason:
-                with _fallback_lock:
-                    _fallback_reasons[fallback_reason] += 1
-            rerank_query = strip_entity_framing(query) if strip_query else query
-            # resolve_from, not query: same reason resolve_with_reason uses it -- an agent's
-            # rewritten query can drop a year the same way AGENT-25 found it drops the
-            # company name, and this must not silently go quiet.
-            query_years = extract_years(resolve_from or query) if year_bias else []
-            t["resolve_s"] = time.perf_counter() - t0
-            sp.set(output={"tickers": list(tickers), "rerank_query": rerank_query,
-                            "query_years": query_years, "fallback_reason": fallback_reason},
-                   stripped=rerank_query != query)
-
         with retriever("search-candidates", input=query, candidate_k=CANDIDATE_K,
+                       read_depth=read_depth, year_text_fusion=year_text_fusion,
                        filtered=bool(tickers), reserve=reserve) as sp:
             t0 = time.perf_counter()
             with get_conn() as conn:
-                if tickers:
-                    n = CANDIDATE_K - reserve
-                    lists = [
-                        dense(conn, query_emb, n, LIVE_VARIANT, tickers),
-                        bm25(conn, query, n, LIVE_VARIANT, tickers),
-                    ]
-                    if reserve:
-                        lists += [
-                            dense(conn, query_emb, reserve, LIVE_VARIANT),
-                            bm25(conn, query, reserve, LIVE_VARIANT),
-                        ]
-                else:
-                    lists = [
-                        dense(conn, query_emb, CANDIDATE_K, LIVE_VARIANT),
-                        bm25(conn, query, CANDIDATE_K, LIVE_VARIANT),
-                    ]
-                if year_bias:
-                    fused = rrf_fuse_year_biased(lists, query_years)[:CANDIDATE_K]
-                else:
-                    fused = rrf_fuse(lists)[:CANDIDATE_K]
-                texts = chunk_texts(conn, fused, LIVE_VARIANT)
+                # candidates.first_stage, not a copy of the loop here: the offline arms build
+                # the same pool, and when this lived inline they drifted -- see its docstring.
+                fused, texts, n_lists = first_stage(
+                    conn, query_emb, query, tickers=tickers, variant=LIVE_VARIANT,
+                    read_depth=read_depth, pool_k=CANDIDATE_K, query_years=query_years,
+                    year_bias=year_bias, year_text_fusion=year_text_fusion, reserve=reserve,
+                )
             t["search_s"] = time.perf_counter() - t0
             # ids only: the chunk text this stage fetched is what the answer generation's
             # input already carries in full, so repeating it here just inflates every trace
-            sp.set(output=[[c[0], int(c[1])] for c in fused], lists_fused=len(lists))
+            sp.set(output=[[c[0], int(c[1])] for c in fused], lists_fused=n_lists)
 
         candidates = [c for c in fused if c in texts]
         # `rerank_model`, not `model`: only generation/embedding observations have a model
@@ -341,6 +407,9 @@ def retrieve(
         _last.stats = {
             "timings": t,
             "rerank_query": rerank_query,
+            # what the DENSE leg actually embedded: with strip_dense on it is no longer
+            # `query`, and a stored candidate dump is not reproducible without it
+            "dense_query": dense_query,
             "tickers": list(tickers),
             # pre-rerank order, so recall@50 and the reranker's own contribution stay recoverable
             "candidates": [[c[0], int(c[1])] for c in candidates],

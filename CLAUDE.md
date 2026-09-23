@@ -19,12 +19,16 @@ two arms is the technique, not the setup.
 
 ## Reproduce the headline number
 
-Replays Arm 3 from stored rerank scores. No GPU, no Postgres, no API key, no money.
+Replays the serving configuration from stored rerank scores: test recall@10 0.831 on the
+`n18d_p10` row (`RETR-52`, `DEPLOY-25`). No GPU, no Postgres, no API key, no money.
 
 ```bash
-uv run scripts/pipeline/05_arm3_rerank.py score \
-    --scores data/retr7_rr_test_scores.jsonl --split test
+uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
+    --scores data/arms_scores.jsonl --split test
 ```
+
+Drop `--table arms` and pass `--scores data/retr7_rr_test_scores.jsonl` for the older 2x2
+ablation (0.747, `RETR-39`).
 
 Prerequisite: scoring reads `data/chunks/`, which is gitignored. A fresh clone runs
 `uv run scripts/pipeline/01_corpus.py` first. That is still the short path — it skips the
@@ -58,8 +62,8 @@ re-derives every value from `data/` and aborts if one disagrees with the baselin
   shape, order, or provenance the producer of an on-disk artifact never guaranteed (`RETR-24`,
   `RETR-30`, `AGENT-16`, `INFRA-22`). It survives code review every time.
 - **Phase numbers are not arm numbers.** See `scripts/CLAUDE.md`.
-- **Two commands spend real money.** Both are under `scripts/`; the cost table is in
-  `scripts/README.md`.
+- **Three commands spend real money on every run**, and three archive scripts do once their
+  resume file is gone. All are under `scripts/`; the cost table is in `scripts/README.md`.
 
 ## Skills
 

@@ -22,7 +22,8 @@ wheels/
 #                      on 2026-09-07; no tracked file cites any ID in it, by construction.
 #   RUNBOOK.md         the GPU cluster procedure, untracked on 2026-09-07: it is specific
 #                      to one university cluster and names its hosts.
-#   research.md        the 2026-09-07 literature/forensics sweep. Findings, not decisions:
+#   research_recall/research_recall.md the 2026-09-07 retrieval literature/forensics sweep
+#                      (was research.md until 2026-09-17). Findings, not decisions:
 #                      anything it establishes graduates to DECISIONS.md with its own ID.
 #   research_latency/research_latency.md the 2026-09-11 rerank-latency literature sweep. Same
 #                      rule: findings, not decisions -- anything adopted graduates to
@@ -33,12 +34,17 @@ spec.md
 SESSION.md
 DECISIONS.local.md
 RUNBOOK.md
-research.md
+research_recall/research_recall.md
 research_latency/research_latency.md
 
 # Per-machine Claude Code permissions. .claude/settings.json is deliberately NOT
 # ignored -- it is the shared, committable half.
 .claude/settings.local.json
+
+# Upstream ConvFinQA release (DATA-10), re-downloaded free from GitHub by
+# scripts/pipeline/08_convfinqa_turns.py. The join it feeds is what gets tracked
+# (data/convfinqa_turns.jsonl, 2.8 MB); the 46 MB source is not.
+data/convfinqa_upstream/
 
 # Regeneratable data (raw filings, parsed/chunked output) -- large,
 # reproducible from scripts/pipeline/01_corpus.py.
@@ -103,6 +109,9 @@ data/retr7_rr_*_scores.jsonl
 data/chunks_pre_retr7/
 data/retr7_embed_payload.json
 data/retr7_embed_results.jsonl
+# The RETR-43 HPC input carries chunk texts and passes GitHub's 100 MB cap; the tracked
+# _pools.json beside it is everything the score leg reads.
+data/year_bias_recall10_*_payload.json
 data/ingest_log.jsonl
 .DS_Store
 models/

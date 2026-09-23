@@ -5,34 +5,62 @@ dense embeddings, hybrid BM25 fusion and cross-encoder reranking each actually b
 
 ## The result
 
-Held-out **test** split, best arm — dense + BM25/RRF + `bge-reranker-v2-m3`, coverage-based
-gold labels, n=1545 (`DECISIONS.md` `RETR-39`):
+Held-out **test** split, cumulative — dense + BM25/RRF + `bge-reranker-v2-m3`, coverage-based
+gold labels, n=1545:
 
-| Cell | recall@10 |
-|---|---|
-| reranked baseline | 0.607 ± 0.012 |
-| + company filter | 0.644 ± 0.011 |
-| + query strip | 0.632 ± 0.012 |
-| **+ both** | **0.747 ± 0.010** |
+| Cell | recall@10 | recall@50 |
+|---|---|---|
+| reranked baseline | 0.607 ± 0.012 | — |
+| + company filter | 0.644 ± 0.011 | — |
+| + query strip | 0.632 ± 0.012 | — |
+| **+ both** (`RETR-39`) | **0.747 ± 0.010** | 0.785 |
+| **+ year-proximity RRF nudge** (`RETR-40`) | **0.771 ± 0.010** | 0.825 |
+| **+ dense leg embeds the stripped query** (`RETR-51`) | **0.814 ± 0.009** | 0.885 |
+| **+ chunk-year candidate list at read depth 200** (`RETR-52`, **serving**) | **0.831 ± 0.008** | 0.915 |
 
-**Together they are worth 2.3x their separate gains.** Once every candidate is already the
+`/ask` now answers at the **0.831 configuration** — the last two rows went from measured to
+serving in `DEPLOY-25`, once they were timed on the deploy host and turned out to be free:
+paired over 110 test questions in the deployed container, all three flags on cost retrieval a
+mean **-0.011s, 95% CI [-0.051, +0.031]**. The recall figure itself is the offline GPU rerank
+pass's, not a re-score through the HTTP path; the two share one candidate generator
+(`candidates.first_stage`, `RETR-53`) and the flags were verified identical in the running
+container, which is why the number transfers. They are query-side and first-stage only — the reranker still scores 50
+candidates, so they cost nothing per answer. Every paired confidence interval excludes zero,
+McNemar p<0.0001, and no subgroup regresses (`RETR-51`/`RETR-52`).
+
+Individual questions can still regress even though no subgroup does, and `DEPLOY-25` documents
+a measured case: a gold chunk whose own text never restates the year the question asks for is
+excluded from `RETR-52`'s year list and can fall out of the candidate pool.
+
+Company filter + query strip **together are worth 2.3x their separate gains.** Once every candidate is already the
 right company, the company name left in the query only rewards whichever chunk repeats the
 most boilerplate. The interaction is the finding, not either piece.
 
+The two newest gains are **reachability, not ranking**: recall@50 moves +0.090 against
+recall@10's +0.059, so most of the win is gold reaching the candidate pool at all, and the
+reranker converts only part of it.
+
 ![Retrieval quality by pipeline stage](images/results_chart.png)
 
-Regenerate it with `uv run --with matplotlib scripts/archive/results_chart.py` (~3-4 min).
-Every number is recomputed from `data/` at generation time and cross-checked against
-`DECISIONS.md`'s baseline table; a mismatch aborts rather than shipping a stale chart.
+The chart covers Arms 1-3 and stops at the published ablation, so it does not yet show the
+last two rows above. Regenerate it with
+`uv run --with matplotlib scripts/archive/results_chart.py` (~3-4 min). Every number is
+recomputed from `data/` at generation time and cross-checked against `DECISIONS.md`'s
+baseline table; a mismatch aborts rather than shipping a stale chart.
 
 ## Reproduce it in 90 seconds
 
-The rerank scores are committed, so the headline replays with no GPU, no Postgres, no API key
-and no money:
+The rerank scores are committed, so both the published ablation and the newest arms replay
+with no GPU, no Postgres, no API key and no money:
 
 ```bash
+# the 2x2 ablation -- filter+strip, 0.747
 uv run scripts/pipeline/05_arm3_rerank.py score \
     --scores data/retr7_rr_test_scores.jsonl --split test
+
+# the two first-stage additions -- 0.771 -> 0.814 -> 0.831, with paired CIs and subgroups
+uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
+    --scores data/arms_scores.jsonl --split test
 ```
 
 One prerequisite: gold labels resolve against `data/chunks/`, so a fresh clone first runs
@@ -47,10 +75,10 @@ every delta is attributable. recall@10 is dev, from `RETR-39`:
 |---|---|---|---|
 | 1 | dense BGE-M3 vectors | 0.337 | the baseline everything else is measured against |
 | 2 | + BM25/RRF fusion | 0.514 | kept — the largest single gain |
-| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.760 with company filter + query strip |
+| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`), and 0.847 measured with the two first-stage additions (`RETR-51`/`RETR-52`), serving defaults since `DEPLOY-25` |
 | 4 | table layouts B and C | — | lost — whole-table A wins on every metric (`ARM4-10`) |
 | 5 | multi-vector late interaction | — | never built: ~378 GB of vectors (`ARM5-1`) |
-| 6 | agentic LangGraph loop | — | wins on answer accuracy, loses on retrieval (`AGENT-19`) |
+| 6 | agentic LangGraph loop | — | closed as a negative (`AGENT-34`): its answer-accuracy win does not survive a fair baseline (`AGENT-30`), and its retrieval deficit is not significant (`AGENT-33`) |
 
 `/explain-arm 3` in Claude Code walks through any one of them.
 
@@ -74,9 +102,15 @@ Postgres (pgvector + pg_search)  ◄── read by retrieve.py
 ```
 
 Every module is under `src/rag_sec/`. `api.py` serves Arm 3 as `POST /ask` and is **deployed**:
-both containers on one Graviton3 `c7g.2xlarge` EC2 host, Postgres self-hosted from
-`Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly and
-is not interactive — 157.7 s per question, 99.5% of it the reranker (`DEPLOY-18`). Arm 6's
+both containers on one `g4dn.xlarge` (Tesla T4) EC2 host, Postgres self-hosted from
+`Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly, and
+the GPU cutover cut rerank from the CPU host's 157.7 s to **fp16 rerank mean 3.27 s**, with exact
+top-5 parity on every test question (`DEPLOY-21`, `DEPLOY-22`).
+
+That is the rerank stage, not the round trip. Measured end to end on the fixed ten questions
+every latency decision here uses, `POST /ask` is **p50 6.7 s** — about 3.4 s of retrieval and
+3 s of Gemini generation (`DEPLOY-25`). So it is usable but **not yet inside the 2-5 s
+interactive target**, and the remaining headroom is generation-side, not retrieval-side. Arm 6's
 traces and dashboards are in `images/langfuse_*.png`.
 
 Eval set: [T²-RAGBench](https://huggingface.co/datasets/G4KMU/t2-ragbench) (FinQA + ConvFinQA,

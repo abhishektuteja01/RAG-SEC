@@ -1,4 +1,4 @@
-"""Standing probe for research.md sec3a: BM25 alone (no company filter, no fusion, no
+"""Standing probe (DECISIONS.md CI-4): BM25 alone (no company filter, no fusion, no
 reranker) recovers most of the task for free -- recall@10 0.497 vs the shipped hybrid's
 0.514. That gap says a chunk of "difficulty" is lexical match, not retrieval quality.
 
@@ -35,7 +35,7 @@ from rag_sec.eval import (  # noqa: E402
 )
 from rag_sec.store import get_conn  # noqa: E402
 
-# research.md sec3a, full test split n=1545, measured 2026-09-07.
+# CI-4's recorded one-off, full test split n=1545, measured 2026-09-07.
 EXPECTED = {"dev": None, "test": 0.497}
 CANDIDATE_K = 50
 

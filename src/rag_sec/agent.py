@@ -15,6 +15,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.graph import END, StateGraph
 from langgraph.graph.message import add_messages
 
+from rag_sec.candidates import READ_DEPTH
+from rag_sec.retrieve import TOP_K
 from rag_sec.retrieve import last_call_stats as _last_call_stats
 from rag_sec.retrieve import retrieve as _retrieve
 from rag_sec.tracing import generation
@@ -22,10 +24,21 @@ from rag_sec.tracing import generation
 # Hard stop regardless of judge verdict: AGENT-1 sizes cost for a fixed number of calls.
 MAX_ITERATIONS = 4
 
+# Every retrieve() setting the loop passes, pinned to the stack its paired baseline was
+# measured on (`retrieve()` as of RETR-43: filter + strip + year_bias, nothing from RETR-51/52).
+# Pinned, not inherited: DEPLOY-25 flipped strip_dense/read_depth/year_text_fusion on as SERVING
+# defaults, and a loop that followed them would be scored against a replay that cannot.
+# Here, not in 07, because retrieve_node is what executes it and rag_sec cannot import scripts/;
+# 07 records it and checks/static_replay_provenance.py compares it. Serving never reads it.
+ARM6_RETRIEVE_SETTINGS = dict(
+    k=TOP_K, company_filter=True, strip_query=True, reserve=0, year_bias=True,
+    strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False,
+)
+
 
 # Bound to `plan` for its schema only -- `plan` emits the tool call and `retrieve_node`
-# executes it, so this body never runs inside the graph. k stays at retrieve()'s own
-# default (AGENT-7 checked recall@3/5/10 before keeping 10).
+# executes it, so this body never runs inside the graph. k is TOP_K via ARM6_RETRIEVE_SETTINGS
+# (AGENT-7 checked recall@3/5/10 before keeping 10).
 @tool
 def retrieve_tool(query: str) -> list[dict]:
     """Search SEC filing chunks (dense + BM25 + reranked) for text relevant to `query`."""
@@ -187,7 +200,8 @@ def retrieve_node(state: AgentState) -> dict:
     # resolving from them silently disabled the company filter on 59.6% of later iterations
     # and searched all 799 filings (AGENT-25). The rewrite still drives the search itself --
     # that is the loop's whole point -- it just no longer decides which company we are in.
-    results = _retrieve(call["args"]["query"], resolve_from=state["question"])
+    results = _retrieve(call["args"]["query"], resolve_from=state["question"],
+                        **ARM6_RETRIEVE_SETTINGS)
     stats = dict(_last_call_stats())
     stats["query"] = call["args"]["query"]
     tool_message = ToolMessage(content=json.dumps(results), tool_call_id=call["id"])

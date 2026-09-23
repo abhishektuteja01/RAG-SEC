@@ -13,15 +13,23 @@
 | `05_arm3_rerank.py` | Arm 3 |
 | `06_arm4_tables.py` | Arm 4 |
 | `07_arm6_loop.py` | Arm 6 |
+| `08_convfinqa_turns.py` | ConvFinQA's real multi-turn dialogues — **not an arm** |
 
 There is no phase for Arm 5. It was costed on paper and dropped before building (`ARM5-1`).
+
+Phase 08 is not part of the run order either: 01-07 neither produce nor consume it, and
+nothing scored so far is multi-turn. It recovers a free public dataset (`DATA-10`) and stops.
 
 ## What spends real money
 
 - `checks/agent_loop_smoke_test.py` — live Gemini, no dry-run flag, despite the name.
 - `07_arm6_loop.py run` — gated behind `--allow-paid-run`.
+- `07_arm6_loop.py restatic` — rebuilds only the static half of a results file; also gated
+  behind `--allow-paid-run`.
 
-Everything else reads only. Amounts are in `DECISIONS.md`.
+Three `archive/` scripts (`answer_ab_run.py`, `answer_batch_run.py`, `unanswerable_run.py`) call
+Gemini too, but resume off their committed output, so a re-run is free until that file is gone.
+Everything else reads only. Amounts are in `DECISIONS.md` and the `scripts/README.md` cost table.
 
 ## Traps
 

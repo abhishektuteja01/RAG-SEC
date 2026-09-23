@@ -1,4 +1,4 @@
-"""TensorRT rerank backend: ruled out (research_latency.md item 1, 2026-09-14).
+"""TensorRT rerank backend: ruled out (2026-09-14).
 
 WHAT THIS MEASURED. ONNX Runtime's TensorRT execution provider, fp16, against the pinned
 cross-encoder, on the same g4dn.xlarge/T4 host DEPLOY-21 measured torch fp16 on. 10 real

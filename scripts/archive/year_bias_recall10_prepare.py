@@ -23,7 +23,8 @@ union, read back on the laptop `score` leg to reconstruct each condition's own t
 same pattern `rag_sec.eval.load_ranking` already uses for a cell's own reranked order.
 
 PRODUCES
-    data/year_bias_recall10_{split}_payload.json
+    data/year_bias_recall10_{split}_payload.json   HPC input, gitignored (>100 MB with texts)
+    data/year_bias_recall10_{split}_pools.json     tracked: pools + alpha, all `score` reads
 
 READS
     Postgres `chunks` (variant 'A'), `rag_sec.eval.load_matched_questions` for the
@@ -135,6 +136,9 @@ def main() -> None:
         n = len(questions)
         out_path = args.out_dir / f"year_bias_recall10_{split}_payload.json"
         out_path.write_text(json.dumps({"questions": questions, "texts": texts}))
+        pools = [{k: v for k, v in q.items() if k != "rerank_query"} for q in questions]
+        (args.out_dir / f"year_bias_recall10_{split}_pools.json").write_text(
+            json.dumps({"questions": pools}))
         pairs = sum(len(q["candidates"]) for q in questions)
         print(f"\n[{split}] questions {n}   company resolved {n_resolved} ({100*n_resolved/n:.1f}%)"
               f"   query has a year {n_with_year} ({100*n_with_year/n:.1f}%)")

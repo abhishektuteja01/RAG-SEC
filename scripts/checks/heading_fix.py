@@ -1,7 +1,7 @@
 """RETR-7/RETR-8 acceptance check. Three properties, all cheap, no GPU and no API calls.
 
   1. REVERSIBLE. With both flags off, the packer reproduces the pre-RETR-7 implementation
-     (git HEAD~ if this is the commit that introduced it) byte-for-byte. This is what makes
+     (found by `resolve_baseline`, not pinned) byte-for-byte. This is what makes
      the change safe to ship dark: `rag_sec.compress` replays the packer against the already
      built data/chunks/, so "off" has to mean identical, not merely similar.
   2. BOUNDARY-PRESERVING. With both flags on, every chunk still contains exactly the same
@@ -14,11 +14,27 @@
 import argparse
 import importlib
 import os
+import subprocess
 import sys
+import tempfile
 from collections import Counter
 from pathlib import Path
 
 PARSED = Path("data/parsed")
+CHUNKING = "src/rag_sec/chunking.py"
+FLAG_SENTINEL = "RAG_SEC_MULTI_HEADING"
+
+
+def resolve_baseline() -> str:
+    """`rev:path` of the last packer before RETR-7, derived rather than pinned.
+
+    A pinned SHA is not durable here: `ac2d758` was pinned, the 2026-09-06 history rewrite
+    changed every earlier SHA, and check 1 then printed SKIP forever instead of failing. So find the commit that introduced
+    the flags and take its parent. `git log -S` is newest-first, so the introducer is last.
+    """
+    out = subprocess.run(["git", "log", "-S", FLAG_SENTINEL, "--format=%H", "--", CHUNKING],
+                         capture_output=True, text=True, check=True).stdout.split()
+    return f"{out[-1]}^:{CHUNKING}" if out else ""
 
 
 def load_packer(multi_heading: bool, strip_furniture: bool):
@@ -47,12 +63,8 @@ def main() -> int:
     ap.add_argument("--n", type=int, default=60, help="filings to check")
     ap.add_argument("--labels", type=int, default=0,
                     help="dev questions to re-label under both settings (0 = skip)")
-    # Pinned to the last commit BEFORE RETR-7, not HEAD~1. HEAD~1 drifts as commits land, and
-    # once it points at a chunking.py that already has the flags, the baseline module reads
-    # the same env vars this script is toggling and the comparison becomes circular --
-    # it reported a spurious FAIL exactly that way on 2026-09-04.
-    ap.add_argument("--baseline", default="ac2d758:src/rag_sec/chunking.py",
-                    help="git revision:path of the pre-RETR-7 packer for the reversibility check")
+    ap.add_argument("--baseline", default="",
+                    help="git revision:path of the pre-RETR-7 packer (default: derive it)")
     args = ap.parse_args()
 
     files = sorted(PARSED.glob("*.json"))[: args.n]
@@ -68,28 +80,44 @@ def main() -> int:
     failures = 0
 
     # --- 1. reversibility -------------------------------------------------------------
-    import subprocess, tempfile
-    try:
-        src = subprocess.run(["git", "show", args.baseline], capture_output=True, text=True, check=True).stdout
-    except subprocess.CalledProcessError:
-        print(f"[1] SKIP reversibility -- cannot read {args.baseline}")
+    # Every way of not running this check is a FAIL, never a SKIP: an unreadable baseline is
+    # indistinguishable from a broken one, and a baseline that already has the flags reads the
+    # same env vars this script toggles, so the comparison is circular (spurious FAIL,
+    # 2026-09-04). That one is now caught by the sentinel below instead of by a comment.
+    src = None
+    baseline = args.baseline or resolve_baseline()
+    if not baseline:
+        print(f"[1] FAIL reversibility -- no commit in history introduces {FLAG_SENTINEL} "
+              f"into {CHUNKING}")
+        failures += 1
+    else:
+        try:
+            src = subprocess.run(["git", "show", baseline],
+                                 capture_output=True, text=True, check=True).stdout
+        except subprocess.CalledProcessError:
+            print(f"[1] FAIL reversibility -- cannot read {baseline}")
+            failures += 1
+    if src is not None and FLAG_SENTINEL in src:
+        print(f"[1] FAIL reversibility -- {baseline} already has the flags; the comparison "
+              f"would be circular")
+        failures += 1
         src = None
     if src:
         with tempfile.TemporaryDirectory() as d:
             p = Path(d) / "baseline_chunking.py"
             p.write_text(src)
             sys.path.insert(0, d)
-            baseline = importlib.import_module("baseline_chunking")
+            pre_fix = importlib.import_module("baseline_chunking")
             sys.path.pop(0)
         mismatch = 0
         for f in files:
             blocks = load_parsed_blocks(f)
-            a = [(c.text, c.n_tokens, c.heading) for c in baseline.chunk_blocks(blocks)]
+            a = [(c.text, c.n_tokens, c.heading) for c in pre_fix.chunk_blocks(blocks)]
             b = [(c.text, c.n_tokens, c.heading) for c in off.chunk_blocks(blocks)]
             mismatch += a != b
         status = "PASS" if mismatch == 0 else "FAIL"
         failures += mismatch != 0
-        print(f"[1] flags off == pre-fix packer, byte-for-byte: {status} "
+        print(f"[1] flags off == pre-fix packer ({baseline}), byte-for-byte: {status} "
               f"({len(files) - mismatch}/{len(files)} filings identical)")
 
     # --- 2. boundaries + 3. the bug itself ---------------------------------------------

@@ -8,6 +8,7 @@ import difflib
 import json
 import math
 import os
+import random
 import re
 from collections import Counter
 from collections.abc import Hashable, Sequence
@@ -427,6 +428,45 @@ def mean_and_stderr(values: list[float]) -> tuple[float, float]:
     return mean, math.sqrt(variance / n)
 
 
+def exact_mcnemar(n10: int, n01: int) -> float:
+    """Two-sided exact binomial p on the discordant pairs (H0: p = 0.5).
+
+    The discordant counts, not the marginals: two arms that are both right on 900 questions
+    and differ on 20 are being compared on those 20, and a test that pools the agreements
+    reports a confidence the data does not carry (`AGENT-33` is the worked example -- a
+    -1.0pt retrieval "deficit" that was two question-points, p=1.000).
+    """
+    n = n10 + n01
+    if n == 0:
+        return 1.0
+    k = min(n10, n01)
+    tail = sum(math.comb(n, i) for i in range(0, k + 1)) / 2**n
+    return min(1.0, 2 * tail)
+
+
+def paired_bootstrap_ci(
+    deltas: Sequence[float], n_boot: int = 10000, seed: int = 20260917, alpha: float = 0.05
+) -> tuple[float, float, float]:
+    """(mean, lo, hi) percentile CI by resampling PER-QUESTION deltas, not the two arms.
+
+    Paired, because the arms are scored on the same questions: the between-question spread
+    is enormous next to the between-arm difference, so an unpaired interval on two means is
+    wide enough to hide any real effect this project has ever shipped (`RETR-41`).
+    """
+    d = list(deltas)
+    n = len(d)
+    if n == 0:
+        return 0.0, 0.0, 0.0
+    rng = random.Random(seed)
+    means = []
+    for _ in range(n_boot):
+        means.append(sum(d[rng.randrange(n)] for _ in range(n)) / n)
+    means.sort()
+    lo = means[int(alpha / 2 * n_boot)]
+    hi = means[min(n_boot - 1, int((1 - alpha / 2) * n_boot))]
+    return sum(d) / n, lo, hi
+
+
 def percentile(values: Sequence[float], q: float) -> float:
     """Nearest-rank percentile. Deliberately not statistics.quantiles: these samples are
     small and per-stage, and an interpolated p95 would invent a latency no question had.
@@ -462,6 +502,15 @@ def write_worst_failures(path, title: str, per_question: list[dict], filing_key:
 # The shipped arm's cell name in the rerank score files. Lives here rather than in a script
 # so the CI guard and the agent run cannot drift apart on which cell they mean.
 SHIPPED_CELL = "filtered_stripped"
+
+# The same arm with RETR-40's year-proximity nudge (made a default by RETR-43): the ranking
+# Arm 6 replays as its static baseline. It does NOT match retrieve()'s current defaults --
+# DEPLOY-25 turned RETR-51/RETR-52 on after it was built -- which is why Arm 6 pins its
+# settings (rag_sec.agent.ARM6_RETRIEVE_SETTINGS) instead of following them. The score files
+# carry no config block, so this name plus 07's STATIC_RETRIEVE_SETTINGS is the provenance;
+# scripts/checks/static_replay_provenance.py checks every setting against the loop's call.
+# Defined once, here: 07 and scripts/archive/year_bias_static_ranking.py both import it.
+YEAR_BIAS_CELL = f"{SHIPPED_CELL}_year_bias"
 
 
 class _AllCells:
@@ -606,12 +655,38 @@ def load_ranking(
                         )
                 value = entries
 
+            elif "scores" in rec:
+                # TWO different artefacts carry a 'scores' key and BOTH must be refused, for
+                # different reasons -- so name the real one by measuring the entry, never by
+                # assuming. The message used to assert "5-tuples" unconditionally, which is
+                # false for the year-bias files and invites the next reader to conclude the
+                # guard is broken and override it.
+                first = next((e for e in rec["scores"] if isinstance(e, list)), None)
+                width = len(first) if first is not None else None
+                if width == 3:
+                    why = (
+                        "this is a UNION-POOL score file (`year_bias_recall10_{dev,test}_"
+                        "scores.jsonl`): its entries are [stem, idx, score] over the union of "
+                        "the base AND year-biased candidate pools, one rerank pass answering a "
+                        "two-condition question. Sorting it and taking top-k scores a merged "
+                        "pool as if it were one condition's ranking. Score it with "
+                        "`scripts/archive/year_bias_recall10_score.py`, which rebuilds each "
+                        "condition's pool from `base_pool`/`biased_pool` in the payload"
+                    )
+                else:
+                    why = (
+                        f"this is a SLICE file ({width}-wide entries of slice positions, not "
+                        "chunk rankings) -- different unit, not loadable here"
+                    )
+                raise ValueError(
+                    f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
+                    f"keys were {sorted(rec)}. {why}."
+                )
+
             else:
                 raise ValueError(
                     f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
-                    f"keys were {sorted(rec)}. A 'scores' key means this is a SLICE file "
-                    "(5-tuples of slice positions, not chunk rankings) -- different unit, "
-                    "not loadable here."
+                    f"keys were {sorted(rec)}."
                 )
 
             out[rec["id"]] = (value, rec.get("latency_s")) if with_latency else value

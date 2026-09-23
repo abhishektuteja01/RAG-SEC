@@ -1,6 +1,12 @@
 """Pipeline phase 05 — Arm 3: cross-encoder rerank + company filter + query strip.
 
-THE HEADLINE ARM. Published test recall@10 **0.747** (dev 0.760), `RETR-39`.
+THE HEADLINE ARM. Two tables live here:
+  2x2   the published ablation, test recall@10 **0.747** (dev 0.760), `RETR-39`. Measured
+        BEFORE `RETR-40` shipped the year nudge, so its cells pin `year_bias=False`.
+  arms  `deployed` vs `n18d` vs `n18d_p10` -- the pre-`DEPLOY-25` default (filter + strip +
+        year_bias, dev 0.791 / test 0.771) against the two first-stage candidates, with
+        paired CIs, McNemar counts and the `RETR-45` subgroup split. `n18d_p10` is what
+        `retrieve()` serves since `DEPLOY-25` (test 0.831).
 
 PRODUCES
     data/retr7_rr_{dev,test}_scores.jsonl    raw rerank scores, one line per question
@@ -14,11 +20,20 @@ READS
     question set via rag_sec.eval.load_matched_questions. `score` reads nothing but a
     scores file on disk -- no GPU, no database, no spend.
 
+THE ARMS (cells), one candidate pool each, all reranked against the STRIPPED question:
+    deployed   filter + strip + year_bias           -> the bar to beat
+    n18d       + dense leg embeds the stripped query
+    n18d_p10   + a third RRF list preferring chunks whose TEXT names the question's
+               fiscal year, choosing which 50 of a 200-deep set survive
+They differ only in how the 50 candidates are CHOSEN, never in what the cross-encoder is
+asked, so a delta between them is first-stage and nothing else. Pool and rerank cost are
+identical across all three.
+
 THE 2x2 (cells), from one candidate pool per side:
     unfiltered_raw       as-was                             -> the control
     filtered_raw         + company filter                   -> isolates RETR-5
     unfiltered_stripped  + entity framing stripped          -> isolates RETR-6
-    filtered_stripped    + both                             -> THE SHIPPED ARM
+    filtered_stripped    + both                             -> the 2x2's winner
 The fourth cell is what makes the result attributable: without the control, a better
 number cannot be assigned to the filter or to the query cleanup.
 
@@ -83,10 +98,17 @@ TRAPS
     historical-reproduction flag, not an optimization. `score` is unchanged either way.
   * recall@50 is a property of the candidate POOL, not the reranker. It can only differ
     between filtered and unfiltered cells; identical values there are correct.
-  * `local` IS SLOW AND THAT IS NOT A BUG. Rerank alone is ~32.6s/question on an M3
-    laptop (AGENT-24) and ~156.9s on the Graviton3 deploy host, PER CELL. Four cells over
-    the 1235-question dev split is many hours to days. Use `--n` for a smoke test; use
-    the cluster for a full pass.
+  * `local` IS SLOW ON A LAPTOP AND THAT IS NOT A BUG. Rerank alone is ~32.6s/question on
+    an M3 (AGENT-24), PER CELL -- four cells over dev is many hours. On the CURRENT deploy
+    host it is ~3.27s (g4dn.xlarge T4, fp16, DEPLOY-21), which is a different machine from
+    the ~156.9s Graviton3 this file used to quote; DEPLOY-24 terminated that box. A full
+    arms pass on both splits is an evening there and about a week on the laptop. Use `--n`
+    for a smoke test.
+  * CELL FLAGS ARE PINNED PER CELL, including `year_bias`. retrieve()'s defaults move as the
+    system ships; a cell's definition must not. `local` inherited the default and so stopped
+    reproducing the very 2x2 it prints, silently, the day RETR-40 landed.
+  * The 2x2 and the arms tables have DIFFERENT baseline rows (`unfiltered_raw` and
+    `deployed`). A delta is only meaningful against the row `--table` chose.
   * README.md's quickstart used to point at the abandoned Day-5 `arm3_*` scripts for the
     local route. Those are deleted; the quickstart now points here. `local` is the only one.
 """
@@ -107,25 +129,35 @@ load_dotenv()
 
 from tqdm import tqdm  # noqa: E402
 
-from rag_sec.candidates import LIVE_VARIANT, bm25, chunk_texts, dense, rrf_fuse  # noqa: E402
+from rag_sec.candidates import (  # noqa: E402
+    CANDIDATE_K,
+    LIVE_VARIANT,
+    READ_DEPTH,
+    first_stage,
+)
 from rag_sec.company import resolve as resolve_companies  # noqa: E402
 from rag_sec.company import strip_entity_framing  # noqa: E402
 from rag_sec.config import EMBED_MODEL_NAME, RERANK_MODEL_NAME, pick_device  # noqa: E402
+from rag_sec.fiscal_year import chunk_year, extract_years  # noqa: E402
 from rag_sec.eval import (  # noqa: E402
     ALL_CELLS,
+    YEAR_BIAS_CELL,
     _filing_stem,
+    exact_mcnemar,
     gold_relevant_chunk_ids,
     load_matched_questions,
     load_ranking,
     mean_and_stderr,
     mrr,
     ndcg_at_k,
+    paired_bootstrap_ci,
+    percentile,
     recall_at_k,
 )
-# CANDIDATE_K imported, not re-declared: the 2x2's cells differ ONLY in the filter and the
-# query text, so a pool size of its own here would make `local` and the cluster leg
-# incomparable and would silently move recall@50, which is a pool property.
-from rag_sec.retrieve import CANDIDATE_K, last_call_stats, retrieve  # noqa: E402
+# CANDIDATE_K imported from rag_sec.candidates above, not re-declared: a pool size of its own
+# here would make `local` and the cluster leg incomparable and would silently move recall@50,
+# which is a pool property.
+from rag_sec.retrieve import last_call_stats, retrieve  # noqa: E402
 from rag_sec.store import get_conn  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
@@ -135,15 +167,90 @@ DATA_DIR = _ROOT / "data"
 # first: `score` reads it as the baseline row that every other row's delta is against.
 CELLS = ("unfiltered_raw", "filtered_raw", "unfiltered_stripped", "filtered_stripped")
 
-# cell name -> (company_filter, strip_query) for rag_sec.retrieve.retrieve(). This is the
-# whole of the `local` leg's cell semantics: the two flags ARE the 2x2's two axes, so the
-# local leg cannot drift from the shipping path's definition of a cell (RETR-5 / RETR-6).
-LOCAL_CELL_FLAGS = {
-    "unfiltered_raw": (False, False),
-    "filtered_raw": (True, False),
-    "unfiltered_stripped": (False, True),
-    "filtered_stripped": (True, True),
+# The ARMS table: the shipped configuration and the two candidates measured against it.
+# Separate from the 2x2 above because it asks a different question (which arm ships?) and
+# has a different baseline row (`deployed`, not `unfiltered_raw`).
+ARM_CELLS = ("deployed", "n18d", "n18d_p10")
+
+# cell name -> kwargs for rag_sec.retrieve.retrieve(). One table, used by BOTH the local leg
+# and `prepare`, so a cell means the same thing whichever leg scores it.
+#
+# year_bias=False ON THE 2x2, DELIBERATELY. RETR-39's published 0.747/0.760 were measured
+# before RETR-40 made the year-proximity nudge the shipped default, and retrieve() now
+# defaults it ON -- so the local leg had silently stopped reproducing the table it claims to
+# reproduce, while the cluster leg (which builds its own pools in `prepare`) had not. Pinning
+# it here is what makes the two legs comparable again and keeps the 2x2 a reproduction rather
+# than a new measurement. The ARMS cells pinned it to the shipped value instead of inheriting
+# it -- and as of DEPLOY-25 no cell here inherits ANY flag from retrieve(), see below.
+#
+# EVERY cell now pins strip_dense/read_depth/year_text_fusion too, and that is not tidiness.
+# `DEPLOY-25` flipped all three ON in retrieve()'s signature, so a cell that LEFT them out
+# would inherit the new serving defaults and stop measuring the arm its name promises -- the
+# 2x2 would quietly become four P10 cells, and `deployed` would become `n18d_p10`, reporting
+# a delta of zero against itself. The pool builder happens to read these through
+# `kw.get(..., <literal>)` rather than through retrieve(), so nothing breaks TODAY; pinning
+# them makes that an invariant of this table instead of a coincidence two files apart.
+# This is the same failure `RETR-53` fixed for the prepare/local legs, one flag-set later.
+CELL_FLAGS = {
+    "unfiltered_raw": dict(company_filter=False, strip_query=False, year_bias=False,
+                           strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False),
+    "filtered_raw": dict(company_filter=True, strip_query=False, year_bias=False,
+                         strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False),
+    "unfiltered_stripped": dict(company_filter=False, strip_query=True, year_bias=False,
+                                strip_dense=False, read_depth=READ_DEPTH,
+                                year_text_fusion=False),
+    "filtered_stripped": dict(company_filter=True, strip_query=True, year_bias=False,
+                              strip_dense=False, read_depth=READ_DEPTH,
+                              year_text_fusion=False),
+    # The arm deployed UP TO `DEPLOY-25`: filter + strip + year_bias (RETR-40), and the
+    # baseline the two candidates had to beat. It is no longer what `retrieve()` serves --
+    # the name is kept because `rerank_hpc.CELL_SPEC` keys off it and `cell_config.py`
+    # checks the two agree, so renaming it here alone would fail that guard. Re-scored
+    # rather than read off data/retr7_rr_*_scores.jsonl on purpose -- that artifact predates
+    # the RETR-50 ef_search fix, so reusing it would fold a ~0.08pt confound into every delta.
+    "deployed": dict(company_filter=True, strip_query=True, year_bias=True,
+                     strip_dense=False, read_depth=READ_DEPTH, year_text_fusion=False),
+    # N18d: the dense leg embeds the stripped query. Query-side only, same pool size, same
+    # rerank bill.
+    "n18d": dict(company_filter=True, strip_query=True, year_bias=True, strip_dense=True,
+                 read_depth=READ_DEPTH, year_text_fusion=False),
+    # N18d + P10: a third RRF list preferring chunks whose TEXT names the question's fiscal
+    # year, choosing which 50 of a 200-deep candidate set survive. Pool and rerank unchanged;
+    # P10 is worth ~0 at depth 50, so the depth is part of the cell, not a separate knob.
+    "n18d_p10": dict(company_filter=True, strip_query=True, year_bias=True, strip_dense=True,
+                     read_depth=200, year_text_fusion=True),
 }
+
+# Which cells SHARE a candidate pool. Two cells differing only in `strip_query` are reranked
+# with different query text against the SAME 50 candidates, which is the whole point of the
+# 2x2 -- so the pool is built once per group, not once per cell. The GPU leg keys off the
+# same names (`cands_<group>` in the payload), so this table and rerank_hpc.CELL_SOURCES
+# have to agree; `scripts/checks/cell_config.py` asserts that they do rather than trusting it.
+POOL_GROUP = {
+    "unfiltered_raw": "unfiltered",
+    "unfiltered_stripped": "unfiltered",
+    "filtered_raw": "filtered",
+    "filtered_stripped": "filtered",
+    "deployed": "deployed",
+    "n18d": "n18d",
+    "n18d_p10": "n18d_p10",
+}
+
+# Everything in CELL_FLAGS except `strip_query`, which changes only the rerank query and
+# never the pool. DERIVED, not written out again: a second hand-maintained copy of the same
+# flags is exactly how `prepare` drifted off `RETR-40` in the first place. The assert is the
+# guard -- if two cells in one group ever disagree on a pool-affecting flag, the group is a
+# lie and the payload would silently rerank one cell against the other's candidates.
+POOL_KWARGS: dict[str, dict] = {}
+for _cell, _flags in CELL_FLAGS.items():
+    _pool_kw = {k: v for k, v in _flags.items() if k != "strip_query"}
+    _g = POOL_GROUP[_cell]
+    if _g in POOL_KWARGS and POOL_KWARGS[_g] != _pool_kw:
+        raise AssertionError(
+            f"cells in pool group {_g!r} disagree on pool-affecting flags: "
+            f"{POOL_KWARGS[_g]} vs {_pool_kw} (from {_cell!r})")
+    POOL_KWARGS[_g] = _pool_kw
+
 
 # STALE, PRESERVED: the live payload/scores artifacts are retr7_*, not day8_*. Kept as the
 # defaults so this phase is behaviour-identical to the scripts it merges. See TRAPS.
@@ -164,10 +271,14 @@ LOCAL_SCORES_TMPL = "local_rr_{split}_scores.jsonl"
 
 # Measured per-question rerank latency, for the runtime warning `local` prints. Per CELL,
 # so a four-cell run is ~4x these. Laptop figure is AGENT-24's steady state (M3, mps, with
-# torch.mps.empty_cache() per call); the host figure is the Graviton3 deploy box, where
-# rerank is 99.5% of /ask latency (DEPLOY-18).
+# torch.mps.empty_cache() per call).
+#
+# The host figure is the CURRENT deploy host: g4dn.xlarge (Tesla T4) at fp16, DEPLOY-21's
+# 3.27s. It was 156.9s here -- the Graviton3 CPU box of DEPLOY-18, which DEPLOY-24 terminated
+# on 2026-09-13. Left stale it estimated a full run at ~5 days on the one machine that can
+# actually do it in an evening, which is an argument for the wrong hardware.
 RERANK_S_LAPTOP = 32.6
-RERANK_S_DEPLOY_HOST = 156.9
+RERANK_S_DEPLOY_HOST = 3.27
 
 # Transfer/allocation recipe printed by `prepare`. Constants, not buried strings, because
 # ARM3-2 is explicit that the xfer host is mandatory: the interactive login node
@@ -208,6 +319,11 @@ def cmd_prepare(args: argparse.Namespace) -> None:
     rows = df[df["split"].isin(wanted)].reset_index(drop=True)
     if args.n:
         rows = rows.head(args.n)
+    cells_wanted = [c.strip() for c in args.cells.split(",") if c.strip()]
+    unknown = [c for c in cells_wanted if c not in CELL_FLAGS]
+    if unknown:
+        raise SystemExit(f"unknown cell(s) {unknown}; known: {sorted(CELL_FLAGS)}")
+    groups = sorted({POOL_GROUP[c] for c in cells_wanted})
     model = SentenceTransformer(EMBED_MODEL_NAME, device=pick_device())
 
     questions: list[dict] = []
@@ -215,50 +331,55 @@ def cmd_prepare(args: argparse.Namespace) -> None:
     n_resolved = n_stripped = 0
 
     with get_conn() as conn:
-        for _, row in tqdm(rows.iterrows(), total=len(rows), desc="building RETR-16 payload"):
+        for _, row in tqdm(rows.iterrows(), total=len(rows), desc="building rerank payload"):
             q = row["question"]
-            emb = model.encode(q, normalize_embeddings=True)
             tickers = resolve_companies(q)
             n_resolved += bool(tickers)
-
-            unfiltered = rrf_fuse([
-                dense(conn, emb, CANDIDATE_K, LIVE_VARIANT),
-                bm25(conn, q, CANDIDATE_K, LIVE_VARIANT),
-            ])[:CANDIDATE_K]
-            # No ticker resolved -> the filtered pool IS the unfiltered pool, the same
-            # fallback retrieve() uses. Recorded rather than skipped so the filtered arm is
-            # scored over all 1235 questions, not just the resolvable ones.
-            filtered = (
-                rrf_fuse([
-                    dense(conn, emb, CANDIDATE_K, LIVE_VARIANT, tickers),
-                    bm25(conn, q, CANDIDATE_K, LIVE_VARIANT, tickers),
-                ])[:CANDIDATE_K]
-                if tickers
-                else unfiltered
-            )
-
-            need = [p for p in unfiltered + filtered if f"{p[0]}|{p[1]}" not in texts]
-            for (stem, idx), text in chunk_texts(conn, need, LIVE_VARIANT).items():
-                texts[f"{stem}|{idx}"] = text
-
             stripped = strip_entity_framing(q)
             n_stripped += stripped != q
+            years = extract_years(q)
+            # Two embeddings, because N18d's whole content is that the dense leg encodes the
+            # stripped string. Encoded once per question and reused across every pool group
+            # that wants it -- the second encode is ~0.1s against a rerank pass of seconds.
+            embs = {False: model.encode(q, normalize_embeddings=True)}
+            if any(POOL_KWARGS[g].get("strip_dense") for g in groups):
+                embs[True] = model.encode(stripped, normalize_embeddings=True)
+
+            pools: dict[str, list] = {}
+            for g in groups:
+                kw = POOL_KWARGS[g]
+                # candidates.first_stage, the SAME function retrieve() calls. This used to be
+                # a hand-rolled copy here and it had drifted: still plain rrf_fuse long after
+                # RETR-40 made the year nudge the default, so this leg and the local leg were
+                # scoring different pools under one cell name (INFRA-22's shape again).
+                pool, ptexts, _ = first_stage(
+                    conn, embs[bool(kw.get("strip_dense"))], q,
+                    tickers=tickers if kw["company_filter"] else None,
+                    variant=LIVE_VARIANT, read_depth=kw.get("read_depth", READ_DEPTH),
+                    pool_k=CANDIDATE_K, query_years=years,
+                    year_bias=kw["year_bias"], year_text_fusion=kw.get("year_text_fusion", False),
+                )
+                pools[g] = pool
+                for (stem, idx), text in ptexts.items():
+                    key = f"{stem}|{idx}"
+                    if key not in texts:
+                        texts[key] = text
+
             questions.append({
                 "id": row["id"],
                 "split": row["split"],
-                # All four cells by default (RETR-30/RETR-39). --reuse-dev-baseline
+                # All four 2x2 cells by default (RETR-30/RETR-39). --reuse-dev-baseline
                 # brings back the pre-re-index shortcut of dropping dev's unfiltered_raw
                 # and merging it from BASELINE_DEV, which is now the wrong thing to do.
                 "cells": (
-                    ["filtered_raw", "filtered_stripped", "unfiltered_stripped"]
+                    [c for c in cells_wanted if c != "unfiltered_raw"]
                     if row["split"] == "dev" and args.reuse_dev_baseline
-                    else list(CELLS)
+                    else list(cells_wanted)
                 ),
                 "question": q,
                 "question_stripped": stripped,
                 "tickers": tickers,
-                "cands_unfiltered": [list(p) for p in unfiltered],
-                "cands_filtered": [list(p) for p in filtered],
+                **{f"cands_{g}": [list(p) for p in pools[g]] for g in groups},
             })
 
     n = len(questions)
@@ -273,11 +394,7 @@ def cmd_prepare(args: argparse.Namespace) -> None:
         )
 
     args.out.write_text(json.dumps({"questions": questions, "texts": texts}))
-    pairs = sum(
-        len(q["cands_filtered" if c.startswith("filtered") else "cands_unfiltered"])
-        for q in questions
-        for c in q["cells"]
-    )
+    pairs = sum(len(q[f"cands_{POOL_GROUP[c]}"]) for q in questions for c in q["cells"])
     print("by split:", dict(Counter(q["split"] for q in questions)))
     print(f"\nquestions {n}   company resolved {n_resolved} ({100 * n_resolved / n:.1f}%)"
           f"   query stripped {n_stripped} ({100 * n_stripped / n:.1f}%)")
@@ -320,9 +437,11 @@ def _local_cells(question: str, cells: list[str]) -> tuple[dict[str, list], floa
     out: dict[str, list] = {}
     rerank_s = 0.0
     for cell in cells:
-        company_filter, strip_query = LOCAL_CELL_FLAGS[cell]
-        retrieve(question, k=CANDIDATE_K, company_filter=company_filter,
-                 strip_query=strip_query)
+        # **CELL_FLAGS[cell], not two positional flags: the cells now differ on five knobs
+        # (filter, strip, year_bias, strip_dense, read_depth/year_text_fusion), and spelling
+        # a subset of them out here is how a cell silently inherits a retrieve() default it
+        # was never meant to have -- which is exactly what happened when year_bias shipped.
+        retrieve(question, k=CANDIDATE_K, **CELL_FLAGS[cell])
         stats = last_call_stats()
         # Already 3-wide [stem, int(idx), float(score)] -- the exact entry shape the
         # cluster leg writes. Stored order differs (the cluster zips scores onto the
@@ -337,9 +456,9 @@ def cmd_local(args: argparse.Namespace) -> None:
     """Single-process rerank leg: same model, same pool, no HPC. Resumable, slow."""
     out_path = args.out or DATA_DIR / LOCAL_SCORES_TMPL.format(split=args.split)
     cells = [c.strip() for c in args.cells.split(",") if c.strip()]
-    unknown = [c for c in cells if c not in LOCAL_CELL_FLAGS]
+    unknown = [c for c in cells if c not in CELL_FLAGS]
     if unknown:
-        raise SystemExit(f"unknown cell(s) {unknown}; known: {sorted(LOCAL_CELL_FLAGS)}")
+        raise SystemExit(f"unknown cell(s) {unknown}; known: {sorted(CELL_FLAGS)}")
 
     df = load_matched_questions()
     rows = df[df["split"] == args.split].reset_index(drop=True)
@@ -360,7 +479,8 @@ def cmd_local(args: argparse.Namespace) -> None:
     print(f"cells per question: {len(cells)} {cells}")
     print(f"ESTIMATE ~{est_min:.0f} min on an M3 laptop at {RERANK_S_LAPTOP}s/cell "
           f"(~{len(todo) * len(cells) * RERANK_S_DEPLOY_HOST / 3600:.1f} h on the deploy "
-          f"host at {RERANK_S_DEPLOY_HOST}s/cell). Use --n for a smoke test.")
+          f"host at {RERANK_S_DEPLOY_HOST}s/cell, g4dn.xlarge T4 fp16). "
+          f"Use --n for a smoke test.")
     if not todo:
         print("nothing to do")
         return
@@ -387,15 +507,51 @@ def cmd_local(args: argparse.Namespace) -> None:
 
 
 # ─── STEP 3: score a scores file into the published 2x2 table ──────────────────
+def _year_mismatch(row, stem: str) -> bool | None:
+    """True when the question names a fiscal year and the GOLD filing is not one of them.
+
+    `RETR-45`'s axis, and the one subgroup that has repeatedly moved the opposite way to the
+    aggregate: depth-200 alone is +1.0pt overall and -4.0pt here, and raising YEAR_BIAS_ALPHA
+    buys +5.5pt on the other side of this split by taking -4.3pt from this one. An arm that
+    is positive overall and negative here has not earned a ship. None = the question names no
+    year at all, so the split does not apply to it.
+    """
+    years = extract_years(row["question"])
+    if not years:
+        return None
+    return chunk_year(stem) not in years
+
+
 def cmd_score(args: argparse.Namespace) -> None:
     """Replay a scores file. No GPU, no database, no spend -- free to re-run."""
+    cells = CELLS if args.table == "2x2" else ARM_CELLS
+    baseline_cell = cells[0]
     # All cells, ids only, sorted by rerank score -- see rag_sec.eval.load_ranking for why
     # the sort happens on load and why the loader dispatches on the record's own shape.
     ranked: dict[str, dict[str, list]] = load_ranking(args.scores, ALL_CELLS)
 
+    # An `arms` run may reuse an ALREADY-MEASURED deployed cell instead of paying to rerank
+    # it again -- data/retr7_rr_dev_scores_year_bias.jsonl is exactly that, and it reproduces
+    # the published dev 0.791/0.843 to four places. The cell is named differently there, so
+    # the rename is explicit rather than guessed.
+    if args.arm_baseline:
+        # setdefault used to keep --scores' own cell and still print "merged" -- refuse instead.
+        if any(baseline_cell in byc for byc in ranked.values()):
+            sys.exit(f"--arm-baseline: {args.scores} already has a {baseline_cell!r} cell, so "
+                     f"{args.arm_baseline} would be ignored. Pass a --scores without it.")
+        merged = 0
+        for qid, byc in load_ranking(args.arm_baseline, ALL_CELLS).items():
+            if qid in ranked and args.arm_baseline_cell in byc:
+                ranked[qid].setdefault(baseline_cell, byc[args.arm_baseline_cell])
+                merged += 1
+        print(f"merged {baseline_cell!r} for {merged} questions from {args.arm_baseline} "
+              f"(cell {args.arm_baseline_cell!r})")
+        print("  NOTE: that artifact predates the RETR-50 ef_search fix. The delta it "
+              "produces carries that confound; a same-run baseline does not.")
+
     # Resolved AFTER loading, so a scores file that already carries unfiltered_raw is never
     # silently overwritten by the cached pre-RETR-7 one. An explicit --baseline still wins.
-    baseline = args.baseline or (BASELINE_DEV if args.split == "dev" else None)
+    baseline = args.baseline or (BASELINE_DEV if args.split == "dev" and args.table == "2x2" else None)
     if (baseline and not args.baseline and ranked
             and all("unfiltered_raw" in v for v in ranked.values())):
         print(f"scores file already has unfiltered_raw for all {len(ranked)} questions "
@@ -416,14 +572,19 @@ def cmd_score(args: argparse.Namespace) -> None:
     df = load_matched_questions()
     rows = df[df["split"] == args.split].reset_index(drop=True)
 
-    per = {c: {k: [] for k in METRIC_KEYS} for c in CELLS}
+    per = {c: {k: [] for k in METRIC_KEYS} for c in cells}
+    # Per-question recall@10, kept aligned across cells so the deltas can be PAIRED. A mean
+    # of means cannot produce a CI or a McNemar count; only the per-question vectors can.
+    paired: dict[str, list[float]] = {c: [] for c in cells}
+    hit10: dict[str, list[bool]] = {c: [] for c in cells}
+    subgroup: list[bool | None] = []
     n = 0
     # Counted, not silently skipped: a question dropped for a missing cell would otherwise
     # shrink the denominator invisibly and make cells incomparable.
     skipped_cells = skipped_gold = 0
     for _, row in tqdm(rows.iterrows(), total=len(rows), desc="scoring"):
         qid = row["id"]
-        if qid not in ranked or any(c not in ranked[qid] for c in CELLS):
+        if qid not in ranked or any(c not in ranked[qid] for c in cells):
             skipped_cells += 1
             continue
         stem = _filing_stem(row)
@@ -432,12 +593,16 @@ def cmd_score(args: argparse.Namespace) -> None:
             skipped_gold += 1
             continue
         n += 1
-        for c in CELLS:
+        subgroup.append(_year_mismatch(row, stem))
+        for c in cells:
             got = ranked[qid][c]
-            per[c]["recall_10"].append(recall_at_k(got, rel, 10))
+            r10 = recall_at_k(got, rel, 10)
+            per[c]["recall_10"].append(r10)
             per[c]["recall_50"].append(recall_at_k(got, rel, 50))
             per[c]["ndcg_10"].append(ndcg_at_k(got, rel, 10))
             per[c]["mrr"].append(mrr(got, rel))
+            paired[c].append(r10)
+            hit10[c].append(r10 > 0)
 
     print(f"\nquestions scored: {n} of {len(rows)} {args.split}"
           f"   (skipped: {skipped_cells} missing a cell, {skipped_gold} with no gold label)\n")
@@ -446,25 +611,105 @@ def cmd_score(args: argparse.Namespace) -> None:
     print(hdr)
     print("-" * len(hdr))
     base, table = {}, {}
-    for c in CELLS:
+    for c in cells:
         printed = []
         for k in METRIC_KEYS:
             m, se = mean_and_stderr(per[c][k])
             table.setdefault(c, {})[k] = {"mean": m, "stderr": se}
-            if c == "unfiltered_raw":
+            if c == baseline_cell:
                 base[k] = m
                 printed.append(f"{m:.3f} ± {se:.3f}".rjust(18))
             else:
                 printed.append(f"{m:.3f} ({m - base[k]:+.3f})".rjust(18))
         print(f"{c:<22}" + "".join(printed))
-    print("\n(baseline row shows ± stderr; other rows show the delta against it)")
+    print(f"\n(baseline row = {baseline_cell}, shown with ± stderr; other rows show the delta)")
+
+    # ── paired statistics, recall@10 against the baseline cell ──────────────────
+    # A delta of means is not evidence on its own: the arms are scored on the SAME questions,
+    # so the question-to-question spread has to be differenced away before the interval means
+    # anything. Reported for every non-baseline cell, on both the continuous coverage metric
+    # and the binary any-gold@10, because the two can disagree and the disagreement is
+    # informative (`RETR-46`: one gold chunk answers as well as all of them).
+    print(f"\nPAIRED vs {baseline_cell}, recall@10 (n={n})")
+    ph = f"{'cell':<22}{'delta':>10}{'95% CI':>22}{'win':>7}{'lose':>6}{'McNemar p':>12}"
+    print(ph); print("-" * len(ph))
+    for c in cells:
+        if c == baseline_cell:
+            continue
+        deltas = [a - b for a, b in zip(paired[c], paired[baseline_cell])]
+        mean_d, lo, hi = paired_bootstrap_ci(deltas, n_boot=args.boot)
+        n01 = sum(1 for a, b in zip(hit10[c], hit10[baseline_cell]) if a and not b)
+        n10 = sum(1 for a, b in zip(hit10[c], hit10[baseline_cell]) if b and not a)
+        pval = exact_mcnemar(n10, n01)
+        table[c]["paired_recall_10"] = {"delta": mean_d, "ci_lo": lo, "ci_hi": hi,
+                                        "win": n01, "lose": n10, "mcnemar_p": pval}
+        print(f"{c:<22}{mean_d:>+10.4f}{f'[{lo:+.4f}, {hi:+.4f}]':>22}"
+              f"{n01:>7}{n10:>6}{pval:>12.4f}")
+
+    # ── RETR-45 subgroup: does the arm take from one population to pay another? ──
+    print(f"\nSUBGROUP recall@10 on the RETR-45 year axis "
+          f"(names a year & gold filing is a DIFFERENT year, vs names the gold year)")
+    sh = f"{'cell':<22}{'mismatch':>12}{'delta':>9}{'match':>10}{'delta':>9}{'no year':>10}"
+    print(sh); print("-" * len(sh))
+    idx = {"mismatch": [i for i, v in enumerate(subgroup) if v is True],
+           "match": [i for i, v in enumerate(subgroup) if v is False],
+           "no_year": [i for i, v in enumerate(subgroup) if v is None]}
+    print(f"{'(n)':<22}{len(idx['mismatch']):>12}{'':>9}{len(idx['match']):>10}{'':>9}"
+          f"{len(idx['no_year']):>10}")
+    for c in cells:
+        sub = {}
+        for gname, ii in idx.items():
+            sub[gname] = (sum(paired[c][i] for i in ii) / len(ii)) if ii else float("nan")
+            if c != baseline_cell and ii:
+                sub[gname + "_delta"] = sub[gname] - sum(paired[baseline_cell][i] for i in ii) / len(ii)
+        table[c]["subgroup_recall_10"] = sub
+        if c == baseline_cell:
+            print(f"{c:<22}{sub['mismatch']:>12.3f}{'':>9}{sub['match']:>10.3f}{'':>9}"
+                  f"{sub['no_year']:>10.3f}")
+        else:
+            print(f"{c:<22}{sub['mismatch']:>12.3f}{sub.get('mismatch_delta', 0):>+9.3f}"
+                  f"{sub['match']:>10.3f}{sub.get('match_delta', 0):>+9.3f}"
+                  f"{sub['no_year']:>10.3f}")
+    print("\nAn arm positive in aggregate and negative on `mismatch` has NOT earned a ship "
+          "(RETR-45; depth-200 alone fails exactly here).")
+
+    # ── rerank wall time, so a GPU pass publishes its own cost ─────────────────
+    lat = []
+    with open(args.scores) as fh:
+        for line in fh:
+            if line.strip():
+                rec = json.loads(line)
+                if (rec.get("latency_s") is not None and rec.get("cells")
+                        and rec.get("split") == args.split):
+                    lat.append(rec["latency_s"] / max(1, len(rec["cells"])))
+    # The cluster leg writes one latency averaged over a batch of 20, the local leg one per
+    # question. Repeated values are the batch signature; p50 == p95 was not, and only ever
+    # fired because percentile() was handed 50/95 instead of 0.5/0.95.
+    batch_avg = len(set(lat)) < len(lat)
+    if lat:
+        lat.sort()
+        p50, p95 = percentile(lat, 0.5), percentile(lat, 0.95)
+        # sum(lat) is the PER-CELL series, so the total must be multiplied back up by the
+        # number of cells or it under-reports the GPU bill by exactly that factor.
+        print(f"\nrerank wall time per question per cell: p50 {p50:.3f}s  p95 {p95:.3f}s  "
+              f"n={len(lat)}  (total {sum(lat) * len(cells) / 3600:.2f} GPU-h across "
+              f"{len(cells)} cells)")
+        if batch_avg:
+            print("  NOTE: per-BATCH averages, not per-question timings -- a spread of batch "
+                  "means, not a latency distribution; do not quote it as one.")
 
     # Stderr is stored for every cell, not just the baseline row that prints it: the deltas
     # are what get quoted, and a delta needs both cells' spread to be defensible.
     if args.out:
         args.out.write_text(json.dumps({
-            "split": args.split, "scores": str(args.scores), "n_scored": n,
+            "split": args.split, "table": args.table, "scores": str(args.scores),
+            "baseline_cell": baseline_cell, "n_scored": n,
             "skipped_missing_cell": skipped_cells, "skipped_no_gold": skipped_gold,
+            "subgroup_n": {k: len(v) for k, v in idx.items()},
+            "rerank_s_per_question_per_cell": (
+                {"p50": percentile(lat, 0.5), "p95": percentile(lat, 0.95), "n": len(lat),
+                 "batch_averaged": batch_avg}
+                if lat else None),
             "cells": table,
         }, indent=1))
         print(f"wrote {args.out}")
@@ -481,6 +726,9 @@ def main() -> None:
                        formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("--n", type=int, help="limit questions (smoke test)")
     p.add_argument("--splits", default="dev,test", help="comma-separated (default: %(default)s)")
+    p.add_argument("--cells", default=",".join(CELLS),
+                   help="cells to build pools for (default: the published 2x2). For the arms "
+                        f"comparison use --cells {','.join(ARM_CELLS)}")
     # DEFAULT FLIPPED: the full 2x2 on every split. Before the RETR-7/RETR-8 re-index the
     # dev payload dropped unfiltered_raw and `score` merged it from the cached
     # day6_arm4_A file; that file is PRE-re-index text, so doing it today mixes two
@@ -500,10 +748,10 @@ def main() -> None:
         description=(
             f"Step 2-ALT: the local rerank leg. Same model ({RERANK_MODEL_NAME}), same "
             f"{CANDIDATE_K}-candidate pool and same cell definitions as the cluster leg, in "
-            "one process on CPU/MPS, writing the identical scores format.\n\n"
+            "one process, writing the identical scores format.\n\n"
             f"RUNTIME, HONESTLY: rerank is ~{RERANK_S_LAPTOP}s per question PER CELL on an "
-            f"M3 laptop (AGENT-24) and ~{RERANK_S_DEPLOY_HOST}s on the Graviton3 deploy "
-            "host. Four cells over the full 1235-question dev split is MANY HOURS on a "
+            f"M3 laptop (AGENT-24) and ~{RERANK_S_DEPLOY_HOST}s on the g4dn.xlarge GPU deploy "
+            "host (T4, fp16 -- DEPLOY-21/DEPLOY-23). Four cells over the full 1235-question dev split is MANY HOURS on a "
             "laptop and over a day on the host. This leg exists so the headline arm is "
             "reproducible without cluster access, not because it is a good way to spend an "
             "afternoon. Use --n for a smoke test. It is resumable per question id.\n\n"
@@ -536,6 +784,21 @@ def main() -> None:
     p.add_argument("--baseline", type=Path,
                    help="file supplying unfiltered_raw; omit when the scores file already "
                         "has that cell. PRE-RETR-7 text -- see the module docstring's TRAPS")
+    p.add_argument("--table", choices=("2x2", "arms"), default="2x2",
+                   help="'2x2' = the published ablation (baseline row unfiltered_raw). "
+                        "'arms' = deployed vs n18d vs n18d_p10, with paired CIs, McNemar "
+                        "and the RETR-45 subgroup split (baseline row `deployed`)")
+    p.add_argument("--arm-baseline", type=Path,
+                   help="reuse an already-measured `deployed` cell from this scores file "
+                        "instead of reranking it again (e.g. "
+                        "data/retr7_rr_dev_scores_year_bias.jsonl, which reproduces the "
+                        "published dev 0.791/0.843). Carries the pre-RETR-50 ef_search "
+                        "confound -- a same-run baseline does not. Refused if --scores already has "
+                        "a `deployed` cell")
+    p.add_argument("--arm-baseline-cell", default=YEAR_BIAS_CELL,
+                   help="cell name to read from --arm-baseline (default: %(default)s)")
+    p.add_argument("--boot", type=int, default=10000,
+                   help="bootstrap resamples for the paired CI (default: %(default)s)")
     p.set_defaults(fn=cmd_score)
 
     args = ap.parse_args()

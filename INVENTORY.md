@@ -50,7 +50,7 @@ tagged by phase. If a number appears anywhere else in this project, this file is
 Newcomer orientation: what an "arm" is, how to replay the headline number, the glossary, which
 doc answers what, and the traps that bite people who don't know the history yet.
 **Status: Keep.**
-Three more sit next to the code they describe — `scripts/CLAUDE.md` (1.9 KB, phase-vs-arm table
+Three more sit next to the code they describe — `scripts/CLAUDE.md` (2.6 KB, phase-vs-arm table
 and what spends money), `src/rag_sec/CLAUDE.md` (1.8 KB, what ships and the library's traps) and
 `data/CLAUDE.md` (1.3 KB, artifact naming and "read the file before trusting its shape"). All
 three are new on 2026-09-07 and all three are in git. **Keep.**
@@ -60,13 +60,6 @@ The front door: what this is, how to set it up, and the commands to rebuild the 
 **Status: Keep.** It carries the results table and the chart.
 Sizes for `README.md`, `CLAUDE.md`, `DECISIONS.md` and `scripts/README.md` were taken at 12:37 on
 2026-09-07 while all four were being rewritten — treat them as approximate.
-
-**`RUNBOOK.md`** — 7.0 KB, on disk but **untracked** since 2026-09-07.
-The step-by-step for running the GPU jobs on the university cluster, including the
-`RETR-7`/`RETR-8` re-index and its backup step. Untracked because it names cluster hosts and
-per-account setup, which are useless to a clone and not ours to publish.
-**Status: Keep locally.** Nothing tracked cites it, so its absence breaks no path a clone can
-follow: `scripts/README.md` is the complete no-cluster route.
 
 **`INVENTORY.md`** — this file, 61 KB.
 What every folder and file is, where it came from, and whether it's still needed.
@@ -167,7 +160,18 @@ corrected. ~3-4 min, no GPU, no database, no spend; `--reuse-scored` skips the t
 dashboard and of one Arm 6 trace. **Keep — these cannot be regenerated.** The dashboard itself is
 code (`scripts/archive/build_langfuse_dashboard.py`), but the Langfuse Hobby tier drops traces
 after a short retention window, so the rendered views behind these are already gone. They are the
-only surviving evidence that the observability work ran on real traffic.
+only surviving evidence that the observability work ran on real traffic. The stage-latency tile in `_1_cost_latency` is laptop, pre-`AGENT-24` data, not serving latency (`OBS-13`); quote `DEPLOY-25` for that.
+
+**`research_latency/`** — the tracked latency measurements behind the `DEPLOY-*` rows, all small
+except one. `deploy19_latency_baseline_10q.json` is the fixed ten test questions every later
+latency comparison reuses (`DEPLOY-19`). `gpu_rerank_results.json` and `results_fp16.json` are
+the `g5g` GPU and fp16 runs (`DEPLOY-20`); `g4dn_fp{16,32}_results.json` are the T4 host's
+(`DEPLOY-21`); `g4dn_rr_test_scores.jsonl` (3.7 MB) is the full test rerank on that host, which
+reproduces `RETR-39` (`DEPLOY-23`). The four `deploy25_*.jsonl` are `DEPLOY-25`: the 110-question,
+three-config retrieval timing (`flags_3config_110q`), the depth-200 row counts that rule out a
+short read (`depth200_row_counts_50q`), and `/ask` end to end on the fixed ten before and after
+the flip (`ask_baseline_year_bias_10q`, `ask_r51r52_on_10q`). **Keep all** — each is a timing on a
+specific host and a repeat would be a new sample, not the same number.
 
 **`.venv/`** — 1.2 GB, not in git. Rebuilt any time with `uv sync`. **Status: Rebuildable.**
 
@@ -215,7 +219,7 @@ re-index — until then the file behaves exactly as it always did, verified byte
 99,654 chunks.
 
 **`summarize.py`** — asks a model to summarize a table, used only for the losing table experiment.
-**Keep as history.** It's the only file here that costs money to run, and it should not run again.
+**Keep as history.** It calls the Anthropic API, so it costs money to run, and it should not run again.
 
 **`store.py`** — the database connection and table definitions, plus a check that the corpus still
 has the expected number of rows. **Keep** — every database touch goes through it.
@@ -235,16 +239,19 @@ fusion of the two, and the text lookup for the result. Used to be eleven copies 
 five files, which is how the variant bug needed the same fix seven times. **Keep.** Which table
 layout to search is a required argument here, never a default — that is the whole point.
 
-**`retrieve.py`** — the full search pipeline as one callable function: company filter plus the
-query strip, the latter applied to the reranker only. This is the best measured setup. **Keep.**
+**`retrieve.py`** — the full search pipeline as one callable function: company filter, query
+strip, year nudge, and since `DEPLOY-25` the stripped query on the dense leg too (BM25 keeps the
+raw one) plus the chunk-year list at read depth 200 (`RETR-51`/`RETR-52`). Its defaults are the
+serving configuration. **Keep.**
 
 **`api.py`** — the web layer: two health checks and one `/ask` endpoint that runs the best
 measured setup and returns the answer with the chunks it cited. Reuses the answer prompt from
-`agent.py`, so what gets served is the same thing that was measured. **Keep, unrun.**
+`agent.py`, so what gets served is the same thing that was measured. **Keep — this is what the
+deployed container serves** (`DEPLOY-25`).
 
 **`agent.py`** — the multi-step loop: plan, search, judge, answer.
-**Keep, parked.** Verified working on 3 questions, then deferred on cost evidence. One prompt
-inside it is still used by the current cost work.
+**Keep, closed.** Ran on 200 dev questions for Arm 6, which is closed as a negative
+(`AGENT-34`). Its answer prompt is still what `api.py` serves.
 
 **`eval.py`** — 631 lines. Decides which chunks count as correct answers, and computes the scores.
 **Every published retrieval number in this project comes from this file. Keep.**
@@ -290,9 +297,9 @@ could find it. The day tags live in `DECISIONS.md`, where they belong.
 | `checks/` | guards and regression tests, not investigations |
 | `archive/` | one-off measurements whose findings are already in `DECISIONS.md`, and superseded scripts kept as the record of how a number was made |
 
-Two docs sit at this level, both in git: **`scripts/README.md`** (~16 KB) — the run order, the
-real calendar dates and what each command costs — and **`scripts/CLAUDE.md`** (1.9 KB), the short
-version: the phase-to-arm table, the two things that spend money, and the fact that phase 02
+Two docs sit at this level, both in git: **`scripts/README.md`** (~20 KB) — the run order, the
+real calendar dates and what each command costs — and **`scripts/CLAUDE.md`** (2.6 KB), the short
+version: the phase-to-arm table, the things that spend money, and the fact that phase 02
 cannot be rebuilt. **Keep both.**
 
 Every `*_hpc.*` file is deliberately self-contained: it runs on the cluster where the
@@ -373,6 +380,9 @@ laptop in reasonable time, this is a split job: `prepare` (needs the database) �
   (`data/retr7_arm3_{dev,test}_results.json`), which `rerank_score.py` never did. It requires all
   four cells present and counts what it skipped, so a missing cell cannot shrink the denominator
   invisibly.
+  `--table arms` scores the other table instead: `deployed` against `n18d` and `n18d_p10`, with
+  paired CIs, McNemar counts and the `RETR-45` subgroup split, read from `data/arms_scores.jsonl`.
+  `n18d_p10` is the serving configuration (`RETR-52`, `DEPLOY-25`).
 - Note: the internal default filenames still carry Day-8 drift (`day8_retr16v2_*`) while the live
   artifacts are `retr7_rr_{dev,test}_scores.jsonl`. Pass `--scores` explicitly. Left alone so the
   merge is behaviour-preserving against the scripts it replaced.
@@ -389,17 +399,33 @@ the only thing that can score B and C.
 **`07_arm6_loop.py`** — the Day 9 Arm 6 agentic loop plus its paired static baseline. Absorbed
 `eval/agent_run.py` and `agent_analyze.py`.
 
-- `run` — **NOT FREE.** Live paid Gemini calls, ~$8 for n=300, now behind an explicit
+- `run` — **NOT FREE.** Live paid Gemini calls, ~$0.0205/question, now behind an explicit
   `--allow-paid-run` gate; `-n` is the other brake. Resume is at the **file level**: completed ids
   in `--out` are skipped and errored rows are not counted as done, so a kill costs nothing but
   deleting that file costs money again. Must stay at `--concurrency 1` — concurrent model
   construction on MPS segfaults the machine (`AGENT-10`/`AGENT-17`).
+- `restatic` — **NOT FREE**, ~$0.0116/question, same `--allow-paid-run` gate. Rebuilds only the
+  static half of an existing results file against today's replayed ranking and copies the loop
+  half through byte for byte, so the pairing survives a baseline fix without re-buying the loop
+  (`AGENT-31`). Refuses when the source rows' recorded loop settings differ from the baseline's
+  (`AGENT-36`; rows that predate the record cannot be checked). Needs Postgres for chunk text.
+  Writes a new `--out`, never in place.
 - `analyze` — trajectory, judge accuracy, retrieval and answer scores, p50/p95 per stage.
   **Free, read-only**, safe on a partial results file mid-run. **The authoritative source for
   $/question**: it prices each usage record from the model ids in the row, so the number is not
   typed in anywhere.
 - Its static baseline is where `AGENT-16` was found — the rankings it slices are not in
   descending score order as stored, and `checks/static_ranking_order.py` now guards that.
+
+**`08_convfinqa_turns.py`** — recovers ConvFinQA's real multi-turn dialogues from the
+original public release and joins them to our `convfinqa_N` ids (`DATA-10`). **Free**, network
+only, no GPU/Postgres/API. Not an arm and not in the 01-07 run order: nothing scored so far is
+multi-turn, and no mechanism consumes it yet — `/ask` takes one string with no history and
+`retrieve()` takes one query. The join is **positional** (`convfinqa_N` indexes into
+`train.json + dev.json`), an order nobody upstream promised, so it aborts unless every row
+agrees positionally on both `filename` and the first turn's executed answer; an order-free
+content key is reported alongside as corroboration. **It does not touch `dataset.py`** —
+`SUBSET_FILES` stays turn-0-only so the stored score files keep their denominator.
 
 ### `scripts/pipeline/hpc/` — the two cluster legs
 
@@ -422,13 +448,14 @@ Both import nothing from `rag_sec`; do not add an import.
 
 ## `scripts/checks/` — guards and regression tests
 
-Twelve Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
+Seventeen Python files. Not investigations — each has an ongoing obligation, which is exactly what filing
 them as "Day 8 one-offs" used to hide. `mps_leak_probe.py` left for `archive/` in the reorg: it
 reproduces a behaviour rather than asserting one, so nothing should gate on it.
 
-Five are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
-`candidate_sql.py`, `static_ranking_order.py`, `tracing_offline.py`, `retrieval_gate.py` — and
-`container_wordlist.py` is invoked by the `Dockerfile` at both build and runtime. **Those six
+Eight are invoked by path from CI (`.github/workflows/ci.yml`) — `variant_predicates.py`,
+`candidate_sql.py`, `static_ranking_order.py`, `tracing_offline.py`, `cell_config.py`,
+`static_replay_provenance.py`, `short_limit.py --static-only`, `retrieval_gate.py` — and
+`container_wordlist.py` is invoked by the `Dockerfile` at both build and runtime. **Those nine
 filenames are load-bearing outside this repo's Python; moving one breaks a pipeline, not an
 import.** Four more are described only in passing below and are worth a pass of their own:
 `ci_fixture_build.py` (distils the gitignored scores + chunks into the one committed ~1 MB
@@ -472,6 +499,28 @@ first-stage RRF order and promises nothing about ordering, the published scorer 
 and `agent_run.py` did not, and 0 of 1235 dev cells were in order. Fourth instance of the
 project's recurring bug class, which is why it is mechanical now.
 
+**`static_replay_provenance.py`** — `AGENT-31`/`AGENT-36`'s guard. Checks every `retrieve()`
+setting `retrieve_node` passes against what Arm 6's replayed static ranking
+(`STATIC_SCORES:STATIC_CELL` in phase 07) was built under, and fails on a mismatch or on any
+setting the loop leaves unpinned. No database, model or API; in CI. **Keep** — the
+stale baseline it catches raised no error the first time.
+
+**`cell_config.py`** — fails when `05_arm3_rerank.py`'s cell-to-pool table and
+`hpc/rerank_hpc.py`'s `CELL_SPEC` disagree, and when an arms cell reranks against anything but
+the stripped question. The two files cannot import each other (the GPU node has no `rag_sec`), so
+a mismatch would rerank one arm on another's candidates and print a plausible number. No
+database, no GPU; in CI. **Keep.**
+
+**`short_limit.py`** — `RETR-50`'s guard. Fails when `dense()` returns fewer rows than its `LIMIT`,
+checked at `READ_DEPTH_MAX` (the deepest read any caller may ask for), not the pool size. A static
+leg needs no database; `--static-only` runs just that, and is what CI runs. Without the flag, a
+missing `.env` (no `POSTGRES_*`) is an error, exit 2, not a skip; only an unreachable database
+skips the live leg. **Keep.**
+
+**`bm25_only_recall.py`** — `CI-4`'s standing probe: BM25 alone, no filter, fusion or reranker, as
+a floor that should not move. A large move means the corpus, split or labels changed. Needs
+Postgres with the BM25 index. **Keep.**
+
 **`agent_loop_smoke_test.py`** — **the dangerous one.** It looks like a test, but every run makes live
 paid model calls (about $0.04) and writes rows into your database. There is **no dry-run and no
 confirmation prompt.** **Keep, but give it a guard.** It lives here rather than with the compression
@@ -480,9 +529,18 @@ the cost warning.
 
 ---
 
+**`convfinqa_turn_join.py`** — guards `data/convfinqa_turns.jsonl` (`DATA-10`). Three legs, each
+skipped rather than failed when its input is absent: the artifact is well formed; it still agrees
+with the upstream ConvFinQA release positionally and matches a fresh build; and its id set is still
+exactly the ConvFinQA ids `load_matched_questions()` yields. That last one is the point — adding
+turn files to `dataset.py`'s `SUBSET_FILES` would grow the question set past the ids in the stored
+score files and silently shrink every scored denominator, with no error anywhere. Carries a negative
+control (upstream rotated by one row must fail the join). **Not wired to CI**: all three legs would
+skip there, since CI has neither `data/chunks/` nor the upstream cache.
+
 ## `scripts/archive/` — one-offs and superseded scripts
 
-Thirty-one files, in two groups. Every one carries a docstring header saying what it did, which
+Forty-one files (39 Python, 2 sbatch), in two groups. Every one carries a docstring header saying what it did, which
 `DECISIONS.md` IDs and `data/` files came from it, what replaced it, and whether it is safe to
 run today. **Archived does not mean dead data** — several of these produced files that live code
 still reads. **Delete nothing here:** each is either the only way to regenerate a published
@@ -551,8 +609,8 @@ Note: `slice_prepare.py`'s default input file isn't on disk.
 **Compression was measured and never shipped** (`COST-36`): `agent.py` sends uncompressed.
 
 **`answer_ab_prepare.py`** / **`answer_ab_run.py`** / **`answer_batch_run.py`** /
-**`answer_ab_score.py`** — the paid answer A/B. **The only scripts in the project that spend real
-money.** `prepare` and `score` are free and offline on purpose, so prompts can be eyeballed
+**`answer_ab_score.py`** — the paid answer A/B. **`answer_ab_run.py` and `answer_batch_run.py` spend real
+money**, as does `unanswerable_run.py` below. `prepare` and `score` are free and offline on purpose, so prompts can be eyeballed
 before any spending and responses re-scored afterwards. `answer_ab_run.py` sends synchronously at
 `standard` (~$2.02/run; **not** `flex`, which 503'd ~9 of 10 requests, `COST-29`);
 `answer_batch_run.py` is the same payload and row shape via the Batch API at 50% (~$1.01), joining
@@ -573,6 +631,31 @@ so nothing should gate on it.
 
 **`candidate_k_curve.py`** — the `TOP_K`/candidate-width sweep. That question is closed
 (`RETR-33`); first-stage candidate *generation* is the part still open.
+
+**`paired_delta_variance.py`** — `RETR-41`'s measured per-question paired variance for the
+published arm-to-arm recall@10 deltas, replacing an assumed-correlation bound. Reads stored
+results and scores only; free.
+
+**`year_bias_sweep.py`** — `RETR-40`'s alpha sweep: the year nudge on the candidate pool only, no
+reranker. Its recall@50 is a **binary** any-gold hit, not the coverage metric the tables use
+(`RETR-49`), so its levels are not quotable next to a table cell. Needs Postgres.
+
+**`year_bias_recall10.py`** / **`year_bias_recall10_prepare.py`** / **`year_bias_recall10_hpc.py`** /
+**`year_bias_recall10.sbatch`** / **`year_bias_recall10_score.py`** — the reranked follow-up that
+confirmed `RETR-40` at recall@10. The first is the laptop route; the other four are the cluster
+route (prepare needs Postgres, the GPU node reranks each question's union pool once, score is
+free). `prepare` writes the >100 MB `data/year_bias_recall10_{dev,test}_payload.json` (gitignored,
+cluster input only) and the tracked `data/year_bias_recall10_{dev,test}_pools.json`, which drop
+chunk text and are all `score` reads.
+
+**`year_bias_static_ranking.py`** — `AGENT-31`'s fix: derives
+`data/retr7_rr_dev_scores_year_bias.jsonl`, the `year_bias` ranking phase 07 replays for its
+static baseline, from the pools and scores above. **Refuses to write** unless the unbiased leg
+reproduces the published `filtered_stripped` top-10 on every dev question. Free, no database.
+
+**`trt_export_onnx.py`** / **`trt_rerank_parity.py`** — the TensorRT rerank backend on the T4
+host, ruled out 2026-09-14: 9/10 top-5 parity and no faster than torch fp16, so nothing was
+wired into `retrieve.py`. Needs the GPU host. Not yet a `DECISIONS.md` row.
 
 **`onnx_rerank_export.py`** / **`onnx_rerank_parity.py`** / **`ort_fp32_latency.py`** — the
 `DEPLOY-6`/`DEPLOY-11` reranker route: export the cross-encoder to ONNX, quantise to int8, and
@@ -730,13 +813,22 @@ These are the ones the published result is replayed from. **Keep all.**
 | File | Size | In git | What it is |
 |---|---|---|---|
 | `retr7_rr_dev_scores.jsonl` | 11 MB | yes | 4.4 GPU-hours. Per question, all 50 candidates in **first-stage (RRF) order** with the reranker's score attached — *not* rank order |
-| `retr7_rr_test_scores.jsonl` | 14 MB | yes | 7.2 GPU-hours, held-out split. **This is what the ~90 s no-GPU replay reads** |
+| `retr7_rr_test_scores.jsonl` | 14 MB | yes | 7.2 GPU-hours, held-out split. The `RETR-39` 2x2 replay reads this |
 | `retr7_arm3_dev_results.json` | 1.6 KB | yes | the scored table `05_arm3_rerank.py score --out` writes |
 | `retr7_arm3_test_results.json` | 1.6 KB | yes | same, test split — the `RETR-39` headline as a file rather than as prose (`INFRA-10`) |
+| `arms_scores.jsonl` | 19 MB | yes | the `RETR-51`/`RETR-52` GPU pass, both splits: per question, the `deployed`, `n18d` and `n18d_p10` cells, same first-stage-order shape. **The serving-number replay reads this** (`score --table arms`) |
+| `arms_{dev,test}_results.json` | 2.6 KB each | yes | the scored arms table `score --table arms --out` writes, with paired deltas and the `RETR-45` subgroup split |
 | `retr7_ANALYSIS.md` | 8.2 KB | yes | **read this before quoting an Arm 1 / Arm 2 delta.** The corpus and the labels both moved at the re-index, so the Arm 1↔Arm 2 comparison is confounded: quote each arm's level, never the difference |
 
 **Trap:** a `*_scores.jsonl` is not stored in rank order. Read it through `rag_sec.eval.load_ranking`,
 which sorts on load (`AGENT-16`).
+
+**`year_bias_recall10_{dev,test}_scores.jsonl`** (3.4 / 4.3 MB, in git) — **Keep. GPU passes.**
+`RETR-40`'s cluster rerank: per question, one score for every candidate in the union of the base
+and year-biased pools. **`year_bias_recall10_{dev,test}_pools.json`** (5.0 / 6.3 MB, in git) —
+**Keep.** Which union candidates belong to each pool, plus alpha: the part of the cluster payload
+that scoring needs, written by `year_bias_recall10_prepare.py`. The full payload adds chunk
+text, tops GitHub's 100 MB limit, and is gitignored; it rebuilds from Postgres.
 
 ### The table-layout experiment (Arm 4)
 
@@ -844,8 +936,21 @@ Compression was measured and **never shipped** (`COST-36`): `agent.py` sends unc
 
 **`day9_arm6_dev_results.jsonl`** (2.1 MB, in git) — **Keep. You paid for this**, one row per
 question with both arms, their trajectories, usage and per-stage latencies. `07_arm6_loop.py run`
-resumes off it, so **deleting it re-spends the money.** Everything published about the loop is
-read from this file.
+resumes off it, so **deleting it re-spends the money.** `AGENT-19` was
+read from this file; it is superseded for quoting by the `_fair` file below.
+
+**`day9_arm6_dev_results_postfix.jsonl`** (2.2 MB, in git) — **Keep. You paid for this.** The
+same 200 questions re-run after the `AGENT-25` fix. Its static half still replays the
+pre-`year_bias` ranking, so the pair is not like for like (`AGENT-31`). **Do not quote.**
+
+**`day9_arm6_dev_results_fair.jsonl`** (2.2 MB, in git) — **Keep. You paid for this. The quotable
+Arm 6 file** (`AGENT-30`, `AGENT-33`, `AGENT-34`). `restatic` built it from the `_postfix` file:
+loop half copied byte for byte, static half regenerated on the `year_bias` ranking. Each row's
+`config` records `year_bias`, `static_source` and `restated_from`.
+
+**`retr7_rr_dev_scores_year_bias.jsonl`** (3.0 MB, in git) — **Keep.** The `year_bias` dev ranking
+phase 07 replays for its static baseline, one cell (`filtered_stripped_year_bias`), in the scores
+file shape. Derived by `scripts/archive/year_bias_static_ranking.py`, no GPU (`AGENT-31`).
 
 **`day9_run.log`** (16 KB, in git) — the run's stdout. Nothing reads it; its timing evidence is
 also in the JSONL. **Keep as record.**

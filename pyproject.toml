@@ -69,11 +69,11 @@ onnx = [
 ]
 
 # For scripts/archive/trt_rerank_parity.py only -- TensorRT rerank was tried and ruled out
-# (research_latency.md item 1, 2026-09-14: no speed win, worse numerical parity than the
-# shipped torch fp16 backend). Kept declared so that archived, provenance-only script stays
-# reproducible, same reason the `onnx` extra above stays declared for its own archived
-# scripts. Not used by anything shipped. Do not install alongside `onnx` in the same venv --
-# `onnxruntime` and `onnxruntime-gpu` occupy the same import name.
+# (2026-09-14: no speed win, worse numerical parity than the shipped torch fp16 backend).
+# Kept declared so that archived, provenance-only script stays reproducible, same reason the
+# `onnx` extra above stays declared for its own archived scripts. Not used by anything
+# shipped. Do not install alongside `onnx` in the same venv -- `onnxruntime` and
+# `onnxruntime-gpu` occupy the same import name.
 tensorrt = [
     "onnxruntime-gpu>=1.20.0",
 ]

@@ -9,6 +9,9 @@ This is where the project's recurring bug lives (`RETR-24`, `RETR-30`, `AGENT-16
 code assuming a shape, order, or provenance the producer never guaranteed. `head -1` the file.
 
 - **`*_scores.jsonl` is not in rank order.** Load it via `rag_sec.eval.load_ranking`, which sorts.
+- **`convfinqa_turns.jsonl` is a positional join.** `convfinqa_N` indexes into somebody
+  else's file order, which they never promised. `scripts/checks/convfinqa_turn_join.py`
+  re-derives it and fails rather than trusting it (`DATA-10`).
 - **A replayed artifact is not the Postgres artifact.** Do not index one with an index derived
   from the other.
 

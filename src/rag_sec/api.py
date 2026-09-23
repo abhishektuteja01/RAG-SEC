@@ -1,13 +1,13 @@
-"""HTTP serving layer for the shipped arm: Arm 3 + company filter + query strip.
+"""HTTP serving layer for the shipped arm: Arm 3 + company filter + query strip + year_bias +
+stripped dense query + chunk-year list (`RETR-51`/`RETR-52`, defaults since `DEPLOY-25`).
 
-Not Arm 6. The loop is an experiment (`AGENT-15`), and its own early signal says it adds
-no retrieval; `retrieve()`'s defaults already ARE the winning `filtered_stripped` cell,
-so serving it needs no arm selection here.
+Not Arm 6: the loop is closed as a negative (`AGENT-34`). `retrieve()`'s defaults already ARE
+the serving configuration, so serving it needs no arm selection here.
 
 The answer call imports `_ANSWER_PROMPT`/`_answer_llm`/`_evidence_text` from `agent`, the
-same three `scripts/pipeline/07_arm6_loop.py:static_baseline` imports. That is deliberate: it
-makes the deployed system identical to the arm the published 0.747 was measured on, with
-retrieval computed live instead of replayed from `retr7_rr_dev_scores.jsonl`.
+same three `scripts/pipeline/07_arm6_loop.py:static_baseline` imports, so both answer the same
+way. Retrieval is live here; the test 0.831 (`n18d_p10`) is an offline replay of
+`data/arms_scores.jsonl`, and both build candidates through `candidates.first_stage` (`RETR-53`).
 """
 
 import os

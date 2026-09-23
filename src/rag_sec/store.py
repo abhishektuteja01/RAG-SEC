@@ -9,9 +9,19 @@ from urllib.parse import quote
 import psycopg
 from pgvector.psycopg import register_vector
 
+from rag_sec.candidates import READ_DEPTH_MAX
 from rag_sec.preflight import assert_variant_predicates
 
 EMBEDDING_DIM = 1024  # BGE-M3's dense output size, not an independent choice (ARM1-1)
+
+# The HNSW index carries no `variant` column, so `WHERE variant = 'A'` POST-filters the rows
+# the index already returned: a `LIMIT k` scan that visits ef_search candidates can hand back
+# fewer than k. pgvector's default 40 returned a median of 35 rows for a LIMIT 50 (RETR-50).
+# Derived from READ_DEPTH_MAX -- the DEEPEST read any caller may ask for -- so it cannot
+# drift below it; 4x is where dev fused-pool recall stops moving. Deliberately not the pool
+# size: the two were one constant until P10, and at read depth 200 a pool-derived 4x50 would
+# equal the depth itself, which is this exact bug again.
+HNSW_EF_SEARCH = 4 * READ_DEPTH_MAX
 
 SCHEMA_SQL = f"""
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -107,6 +117,7 @@ def get_conn(check: bool = True) -> psycopg.Connection:
         dbname=os.environ["POSTGRES_DB"],
     )
     register_vector(conn)
+    conn.execute(f"SET hnsw.ef_search = {int(HNSW_EF_SEARCH)}")  # not parameterizable
     if check:
         preflight(conn)
     return conn

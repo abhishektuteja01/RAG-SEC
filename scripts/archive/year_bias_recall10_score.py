@@ -7,7 +7,7 @@ PRODUCES
     printed recall@10 (± stderr) for base vs year-biased, and the delta.
 
 READS
-    data/year_bias_recall10_{split}_payload.json   (prepare leg: pools + rerank_query)
+    data/year_bias_recall10_{split}_pools.json     (the prepare payload minus texts and rerank_query)
     data/year_bias_recall10_{split}_scores.jsonl    (HPC leg: per-candidate scores)
     rag_sec.eval.load_matched_questions            (gold labels)
 
@@ -41,7 +41,7 @@ def main() -> None:
     ap.add_argument("--split", default="dev", choices=("dev", "test"))
     args = ap.parse_args()
 
-    payload = json.loads((DATA_DIR / f"year_bias_recall10_{args.split}_payload.json").read_text())
+    payload = json.loads((DATA_DIR / f"year_bias_recall10_{args.split}_pools.json").read_text())
     by_id = {q["id"]: q for q in payload["questions"]}
 
     scores_path = DATA_DIR / f"year_bias_recall10_{args.split}_scores.jsonl"

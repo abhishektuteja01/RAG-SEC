@@ -1,6 +1,6 @@
 """Export the pinned cross-encoder to ONNX for the TensorRT rerank backend: ruled out
-(research_latency.md item 1, 2026-09-14 -- see trt_rerank_parity.py in this directory for the
-result and why nothing was wired into retrieve.py).
+(2026-09-14 -- see trt_rerank_parity.py in this directory for the result and why nothing was
+wired into retrieve.py).
 
 SAME EXPORT PATH AS onnx_rerank_export.py, same reason: `optimum` is uninstallable against
 this project's transformers==5.8.1 pin (DEPLOY-6), so this uses `torch.onnx.export` directly
