@@ -21,7 +21,7 @@ PRODUCES
         replay path, its sort-on-load, and `checks/static_ranking_order.py` are unchanged.
 
 READS
-    data/year_bias_recall10_dev_payload.json   `biased_pool` membership + alpha
+    data/year_bias_recall10_dev_pools.json     `biased_pool` membership + alpha
     data/year_bias_recall10_dev_scores.jsonl   per-candidate rerank scores over the union
 
 PARITY GATE, and it is the reason this is trustworthy
@@ -58,7 +58,7 @@ YEAR_BIAS_CELL = f"{SHIPPED_CELL}_year_bias"
 
 
 def build(split: str, out_path: Path) -> int:
-    payload = json.loads((DATA_DIR / f"year_bias_recall10_{split}_payload.json").read_text())
+    payload = json.loads((DATA_DIR / f"year_bias_recall10_{split}_pools.json").read_text())
     by_id = {q["id"]: q for q in payload["questions"]}
 
     score_of: dict[str, dict] = {}

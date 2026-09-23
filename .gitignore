@@ -109,6 +109,9 @@ data/retr7_rr_*_scores.jsonl
 data/chunks_pre_retr7/
 data/retr7_embed_payload.json
 data/retr7_embed_results.jsonl
+# The RETR-43 HPC input carries chunk texts and passes GitHub's 100 MB cap; the tracked
+# _pools.json beside it is everything the score leg reads.
+data/year_bias_recall10_*_payload.json
 data/ingest_log.jsonl
 .DS_Store
 models/
