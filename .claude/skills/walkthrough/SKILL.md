@@ -27,18 +27,21 @@ Three facts, no more:
 - Retrieval-augmented QA over 799 SEC 10-K filings. A learning project, deployed on EC2.
 - The point is the *measurement*: six configurations ("arms"), each adding one technique to the
   previous, all scored on the same corpus, split, and labels.
-- The shipped arm is dense + BM25/RRF + cross-encoder reranker + company filter + query strip.
-  Quote its test recall@10 from `DECISIONS.md` `RETR-39` — read the file, do not recite a number
-  from memory.
+- The shipped arm is dense + BM25/RRF + cross-encoder reranker + company filter + query strip,
+  plus three first-stage additions (`RETR-40`, `RETR-51`, `RETR-52`), all serving defaults since
+  `DEPLOY-25`. Quote its test recall@10 from `DECISIONS.md`'s top table, the `SERVING` row — read
+  the file, do not recite a number from memory.
 
 ## Stage 2 — prove it works
 
 Do not let them take the number on faith. Replay it: no GPU, no Postgres, no API key, no money.
 
 ```bash
-uv run scripts/pipeline/05_arm3_rerank.py score \
-    --scores data/retr7_rr_test_scores.jsonl --split test
+uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
+    --scores data/arms_scores.jsonl --split test
 ```
+
+The `n18d_p10` row is the serving configuration.
 
 Be honest about the prerequisite: scoring reads `data/chunks/`, which is gitignored, and pulls
 the question set from Hugging Face. A fresh clone runs `uv run scripts/pipeline/01_corpus.py`
@@ -49,8 +52,9 @@ Postgres entirely. Only Arms 1–2 need those.
 
 Read in this order, and say what each is *for* so they can stop early.
 
-1. `README.md` — what it is and the result. Its chart is current: every value is recomputed
-   from `data/` at generation time and cross-checked against `DECISIONS.md`.
+1. `README.md` — what it is and the result. Its chart stops at the 2×2 ablation, before the
+   first-stage additions; every value in it is recomputed from `data/` and cross-checked against
+   `DECISIONS.md`.
 2. `scripts/README.md` — run order, real dates, per-command cost. Its "Read this before any date
    below" section is the fastest cure for `dayN_` filename confusion.
 3. The arm progression — use `explain-arm`, one arm at a time. That is where the design story is.
@@ -60,7 +64,7 @@ Read in this order, and say what each is *for* so they can stop early.
 
 Flag traps as they come up: phase numbers are not arm numbers; there is no Arm 5 code; phase 02
 cannot run and its labels are frozen; only `variant = 'A'` is live; one file in `scripts/checks/`
-spends real money despite being named a test.
+spends real money despite being named a test, and so do `07_arm6_loop.py run` and `restatic`.
 
 ## Stage 4 — rebuild or extend
 

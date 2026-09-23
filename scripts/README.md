@@ -3,8 +3,8 @@
 Three folders, three jobs. **`pipeline/`** is the reproduction path: seven numbered phases,
 in order, plus phase 08 which stands outside that order, plus the two scripts that run on a
 GPU cluster. **`checks/`** is seventeen guards —
-each one locks a property that a real bug broke; five fail CI and one fails the container
-build. **`archive/`** is thirty one-off measurements whose findings are already recorded in
+each one locks a property that a real bug broke; eight fail CI and one fails the container
+build. **`archive/`** is forty-one files of one-off measurements whose findings are recorded in
 [`DECISIONS.md`](../DECISIONS.md), plus the producer for the README's chart; nothing in the
 pipeline imports them.
 
@@ -53,9 +53,9 @@ Commands are copy-pasteable and were each confirmed against the script's own `--
 | 02 | Gold labels — **half-runnable** | `data/day6_gold_tables.json` (runs) · `data/day7_gold_evidence_resolved.json` (**cannot run**) | `uv run scripts/pipeline/02_gold_labels.py tables`<br>`uv run scripts/pipeline/02_gold_labels.py evidence` | tables 08-29 00:44; frozen input 08-30 17:31; evidence 08-30 18:53 | `INFRA-15`, `GOLD-1`, `GOLD-7`, `INFRA-9`, `ARM4-3`, `DATA-7`–`DATA-9` |
 | 03 | Index: embed into pgvector + build BM25 | Postgres `chunks`, HNSW index, `pg_search` BM25 index | `uv run scripts/pipeline/03_index.py local`<br>`uv run scripts/pipeline/03_index.py bm25` | on/before 08-27 first local embed (**exact date not established**; bounded by Arm 1 on 08-27); 08-27→28 corpus growth; 09-04 re-index | `ARM3-2`, `INFRA-4`, `INFRA-6`, `INFRA-12`, `INFRA-13`, `ARM2-1`, `ARM4-3`, `RETR-7`, `RETR-8` |
 | 04 | Arms 1 & 2: dense, then hybrid BM25/RRF | `data/day3_arm1_dev_*`, `data/day4_arm2_dev_*` | `uv run scripts/pipeline/04_arms_first_stage.py arm1`<br>`uv run scripts/pipeline/04_arms_first_stage.py arm2` | 08-27 Arm 1; 08-28→29 Arm 2; 09-01 `--company-filter` sidecars; **09-04 both re-run and overwritten** after the re-index | `ARM1-2`, `RETR-5`, `INFRA-4`, `ARM2-1`, `RETR-35`, `RETR-36`, `RETR-7`, `RETR-8` |
-| 05 | **Arm 3 — the headline arm.** Rerank + company filter + query strip | `data/retr7_rr_{dev,test}_scores.jsonl`, `data/retr7_arm3_{dev,test}_results.json` | see the three legs below | 08-28 first HPC pass; 08-30 rescored; **09-04 the published `retr7_*` dev+test passes** | `ARM3-1`, `ARM3-2`, `RETR-5`, `RETR-6`, `RETR-16`, `RETR-18`, `RETR-24`, `RETR-30`, `RETR-39`, `AGENT-16`, `AGENT-24` |
+| 05 | **Arm 3 — the headline arm.** Rerank + company filter + query strip | `data/retr7_rr_{dev,test}_scores.jsonl`, `data/retr7_arm3_{dev,test}_results.json`, `data/arms_scores.jsonl`, `data/arms_{dev,test}_results.json` | see the three legs below | 08-28 first HPC pass; 08-30 rescored; **09-04 the published `retr7_*` dev+test passes**; the `arms_*` pass committed 09-17 | `ARM3-1`, `ARM3-2`, `RETR-5`, `RETR-6`, `RETR-16`, `RETR-18`, `RETR-24`, `RETR-30`, `RETR-39`, `RETR-51`, `RETR-52`, `DEPLOY-25`, `AGENT-16`, `AGENT-24` |
 | 06 | Arm 4: A/B/C table layouts — **a dead end**, kept because `score --variant A` is a live control | `data/day6_arm4_{A,B,C}_dev_results.json`, `data/day6_table_summaries.json` | `uv run scripts/pipeline/06_arm4_tables.py score --variant A --overwrite` | 08-29 gold tables + C summaries; **08-30 the whole A/B/C run** (results 19:09–19:12). Not 09-04 — the re-index touched variant A only | `ARM4-2`…`ARM4-10`, `GOLD-5`, `INFRA-17`, `RETR-22`, `RETR-29`, `RETR-31` |
-| 07 | Arm 6: LangGraph loop vs. the static shipped arm | `data/day9_arm6_dev_results.jsonl` | `uv run scripts/pipeline/07_arm6_loop.py analyze` (free)<br>`uv run scripts/pipeline/07_arm6_loop.py run --allow-paid-run -n 200` (**paid**) | started 2026-09-04 20:10, finished 2026-09-05 01:55 — 200/200, 0 errors, 339.6 min, serial, on mains power | `AGENT-1`, `AGENT-4`, `AGENT-5`, `AGENT-8`, `AGENT-10`, `AGENT-15`…`AGENT-17`, `AGENT-19`, `AGENT-21`, `AGENT-22`, `AGENT-24`, `AGENT-25`, `COST-21`, `COST-30`, `COST-36`, `OBS-10`, `OBS-13` |
+| 07 | Arm 6: LangGraph loop vs. the static shipped arm | `data/day9_arm6_dev_results.jsonl`, `data/day9_arm6_dev_results_postfix.jsonl`, `data/day9_arm6_dev_results_fair.jsonl` (the quotable one) | `uv run scripts/pipeline/07_arm6_loop.py analyze` (free)<br>`uv run scripts/pipeline/07_arm6_loop.py run --allow-paid-run -n 200` (**paid**)<br>`uv run scripts/pipeline/07_arm6_loop.py restatic --allow-paid-run --results … --out …` (**paid**) | started 2026-09-04 20:10, finished 2026-09-05 01:55 — 200/200, 0 errors, 339.6 min, serial, on mains power. `_postfix` and `_fair` committed 2026-09-16 | `AGENT-1`, `AGENT-4`, `AGENT-5`, `AGENT-8`, `AGENT-10`, `AGENT-15`…`AGENT-17`, `AGENT-19`, `AGENT-21`, `AGENT-22`, `AGENT-24`, `AGENT-25`, `AGENT-30`, `AGENT-31`, `AGENT-33`, `AGENT-34`, `COST-21`, `COST-30`, `COST-36`, `OBS-10`, `OBS-13` |
 | 08 | **Outside the run order.** ConvFinQA's real multi-turn dialogues, joined to our question ids | `data/convfinqa_turns.jsonl` | `uv run scripts/pipeline/08_convfinqa_turns.py build` | 2026-09-17 | `DATA-10` |
 
 ### Phase 03 — the cluster route
@@ -118,12 +118,14 @@ Arm 3 result needs no GPU, no Postgres and no money -- only the corpus, for gold
 
 ```bash
 uv run scripts/pipeline/01_corpus.py    # ~1 h, resumable, skips existing
-uv run scripts/pipeline/05_arm3_rerank.py score \
-    --scores data/retr7_rr_test_scores.jsonl --split test    # ~90 s
+uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
+    --scores data/arms_scores.jsonl --split test              # ~90 s
 ```
 
-That prints the `RETR-39` table: `filtered_stripped` recall@10 0.747 on 1545/1546 test
-questions. Everything below is only needed to rebuild the index itself, which Arms 1-2
+That prints the serving configuration: `n18d_p10` recall@10 0.831 on 1545/1546 test
+questions (`RETR-52`, `DEPLOY-25`). Drop `--table arms` and pass
+`--scores data/retr7_rr_test_scores.jsonl` for the older `RETR-39` 2x2, `filtered_stripped`
+0.747. Everything below is only needed to rebuild the index itself, which Arms 1-2
 query live.
 
 ## Rebuilding the index: Arms 1-2 with no cluster
@@ -159,13 +161,15 @@ every figure in `DECISIONS.md` came from the GPU legs. Use `--n` unless you mean
 | Command | Spend | Gate |
 |---|---|---|
 | `07_arm6_loop.py run` | **~$4.10 per 200 questions** (~$0.0205/question), live Gemini | Refuses to start without `--allow-paid-run`. There is no cheaper dry run — re-run `analyze` on the file on disk instead |
+| `07_arm6_loop.py restatic` | **~$0.0116/question** (~$2.32 per 200), live Gemini — one answer call per question, static arm only (`AGENT-31`) | Refuses to start without `--allow-paid-run`. Needs Postgres. Keeps the loop half of `--results` and writes a new `--out` file |
 | `06_arm4_tables.py variants` | 498 `claude-haiku-4-5` calls (one per gold table). **All 498 are cached, so a normal run spends $0** | An uncached summary is a hard error unless `--allow-paid-summaries`. Don't pass it — a lost cache would silently re-spend |
 | `hpc/rerank_hpc.py` (test 2×2) | GPU-hours: 309,160 pairs, ~7.3 GPU-h estimated | SLURM allocation (`RETR-18`) |
 | `hpc/embed_hpc.py` (re-index) | GPU-hours: 47,312 chunks in ~72 min at ~11 chunks/s on a V100 | SLURM allocation (`INFRA-12`, `INFRA-13`) |
 | `05_arm3_rerank.py local` | No money — your machine's hours instead (see above) | none |
 | `checks/agent_loop_smoke_test.py` | **~$0.04 per run**, live Gemini, despite the name | none, and no dry-run flag |
+| `archive/answer_ab_run.py`, `archive/answer_batch_run.py`, `archive/unanswerable_run.py` | live Gemini: ~$2.02 / ~$1.01 per full answer A/B, ~$0.55 for the 47 unanswerable questions | none. Each resumes off its output file, so a re-run is **free while `data/day8_cost13_responses.jsonl` / `data/unanswerable_results.jsonl` exist** and paid once they are gone |
 
-Everything else — every `score`, every `analyze`, all of `checks/` bar that one — reads only.
+Everything else — every `score`, every `analyze`, all of `checks/` bar the smoke test — reads only.
 
 Two standing operating rules for phase 07, both learned the hard way: **run serial**
 (`--concurrency` above 1 is refused; concurrent MPS model construction segfaults with no
@@ -194,6 +198,10 @@ not pytest, to match the rest of `scripts/`.
 | `atom_replay.py` | the packer replayed from `data/parsed/` reproduces `data/chunks/` byte-for-byte, and chunks have enough atoms for compression to have any purchase | — |
 | `unanswerable_validate.py` | the unanswerable set really is unanswerable, for the 30 of 47 questions where that is machine-checkable | — |
 | `agent_loop_smoke_test.py` | the agentic loop end to end. **Paid** — see the cost table | — |
+| `static_replay_provenance.py` | Every `retrieve()` setting `retrieve_node` passes matches what Arm 6's replayed static ranking was built under; fails if any is unpinned (`AGENT-31`, `AGENT-36`) | **CI** |
+| `cell_config.py` | `05_arm3_rerank.py`'s cell-to-pool table matches `hpc/rerank_hpc.py`'s `CELL_SPEC`, and every arms cell reranks against the stripped question | **CI** |
+| `short_limit.py` | `dense()` returns as many rows as its `LIMIT` at `READ_DEPTH_MAX` (`RETR-50`). Static leg needs no database; live leg skips without Postgres | **CI**, static leg only |
+| `bm25_only_recall.py` | BM25-only recall@10 stays near where it was measured; a move means corpus, split or labels changed (`CI-4`). Needs Postgres | — |
 | `convfinqa_turn_join.py` | `data/convfinqa_turns.jsonl` still agrees with upstream positionally, and its id set is still exactly the ConvFinQA ids `load_matched_questions()` yields — the tripwire on a `SUBSET_FILES` change silently moving the scored denominator (`DATA-10`). Each leg skips rather than fails when its input is absent, so it is **not** wired to CI, where all three would skip | — |
 
 The CI workflow is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): a `guards` job
@@ -231,12 +239,17 @@ a reader can walk back from a number to the script that produced it.
 | `onnx_rerank_parity.py` | `DEPLOY-6`, `DEPLOY-8`, `RETR-35`, `RETR-39`, `AGENT-16` |
 | `ort_fp32_latency.py` | `DEPLOY-8`, `DEPLOY-11` |
 | `pack_variants.py` | `COST-25`, `COST-26`, `RETR-24` |
+| `paired_delta_variance.py` | `RETR-41` |
 | `rescore_labels.py` | `RETR-35` |
 | `results_chart.py` | `RETR-39` — no finding of its own; renders that table's recall@10 column as `images/results_chart.png`. Needs `uv run --with matplotlib`; matplotlib is not a project dependency |
 | `slice_budget_sweep.py` | `COST-6`, `COST-7`, `COST-11`, `COST-25`, `RETR-29` |
 | `slice_floor.py` | `COST-7` |
 | `slice_prepare.py` | `COST-5`, `COST-7`, `COST-8`, `COST-17`, `RETR-16`, `RETR-29` |
 | `slice_rerank_hpc.py`, `slice_rerank_hpc.sbatch` | `COST-7`, `COST-11` |
+| `trt_export_onnx.py`, `trt_rerank_parity.py` | none yet — TensorRT rerank ruled out 2026-09-14 (9/10 top-5 parity, not faster than torch fp16); the one finding here with no `DECISIONS.md` row |
 | `stratum_b_channel.py` | `COST-23`, `COST-25`, `COST-26` |
 | `unanswerable_run.py` | `COST-34`, `AGENT-10`, `AGENT-17` |
+| `year_bias_sweep.py` | `RETR-40`, `RETR-49` |
+| `year_bias_recall10.py`, `year_bias_recall10_prepare.py`, `year_bias_recall10_hpc.py`, `year_bias_recall10.sbatch`, `year_bias_recall10_score.py` | `RETR-40` |
+| `year_bias_static_ranking.py` | `AGENT-31` |
 | `worst_failures.py` | `COST-21` — the standing rule that each arm keeps its 20 worst failures in a file |

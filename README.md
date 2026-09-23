@@ -75,10 +75,10 @@ every delta is attributable. recall@10 is dev, from `RETR-39`:
 |---|---|---|---|
 | 1 | dense BGE-M3 vectors | 0.337 | the baseline everything else is measured against |
 | 2 | + BM25/RRF fusion | 0.514 | kept — the largest single gain |
-| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`), and 0.847 measured with the two first-stage additions (`RETR-51`/`RETR-52`, not yet default) |
+| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`), and 0.847 measured with the two first-stage additions (`RETR-51`/`RETR-52`), serving defaults since `DEPLOY-25` |
 | 4 | table layouts B and C | — | lost — whole-table A wins on every metric (`ARM4-10`) |
 | 5 | multi-vector late interaction | — | never built: ~378 GB of vectors (`ARM5-1`) |
-| 6 | agentic LangGraph loop | — | loses on retrieval; its answer-accuracy win does not survive a fair baseline (`AGENT-30`) |
+| 6 | agentic LangGraph loop | — | closed as a negative (`AGENT-34`): its answer-accuracy win does not survive a fair baseline (`AGENT-30`), and its retrieval deficit is not significant (`AGENT-33`) |
 
 `/explain-arm 3` in Claude Code walks through any one of them.
 

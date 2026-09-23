@@ -32,19 +32,21 @@ Never a lower table. Cite the ID inline.
 |---|---|---|---|
 | 1 | dense retrieval (BGE-M3 → pgvector cosine) | `scripts/pipeline/04_arms_first_stage.py arm1` + `src/rag_sec/candidates.py` | `ARM1-2`, `RETR-5` |
 | 2 | + BM25, fused with RRF | same file, `arm2` | `ARM2-1` |
-| 3 | + cross-encoder reranker (`bge-reranker-v2-m3`) | `scripts/pipeline/05_arm3_rerank.py` + `src/rag_sec/retrieve.py` | `ARM3-1`, `ARM3-2`, `RETR-6`, `RETR-16`, `RETR-39` |
+| 3 | + cross-encoder reranker (`bge-reranker-v2-m3`) | `scripts/pipeline/05_arm3_rerank.py` + `src/rag_sec/retrieve.py` | `ARM3-1`, `ARM3-2`, `RETR-6`, `RETR-16`, `RETR-39`, `RETR-40`, `RETR-51`, `RETR-52`, `DEPLOY-25` |
 | 4 | table-layout variants A / B / C | `scripts/pipeline/06_arm4_tables.py` | `ARM4-2`…`ARM4-10` |
 | 5 | multi-vector late interaction | **no code — never built** | `ARM5-1` |
-| 6 | agentic loop: plan → retrieve → judge → answer | `src/rag_sec/agent.py` + `scripts/pipeline/07_arm6_loop.py` | `AGENT-15`, `AGENT-19`, `AGENT-22`, `AGENT-25` |
+| 6 | agentic loop: plan → retrieve → judge → answer | `src/rag_sec/agent.py` + `scripts/pipeline/07_arm6_loop.py` | `AGENT-15`, `AGENT-22`, `AGENT-25`, `AGENT-30`, `AGENT-33`, `AGENT-34` |
 
 Phase numbers are not arm numbers. Phase 04 covers two arms; there is no phase for Arm 5.
 
 ## Per-arm notes you must not omit
 
-- **Arm 3 shipped.** `retrieve.py`'s defaults *are* the winning `filtered_stripped` cell and
-  `api.py` serves exactly that. The result comes from a 2×2 — control, + company filter,
-  + query strip, + both — and the fourth cell is what makes the gain attributable. The two
-  together beat their sum (`RETR-6`).
+- **Arm 3 shipped.** The 2×2 — control, + company filter, + query strip, + both — is what makes
+  the gain attributable; the two together beat their sum (`RETR-6`, `RETR-39`). Three
+  first-stage additions came after it: the year nudge (`RETR-40`), the stripped dense query
+  (`RETR-51`) and the chunk-year list (`RETR-52`). Since `DEPLOY-25` all three are
+  `retrieve()`'s defaults and `api.py` serves them, so the serving number is `RETR-52`'s, not
+  `filtered_stripped`'s.
 - **Arm 4 is a documented dead end.** A won; B and C were dropped (`ARM4-10`) and deliberately
   never re-embedded after the `RETR-7`/`RETR-8` re-index, so an A-vs-B number produced today
   compares two corpora and means nothing. The phase survives because `score --variant A`
@@ -53,20 +55,24 @@ Phase numbers are not arm numbers. Phase 04 covers two arms; there is no phase f
   Say so plainly; do not invent an implementation.
 - **Arm 6's published finding is a negative, but not the assumed one.** The specced experiment
   asked for multi-document questions; that subset is **empty** in every split, so the loop's best
-  case is untestable on this benchmark (`AGENT-15`). The trajectory half that did run: the loop
-  wins on answer accuracy, loses on retrieval — the planner's rewrites drop the company name and
-  silently switch the company filter off (`AGENT-19`, `AGENT-25`). Never quote the "all iters
-  (union)" row; it compares a 40-slot budget against a 10-slot one (`AGENT-22`). `run` costs
-  real money.
+  case is untestable on this benchmark (`AGENT-15`). The trajectory half that did run: the
+  answer-accuracy win does not survive a fair baseline (`AGENT-30`), and the retrieval deficit
+  is not significant (`AGENT-33`). The planner's rewrites drop the company name and silently
+  switch the company filter off (`AGENT-25`). Arm 6 is closed (`AGENT-34`). Never quote the "all
+  iters (union)" row; it compares a 40-slot budget against a 10-slot one (`AGENT-22`). `run` and
+  `restatic` cost real money.
 
 ## Reproducing a number while explaining
 
-Arm 3 replays offline once `data/chunks/` exists:
+Arm 3 replays offline once `data/chunks/` exists. The serving configuration (`--table arms`,
+row `n18d_p10`):
 
 ```bash
-uv run scripts/pipeline/05_arm3_rerank.py score \
-    --scores data/retr7_rr_test_scores.jsonl --split test
+uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
+    --scores data/arms_scores.jsonl --split test
 ```
+
+The 2×2 ablation: drop `--table arms` and pass `--scores data/retr7_rr_test_scores.jsonl`.
 
 Always pass `--scores` and `--out` explicitly; the defaults are stale `day8_*` names. Arms 1–2
 query Postgres live and need the corpus indexed first.
