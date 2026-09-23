@@ -64,7 +64,8 @@ Phase numbers are not arm numbers. Phase 04 covers two arms; there is no phase f
 
 ## Reproducing a number while explaining
 
-Arm 3 replays offline once `data/chunks/` exists. The serving configuration (`--table arms`,
+Arm 3 replays offline from a fresh clone; gold labels come from `data/gold_chunk_ids.json`
+when `data/chunks/` is absent (`INFRA-28`). The serving configuration (`--table arms`,
 row `n18d_p10`):
 
 ```bash

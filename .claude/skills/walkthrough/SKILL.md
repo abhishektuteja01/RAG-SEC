@@ -43,10 +43,11 @@ uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
 
 The `n18d_p10` row is the serving configuration.
 
-Be honest about the prerequisite: scoring reads `data/chunks/`, which is gitignored, and pulls
-the question set from Hugging Face. A fresh clone runs `uv run scripts/pipeline/01_corpus.py`
-first — resumable, skips what is on disk. That is still the short path; it skips the embed and
-Postgres entirely. Only Arms 1–2 need those.
+Be honest about the prerequisites: none on disk, but the first run pulls the question set from
+Hugging Face, so it needs network. Gold labels resolve against the gitignored `data/chunks/` when
+present; a fresh clone reads the same labels from the tracked `data/gold_chunk_ids.json`
+(`INFRA-28`). The corpus (`01_corpus.py`, ~1 h) is needed only for chunk text — Arms 1–2, which
+also need the embed and Postgres, and the label-audit scripts.
 
 ## Stage 3 — understand it
 

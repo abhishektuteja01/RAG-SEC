@@ -2,8 +2,8 @@
 
 Three folders, three jobs. **`pipeline/`** is the reproduction path: seven numbered phases,
 in order, plus phase 08 which stands outside that order, plus the two scripts that run on a
-GPU cluster. **`checks/`** is nineteen guards and probes —
-each one locks a property that a real bug broke; nine fail CI and one fails the container
+GPU cluster. **`checks/`** is twenty guards and probes —
+each one locks a property that a real bug broke; ten fail CI and one fails the container
 build. **`archive/`** is forty-one files of one-off measurements whose findings are recorded in
 [`DECISIONS.md`](../DECISIONS.md), plus the producer for the README's chart; nothing in the
 pipeline imports them.
@@ -114,13 +114,18 @@ the rerank score merely attached. Reading one raw scored recall@10 **0.552 again
 ## Start here: replaying the headline number
 
 **The cheapest path is not below.** The rerank scores are committed, so scoring the published
-Arm 3 result needs no GPU, no Postgres and no money -- only the corpus, for gold labels:
+Arm 3 result needs no GPU, no Postgres, no money and no corpus -- only network on the first
+run, for the Hugging Face question set:
 
 ```bash
-uv run scripts/pipeline/01_corpus.py    # ~1 h, resumable, skips existing
 uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
     --scores data/arms_scores.jsonl --split test              # ~90 s
 ```
+
+Gold labels are computed live from `data/chunks/` when it exists, and read from the tracked
+`data/gold_chunk_ids.json` when it does not (`INFRA-28`). After any change to the label code
+or its inputs, rebuild that file from the corpus (`checks/gold_cache.py build`); until then a
+corpus-less replay refuses to run rather than score stale labels.
 
 That prints the serving configuration: `n18d_p10` recall@10 0.831 on 1545/1546 test
 questions (`RETR-52`, `DEPLOY-25`). Drop `--table arms` and pass
@@ -193,6 +198,7 @@ not pytest, to match the rest of `scripts/`.
 | `retrieval_gate.py` | replays `data/ci_retrieval_fixture.jsonl` with `eval.py`'s own metric functions; fails if recall@10 or nDCG@10 falls more than 2.0 points below `data/ci_retrieval_baseline.json` (0.7854 / 0.6593 on 400 dev questions), or if the fixture's question count no longer matches the baseline's n=400 | **CI** |
 | `container_wordlist.py` | `RETR-11`'s English-word guard is on and reading the right wordlist — silent failure otherwise (`DEPLOY-5`) | **Dockerfile, at build *and* at startup** |
 | `ci_fixture_build.py` | builds the committed fixture the gate scores. Run rarely, by hand | — |
+| `gold_cache.py` | builds `data/gold_chunk_ids.json` from `data/chunks/` with `eval.py`'s own label code, and `check`s it: recomputes every label from the corpus and fails on any difference; `--static-only` checks it still matches the label code's fingerprint and covers every id in the tracked score files (`INFRA-28`) | **CI**, `--static-only` |
 | `heading_fix.py` | `RETR-7`/`RETR-8` acceptance: reversible with flags off, chunk boundaries preserved, bug actually fixed. Local-only — it reads gitignored `data/chunks/` | — |
 | `company_resolver.py` | `rag_sec.company.resolve` edge cases + precision/recall on train (calibration) and dev (confirmation) | — |
 | `atom_replay.py` | the packer replayed from `data/parsed/` reproduces `data/chunks/` byte-for-byte, and chunks have enough atoms for compression to have any purchase | — |

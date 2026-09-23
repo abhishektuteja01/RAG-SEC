@@ -2,9 +2,13 @@
 chunk id into our own corpus, so relevance is inferred in three layers -- gold table row,
 then gold sentence, then whole page. `_relevance_evidence` documents them; DECISIONS.md
 GOLD-1 records why per-page matching was replaced (DATA-3/DATA-4/DATA-7..9).
+
+READS data/chunks/ when present; without it, the cached ids in GOLD_CACHE_PATH (INFRA-28).
 """
 
 import difflib
+import hashlib
+import inspect
 import json
 import math
 import os
@@ -16,12 +20,18 @@ from functools import lru_cache
 
 import pandas as pd
 
+from rag_sec import dataset
 from rag_sec.dataset import load_t2_ragbench
 
 CHUNKS_DIR = "data/chunks"
 DAY6_GOLD_TABLES_PATH = "data/day6_gold_tables.json"
 DAY6_SUMMARIES_PATH = "data/day6_table_summaries.json"
 GOLD_EVIDENCE_RESOLVED_PATH = "data/day7_gold_evidence_resolved.json"
+# `gold_relevant_chunk_ids` per dev/test question, cached from the corpus so a clone without
+# data/chunks/ can still score (INFRA-28). Read ONLY when the corpus is absent; built and
+# guarded by scripts/checks/gold_cache.py. Train is never scored, so it is not cached.
+GOLD_CACHE_PATH = "data/gold_chunk_ids.json"
+GOLD_CACHE_SPLITS = ("dev", "test")
 
 _COMMA_IN_NUMBER_RE = re.compile(r"(?<=\d),(?=\d)")
 _WORD_RE = re.compile(r"\d+\.\d+|[a-z0-9]+")  # decimal alternative tried first, so
@@ -206,11 +216,28 @@ def _clustered_align_relevant_chunks(gold_words: list[str], candidates: list[tup
     return relevant
 
 
+def corpus_present(chunks_dir: str = CHUNKS_DIR) -> bool:
+    """True when `chunks_dir` holds a chunk file. An empty directory counts as absent: listed,
+    it used to yield an empty question set and a silent n=0 score."""
+    if not os.path.isdir(chunks_dir):
+        return False
+    with os.scandir(chunks_dir) as it:
+        return any(e.name.endswith(".json") for e in it)
+
+
 @lru_cache(maxsize=None)
 def _chunk_file_index(chunks_dir: str = CHUNKS_DIR) -> dict[tuple[int, int], str]:
-    """Maps (cik, report_year) -> chunk filename, parsed from TICKER_YEAR_CIK.json."""
+    """Maps (cik, report_year) -> chunk filename. Only the names are read, so without the
+    corpus they come from the gold cache (INFRA-28)."""
+    if corpus_present(chunks_dir):
+        return _index_filenames(os.listdir(chunks_dir))
+    return _index_filenames(_gold_cache()["chunk_files"])
+
+
+def _index_filenames(fnames) -> dict[tuple[int, int], str]:
+    """(cik, report_year) -> filename, parsed from TICKER_YEAR_CIK.json."""
     index = {}
-    for fname in os.listdir(chunks_dir):
+    for fname in fnames:
         if not fname.endswith(".json"):  # .DS_Store and friends would crash the unpack
             continue
         try:
@@ -345,7 +372,12 @@ def _relevance_evidence(
 
 def gold_relevant_chunk_evidence(row: pd.Series, chunks_dir: str = CHUNKS_DIR) -> dict[int, dict]:
     """Per-chunk relevance evidence for a question, over the JSON-file corpus (Arms 1-3,
-    Strategy A only). See `_relevance_evidence` for the scoring rules."""
+    Strategy A only). See `_relevance_evidence` for the scoring rules. Needs the corpus
+    always: the gold cache holds ids, not layers."""
+    if not corpus_present(chunks_dir):
+        raise FileNotFoundError(
+            f"{chunks_dir}/ is absent: per-chunk evidence needs the corpus "
+            "(scripts/pipeline/01_corpus.py). Only gold_relevant_chunk_ids() is cached.")
     chunks = _load_chunks(row["chunk_file"], chunks_dir)
     candidates = [(i, c["text"]) for i, c in enumerate(chunks)]
     resolved = _gold_evidence_resolved().get(row["id"])
@@ -354,8 +386,81 @@ def gold_relevant_chunk_evidence(row: pd.Series, chunks_dir: str = CHUNKS_DIR) -
 
 
 def gold_relevant_chunk_ids(row: pd.Series, chunks_dir: str = CHUNKS_DIR) -> list[int]:
-    """Indices (into that filing's chunk list) of chunks overlapping the gold context."""
-    return sorted(gold_relevant_chunk_evidence(row, chunks_dir).keys())
+    """Indices (into that filing's chunk list) of chunks overlapping the gold context.
+
+    Computed live whenever the corpus is present. Without it, read from GOLD_CACHE_PATH --
+    the same code's output on the same corpus, recorded, never re-derived (INFRA-28)."""
+    if corpus_present(chunks_dir):
+        return sorted(gold_relevant_chunk_evidence(row, chunks_dir).keys())
+    q = _gold_cache()["questions"].get(row["split"], {}).get(row["id"])
+    if q is None:
+        raise KeyError(
+            f"{row['id']!r} (split {row['split']!r}) is not in {GOLD_CACHE_PATH}, which holds "
+            f"{GOLD_CACHE_SPLITS} only; its labels need {chunks_dir}/ (01_corpus.py)")
+    if q["row"] != label_row_key(row):
+        raise RuntimeError(
+            f"{row['id']!r}: its benchmark row (filing, gold page) is not the one "
+            f"{GOLD_CACHE_PATH} was built from -- the dataset moved. Rebuild from the corpus: "
+            "uv run scripts/checks/gold_cache.py build")
+    return list(q["gold"])
+
+
+# Everything a cached label depends on besides the corpus. Editing any of it revokes the
+# cache until it is rebuilt, fail-closed, as preflight.ALLOWED does for SQL.
+_LABEL_CODE = (
+    _normalize_words, _numeric_tokens, _row_label_words, _table_row_relevant_chunks,
+    _clustered_align_relevant_chunks, _index_filenames, load_matched_questions,
+    _gold_evidence_resolved, _gold_table_indices_by_question, _table_summaries,
+    _filing_stem, _gold_summaries_for_row, _relevance_evidence, gold_relevant_chunk_evidence,
+    dataset.load_t2_ragbench, dataset.assign_convfinqa_splits,
+)
+_LABEL_CONSTANTS = (
+    _COMMA_IN_NUMBER_RE.pattern, _WORD_RE.pattern, _NUMERIC_TOKEN_RE.pattern,
+    _YEAR_TOKEN_RE.pattern, MIN_ROW_NUMBER_DIGITS, MIN_BLOCK_PAGE, MIN_BLOCK_SENTENCE,
+    MAX_CLUSTER_GAP, CLUSTER_SHARE_THRESHOLD, ROW_NUMBER_MATCH_THRESHOLD,
+    ROW_NUMBER_MAX_DOC_FREQ, dataset.SUBSET_FILES, dataset.CONVFINQA_SPLIT_SEED,
+    dataset.CONVFINQA_SPLIT_RATIOS,
+)
+
+
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def label_fingerprint() -> dict[str, str | None]:
+    """sha256 of the label code + constants, and of each tracked label input (None = absent,
+    which `_gold_evidence_resolved` and friends silently treat as empty)."""
+    code = "\n".join(inspect.getsource(f) for f in _LABEL_CODE) + repr(_LABEL_CONSTANTS)
+    out: dict[str, str | None] = {"label_code": _sha256(code.replace("\r\n", "\n").encode())}
+    for path in (GOLD_EVIDENCE_RESOLVED_PATH, DAY6_GOLD_TABLES_PATH, DAY6_SUMMARIES_PATH):
+        out[path] = _sha256(open(path, "rb").read()) if os.path.exists(path) else None
+    return out
+
+
+def label_row_key(row: pd.Series) -> str:
+    """Short hash of the row fields a label reads: id, filing, stem (summary lookup) and
+    the gold page (Layer 3). A dataset change under a cached label fails instead of scoring."""
+    fields = [row["id"], row["chunk_file"], _filing_stem(row), str(row["context"])]
+    return _sha256(json.dumps(fields).encode())[:12]
+
+
+@lru_cache(maxsize=None)
+def _gold_cache() -> dict:
+    if not os.path.exists(GOLD_CACHE_PATH):
+        raise FileNotFoundError(
+            f"neither {CHUNKS_DIR}/ nor {GOLD_CACHE_PATH} is present, and gold labels need one. "
+            f"Restore {GOLD_CACHE_PATH} from git, or build the corpus with "
+            "scripts/pipeline/01_corpus.py")
+    with open(GOLD_CACHE_PATH) as f:
+        cache = json.load(f)
+    now = label_fingerprint()
+    stale = sorted(k for k in now if cache["fingerprint"].get(k) != now[k])
+    if stale:
+        raise RuntimeError(
+            f"{GOLD_CACHE_PATH} was built under different label code or inputs ({stale}), so "
+            "it no longer records what this code computes. Rebuild it from the corpus: "
+            "uv run scripts/checks/gold_cache.py build")
+    return cache
 
 
 def gold_relevant_chunk_evidence_db(row: pd.Series, conn, variant: str) -> dict[tuple[int, str], dict]:
