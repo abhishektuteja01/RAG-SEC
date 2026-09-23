@@ -673,23 +673,24 @@ def cmd_score(args: argparse.Namespace) -> None:
         for line in fh:
             if line.strip():
                 rec = json.loads(line)
-                if rec.get("latency_s") is not None and rec.get("cells"):
+                if (rec.get("latency_s") is not None and rec.get("cells")
+                        and rec.get("split") == args.split):
                     lat.append(rec["latency_s"] / max(1, len(rec["cells"])))
+    # The cluster leg writes one latency averaged over a batch of 20, the local leg one per
+    # question. Repeated values are the batch signature; p50 == p95 was not, and only ever
+    # fired because percentile() was handed 50/95 instead of 0.5/0.95.
+    batch_avg = len(set(lat)) < len(lat)
     if lat:
         lat.sort()
-        p50, p95 = percentile(lat, 50), percentile(lat, 95)
+        p50, p95 = percentile(lat, 0.5), percentile(lat, 0.95)
         # sum(lat) is the PER-CELL series, so the total must be multiplied back up by the
         # number of cells or it under-reports the GPU bill by exactly that factor.
         print(f"\nrerank wall time per question per cell: p50 {p50:.3f}s  p95 {p95:.3f}s  "
               f"n={len(lat)}  (total {sum(lat) * len(cells) / 3600:.2f} GPU-h across "
               f"{len(cells)} cells)")
-        if p50 == p95:
-            # The cluster leg writes ONE averaged latency for a whole batch of 20 questions,
-            # so every line in such a file carries the same number and the "distribution" is
-            # a constant. Say so rather than let a flat p50/p95 be quoted as a measured
-            # spread -- the `local` leg's per-question timings are the real ones.
-            print("  NOTE: p50 == p95 -- this file carries a per-BATCH average, not a "
-                  "per-question timing. Not a latency distribution; do not quote it as one.")
+        if batch_avg:
+            print("  NOTE: per-BATCH averages, not per-question timings -- a spread of batch "
+                  "means, not a latency distribution; do not quote it as one.")
 
     # Stderr is stored for every cell, not just the baseline row that prints it: the deltas
     # are what get quoted, and a delta needs both cells' spread to be defensible.
@@ -700,7 +701,8 @@ def cmd_score(args: argparse.Namespace) -> None:
             "skipped_missing_cell": skipped_cells, "skipped_no_gold": skipped_gold,
             "subgroup_n": {k: len(v) for k, v in idx.items()},
             "rerank_s_per_question_per_cell": (
-                {"p50": percentile(lat, 50), "p95": percentile(lat, 95), "n": len(lat)}
+                {"p50": percentile(lat, 0.5), "p95": percentile(lat, 0.95), "n": len(lat),
+                 "batch_averaged": batch_avg}
                 if lat else None),
             "cells": table,
         }, indent=1))
