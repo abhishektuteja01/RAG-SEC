@@ -16,7 +16,8 @@ Thresholds:
                              not a published headline.
 
 p95 latency and cost per query are the gate's other two legs. Neither is here: both need a
-measurement in the serving container (DEPLOY-1), not a replay.
+measurement in the serving container (DEPLOY-1), not a replay. latency_budget.py gates the
+stored p95 timings instead (DEPLOY-27).
 
 Usage:
     uv run scripts/checks/retrieval_gate.py

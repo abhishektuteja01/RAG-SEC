@@ -2,8 +2,8 @@
 
 Three folders, three jobs. **`pipeline/`** is the reproduction path: seven numbered phases,
 in order, plus phase 08 which stands outside that order, plus the two scripts that run on a
-GPU cluster. **`checks/`** is seventeen guards —
-each one locks a property that a real bug broke; eight fail CI and one fails the container
+GPU cluster. **`checks/`** is eighteen guards —
+each one locks a property that a real bug broke; nine fail CI and one fails the container
 build. **`archive/`** is forty-one files of one-off measurements whose findings are recorded in
 [`DECISIONS.md`](../DECISIONS.md), plus the producer for the README's chart; nothing in the
 pipeline imports them.
@@ -201,13 +201,15 @@ not pytest, to match the rest of `scripts/`.
 | `static_replay_provenance.py` | Every `retrieve()` setting `retrieve_node` passes matches what Arm 6's replayed static ranking was built under; fails if any is unpinned (`AGENT-31`, `AGENT-36`) | **CI** |
 | `cell_config.py` | `05_arm3_rerank.py`'s cell-to-pool table matches `hpc/rerank_hpc.py`'s `CELL_SPEC`, and every arms cell reranks against the stripped question | **CI** |
 | `short_limit.py` | `dense()` returns as many rows as its `LIMIT` at `READ_DEPTH_MAX` (`RETR-50`). Static leg needs no database; live leg skips without Postgres | **CI**, static leg only |
+| `latency_budget.py` | stored `/ask` timings are within `DEPLOY-27`'s p95 budget (end to end 8.5s, retrieval 5.0s, rerank 4.5s, generation 4.0s, `g4dn.xlarge`); refuses a file shape it does not recognise, and takes a fresh file from the host as an argument | **CI**, on the two `DEPLOY-25` files |
 | `bm25_only_recall.py` | BM25-only recall@10 stays near where it was measured; a move means corpus, split or labels changed (`CI-4`). Needs Postgres | — |
 | `convfinqa_turn_join.py` | `data/convfinqa_turns.jsonl` still agrees with upstream positionally, and its id set is still exactly the ConvFinQA ids `load_matched_questions()` yields — the tripwire on a `SUBSET_FILES` change silently moving the scored denominator (`DATA-10`). Each leg skips rather than fails when its input is absent, so it is **not** wired to CI, where all three would skip | — |
 
 The CI workflow is [`.github/workflows/ci.yml`](../.github/workflows/ci.yml): a `guards` job
 (seconds; no corpus, no database, no network) then a `gate` job. Deliberately absent, with reasons: the
-answer-accuracy leg ($23.62/push at standard rates — `COST-39`) and the p95 latency leg
-(must be measured in the serving container, not replayed — `DEPLOY-1`).
+answer-accuracy leg ($23.62/push at standard rates — `COST-39`) and a *live* p95 latency leg
+(must be measured in the serving container, and `/ask` calls Gemini — `DEPLOY-1`). CI gates the
+stored timings instead (`DEPLOY-27`), so it catches a broken check, not a slow host.
 
 ---
 
