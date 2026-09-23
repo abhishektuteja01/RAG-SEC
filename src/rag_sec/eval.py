@@ -53,7 +53,7 @@ MIN_ROW_NUMBER_DIGITS = 3
 # population to recover. Lowering the constant does not work either: at 1 the values are then
 # rejected as non-distinctive anyway (`22` occurred in 102 chunks of one filing).
 
-# Calibrated on a 200-row hand-checked sample spanning all three layers (GOLD-1): the min
+# Calibrated on the full 1235-row dev set, outliers checked by hand (GOLD-4): the min
 # block sizes separate a verbatim match from coincidental phrase overlap, MAX_CLUSTER_GAP
 # stops one stray long match from bridging everything between it and the real content, and
 # CLUSTER_SHARE_THRESHOLD keeps a second genuine occurrence while rejecting a short one.

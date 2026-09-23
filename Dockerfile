@@ -105,7 +105,7 @@ COPY data/company_lexicon.json /app/data/company_lexicon.json
 # but a different one. wamerican carries proper nouns, so lowercased it makes 'intel',
 # 'merck', 'nike', 'walmart' and 23 other in-corpus aliases "ordinary English" -> risky ->
 # unmatched in lowercase questions. 27 of our 250 aliases/tickers get a different verdict
-# from it, which is a resolver the benchmark never measured (DEPLOY-2). data/wordlist_web2.txt
+# from it, which is a resolver the benchmark never measured (DEPLOY-7). data/wordlist_web2.txt
 # is a committed byte-copy of the macOS/BSD web2 the numbers were produced against
 # (sha256 be41ad97...bab9, 2.5MB), so the image cannot drift with an apt mirror either.
 COPY data/wordlist_web2.txt /app/data/wordlist_web2.txt

@@ -256,7 +256,7 @@ deployed container serves** (`DEPLOY-25`).
 
 **`eval.py`** — 631 lines. Decides which chunks count as correct answers, and computes the scores.
 **Every published retrieval number in this project comes from this file. Keep.**
-Note: its thresholds were tuned on a 200-row hand sample, so the numbers are only as good as that
+Note: its thresholds were tuned on the full 1235-row dev set (`GOLD-4`), so the numbers are only as good as that
 tuning — roughly 15% of one failure category is still thought to be mislabelled.
 
 **`answer_eval.py`** — checks whether a generated answer's number matches the expected one,

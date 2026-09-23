@@ -68,8 +68,8 @@ def score(rows: list[dict]) -> dict[str, float]:
 
 def score_answers(rows: list[dict]) -> tuple[float, int]:
     """Static-arm numeric-match accuracy, scored the way 07_arm6_loop.py's paired leg scores
-    its static half: answer_eval's own functions, and no yes/no mapping -- AGENT-27 keeps that
-    a labelled sensitivity, not the metric. Unscoreable gold is excluded, not counted wrong
+    its static half: answer_eval's own functions, which map yes/no to 1.0/0.0 themselves since
+    AGENT-29, so nothing is added here. Unscoreable gold is excluded, not counted wrong
     (COST-21), so the denominator is the scoreable subset and is reported with the result."""
     hits = scored = 0
     for r in rows:
