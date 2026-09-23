@@ -70,7 +70,12 @@ def load_t2_ragbench(subset: SubsetName = "all") -> pd.DataFrame:
     dfs = []
     for sub in subsets_to_load:
         for file_path in SUBSET_FILES[sub]:
-            local_path = hf_hub_download(repo_id="G4KMU/t2-ragbench", filename=file_path, repo_type="dataset")
+            # Pinned to a commit (looked up 2026-09-23), written inline so eval.py's label
+            # fingerprint, which hashes this function's source, covers it.
+            local_path = hf_hub_download(
+                repo_id="G4KMU/t2-ragbench", filename=file_path, repo_type="dataset",
+                revision="adf7fe1541ac37351ce1142544d8e3b43010ed92",
+            )
             df = pd.read_json(local_path, lines=True)
             df["subset_source"] = sub
             if sub == "ConvFinQA":

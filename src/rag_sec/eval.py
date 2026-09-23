@@ -1,9 +1,13 @@
 """Gold relevance labeling + retrieval metrics. T2-RAGBench annotates a source page, not a
 chunk id into our own corpus, so relevance is inferred in three layers -- gold table row,
-then gold sentence, then whole page. `_relevance_evidence` documents them; DECISIONS.md
-GOLD-1 records why per-page matching was replaced (DATA-3/DATA-4/DATA-7..9).
+then gold sentence, then whole page. `_relevance_evidence` documents them.
 
-READS data/chunks/ when present; without it, the cached ids in GOLD_CACHE_PATH (INFRA-28).
+READS data/chunks/ when present; without it, the cached ids in GOLD_CACHE_PATH.
+
+The label functions below are frozen: `label_fingerprint()` hashes their source (docstrings
+included) and the cache refuses to load if it changed. Editing them means rebuilding the
+cache with scripts/rebuild/gold_cache.py and proving the labels did not move. Some of their
+docstrings name files and decision IDs from the research history (git tag v1-research).
 """
 
 import difflib
@@ -12,7 +16,6 @@ import inspect
 import json
 import math
 import os
-import random
 import re
 from collections import Counter
 from collections.abc import Hashable, Sequence
@@ -28,8 +31,8 @@ DAY6_GOLD_TABLES_PATH = "data/day6_gold_tables.json"
 DAY6_SUMMARIES_PATH = "data/day6_table_summaries.json"
 GOLD_EVIDENCE_RESOLVED_PATH = "data/day7_gold_evidence_resolved.json"
 # `gold_relevant_chunk_ids` per dev/test question, cached from the corpus so a clone without
-# data/chunks/ can still score (INFRA-28). Read ONLY when the corpus is absent; built and
-# guarded by scripts/checks/gold_cache.py. Train is never scored, so it is not cached.
+# data/chunks/ can still score. Read ONLY when the corpus is absent; built and checked by
+# scripts/rebuild/gold_cache.py. Train is never scored, so it is not cached.
 GOLD_CACHE_PATH = "data/gold_chunk_ids.json"
 GOLD_CACHE_SPLITS = ("dev", "test")
 
@@ -45,15 +48,13 @@ _YEAR_TOKEN_RE = re.compile(r"^(19|20)\d{2}$")
 # every chunk of it (finqa_dev_321/AES: `2003` alone matched 130 chunks).
 MIN_ROW_NUMBER_DIGITS = 3
 # This constant empties `gold_nums` for whole classes of rows -- percentages, whole millions,
-# day/case counts, and small decimals (`len('4.2'.replace('.',''))==2`) -- which is why 35 of
-# `RETR-37`'s 66 cases fell through to Layer 3 with a usable pointer in hand. Locating those
-# rows by their LABEL instead was built and reverted (`RETR-38`): dev recall@10 +0.0008, test
-# +0.0000 over 9/1235 and 18/1546 changed labels. It rescues nothing because Layer 3 already
-# labels those questions -- it only substitutes for Layer 3, so there is no unlabeled
-# population to recover. Lowering the constant does not work either: at 1 the values are then
-# rejected as non-distinctive anyway (`22` occurred in 102 chunks of one filing).
+# day/case counts, and small decimals (`len('4.2'.replace('.',''))==2`); those questions fall
+# through to Layer 3. Locating those rows by their LABEL instead was tried and moved almost
+# nothing (dev recall@10 +0.0008, test +0.0000). Lowering the constant does not work either:
+# at 1 the values are then rejected as non-distinctive anyway (`22` occurred in 102 chunks of
+# one filing).
 
-# Calibrated on the full 1235-row dev set, outliers checked by hand (GOLD-4): the min
+# Calibrated on the full 1235-row dev set, outliers checked by hand: the min
 # block sizes separate a verbatim match from coincidental phrase overlap, MAX_CLUSTER_GAP
 # stops one stray long match from bridging everything between it and the real content, and
 # CLUSTER_SHARE_THRESHOLD keeps a second genuine occurrence while rejecting a short one.
@@ -62,12 +63,12 @@ MIN_BLOCK_SENTENCE = 6
 MAX_CLUSTER_GAP = 3
 CLUSTER_SHARE_THRESHOLD = 0.15
 # *Most*, not all, of a gold row's numbers -- tolerates one our table parser rounded or
-# scaled differently, without admitting coincidental partial overlap (GOLD-1).
+# scaled differently, without admitting coincidental partial overlap.
 ROW_NUMBER_MATCH_THRESHOLD = 0.6
 # A number recurring in more of the same filing's own chunks than this is not a fingerprint
 # even at 3+ digits (finqa_dev_126: a `100%` column total matched 21 chunks).
 ROW_NUMBER_MAX_DOC_FREQ = 5
-# Exempting WIDE values from that cap was tried and reverted (RETR-38): a 5+ digit figure
+# Exempting WIDE values from that cap was tried and reverted: a 5+ digit figure
 # recurring in one filing really is a restatement rather than a collision, but the exemption
 # admits the front-of-filing "selected financial data" summary -- and coverage then PREFERS
 # it, because one chunk covering every figure is a smaller cover than the two chunks at the
@@ -228,7 +229,7 @@ def corpus_present(chunks_dir: str = CHUNKS_DIR) -> bool:
 @lru_cache(maxsize=None)
 def _chunk_file_index(chunks_dir: str = CHUNKS_DIR) -> dict[tuple[int, int], str]:
     """Maps (cik, report_year) -> chunk filename. Only the names are read, so without the
-    corpus they come from the gold cache (INFRA-28)."""
+    corpus they come from the gold cache."""
     if corpus_present(chunks_dir):
         return _index_filenames(os.listdir(chunks_dir))
     return _index_filenames(_gold_cache()["chunk_files"])
@@ -389,19 +390,20 @@ def gold_relevant_chunk_ids(row: pd.Series, chunks_dir: str = CHUNKS_DIR) -> lis
     """Indices (into that filing's chunk list) of chunks overlapping the gold context.
 
     Computed live whenever the corpus is present. Without it, read from GOLD_CACHE_PATH --
-    the same code's output on the same corpus, recorded, never re-derived (INFRA-28)."""
+    the same code's output on the same corpus, recorded, never re-derived."""
     if corpus_present(chunks_dir):
         return sorted(gold_relevant_chunk_evidence(row, chunks_dir).keys())
     q = _gold_cache()["questions"].get(row["split"], {}).get(row["id"])
     if q is None:
         raise KeyError(
             f"{row['id']!r} (split {row['split']!r}) is not in {GOLD_CACHE_PATH}, which holds "
-            f"{GOLD_CACHE_SPLITS} only; its labels need {chunks_dir}/ (01_corpus.py)")
+            f"{GOLD_CACHE_SPLITS} only; its labels need {chunks_dir}/ "
+            "(scripts/rebuild/corpus.py)")
     if q["row"] != label_row_key(row):
         raise RuntimeError(
             f"{row['id']!r}: its benchmark row (filing, gold page) is not the one "
             f"{GOLD_CACHE_PATH} was built from -- the dataset moved. Rebuild from the corpus: "
-            "uv run scripts/checks/gold_cache.py build")
+            "uv run scripts/rebuild/gold_cache.py build")
     return list(q["gold"])
 
 
@@ -450,7 +452,7 @@ def _gold_cache() -> dict:
         raise FileNotFoundError(
             f"neither {CHUNKS_DIR}/ nor {GOLD_CACHE_PATH} is present, and gold labels need one. "
             f"Restore {GOLD_CACHE_PATH} from git, or build the corpus with "
-            "scripts/pipeline/01_corpus.py")
+            "scripts/rebuild/corpus.py")
     with open(GOLD_CACHE_PATH) as f:
         cache = json.load(f)
     now = label_fingerprint()
@@ -459,7 +461,7 @@ def _gold_cache() -> dict:
         raise RuntimeError(
             f"{GOLD_CACHE_PATH} was built under different label code or inputs ({stale}), so "
             "it no longer records what this code computes. Rebuild it from the corpus: "
-            "uv run scripts/checks/gold_cache.py build")
+            "uv run scripts/rebuild/gold_cache.py build")
     return cache
 
 
@@ -533,279 +535,30 @@ def mean_and_stderr(values: list[float]) -> tuple[float, float]:
     return mean, math.sqrt(variance / n)
 
 
-def exact_mcnemar(n10: int, n01: int) -> float:
-    """Two-sided exact binomial p on the discordant pairs (H0: p = 0.5).
+def load_ranking(path, cell: str) -> dict[str, list[tuple[str, int]]]:
+    """`{question_id: [(filing_stem, chunk_index), ...]}` for one cell of a rerank scores file,
+    best first.
 
-    The discordant counts, not the marginals: two arms that are both right on 900 questions
-    and differ on 20 are being compared on those 20, and a test that pools the agreements
-    reports a confidence the data does not carry (`AGENT-33` is the worked example -- a
-    -1.0pt retrieval "deficit" that was two question-points, p=1.000).
+    Records look like {"id", "split", "cells": {name: [[stem, idx, rerank_score], ...]}}. The
+    scores are attached to candidates in FIRST-STAGE order, not rank order, so this sorts by
+    score on load. Reading the list as stored gives a much worse ranking, silently.
     """
-    n = n10 + n01
-    if n == 0:
-        return 1.0
-    k = min(n10, n01)
-    tail = sum(math.comb(n, i) for i in range(0, k + 1)) / 2**n
-    return min(1.0, 2 * tail)
-
-
-def paired_bootstrap_ci(
-    deltas: Sequence[float], n_boot: int = 10000, seed: int = 20260917, alpha: float = 0.05
-) -> tuple[float, float, float]:
-    """(mean, lo, hi) percentile CI by resampling PER-QUESTION deltas, not the two arms.
-
-    Paired, because the arms are scored on the same questions: the between-question spread
-    is enormous next to the between-arm difference, so an unpaired interval on two means is
-    wide enough to hide any real effect this project has ever shipped (`RETR-41`).
-    """
-    d = list(deltas)
-    n = len(d)
-    if n == 0:
-        return 0.0, 0.0, 0.0
-    rng = random.Random(seed)
-    means = []
-    for _ in range(n_boot):
-        means.append(sum(d[rng.randrange(n)] for _ in range(n)) / n)
-    means.sort()
-    lo = means[int(alpha / 2 * n_boot)]
-    hi = means[min(n_boot - 1, int((1 - alpha / 2) * n_boot))]
-    return sum(d) / n, lo, hi
-
-
-def percentile(values: Sequence[float], q: float) -> float:
-    """Nearest-rank percentile. Deliberately not statistics.quantiles: these samples are
-    small and per-stage, and an interpolated p95 would invent a latency no question had.
-    NaN on an empty sample, matching mean_and_stderr rather than raising mid-report."""
-    v = sorted(values)
-    if not v:
-        return float("nan")
-    return v[min(int(q * len(v)), len(v) - 1)]
-
-
-# Rows in the worst-failures markdown. 20 is enough to read in one sitting and is what the
-# published *_failures.md files contain.
-N_WORST = 20
-
-
-def write_worst_failures(path, title: str, per_question: list[dict], filing_key: str) -> None:
-    """The N_WORST questions by recall@10, as markdown -- one writer, because phases 04 and
-    06 published byte-identical files from two copies of it. NaN sorts as 0 rather than
-    being dropped, so a question with no gold label can appear in the list."""
-    worst = sorted(
-        per_question,
-        key=lambda q: (q["recall_10"] if not math.isnan(q["recall_10"]) else 0),
-    )[:N_WORST]
-    with open(path, "w") as f:
-        f.write(f"# {title} — {N_WORST} worst failures on dev split\n\n")
-        for w in worst:
-            f.write(f"## {w['id']} (recall@10={w['recall_10']:.2f}, "
-                    f"filing={w[filing_key]})\n")
-            f.write(f"Q: {w['question']}\n\n")
-            f.write(f"Top 5 retrieved: {w['top_5_retrieved']}\n\n")
-
-
-# The shipped arm's cell name in the rerank score files. Lives here rather than in a script
-# so the CI guard and the agent run cannot drift apart on which cell they mean.
-SHIPPED_CELL = "filtered_stripped"
-
-# The same arm with RETR-40's year-proximity nudge (made a default by RETR-43): the ranking
-# Arm 6 replays as its static baseline. It does NOT match retrieve()'s current defaults --
-# DEPLOY-25 turned RETR-51/RETR-52 on after it was built -- which is why Arm 6 pins its
-# settings (rag_sec.agent.ARM6_RETRIEVE_SETTINGS) instead of following them. The score files
-# carry no config block, so this name plus 07's STATIC_RETRIEVE_SETTINGS is the provenance;
-# scripts/checks/static_replay_provenance.py checks every setting against the loop's call.
-# Defined once, here: 07 and scripts/archive/year_bias_static_ranking.py both import it.
-YEAR_BIAS_CELL = f"{SHIPPED_CELL}_year_bias"
-
-
-class _AllCells:
-    """Sentinel type for `load_ranking(cell=ALL_CELLS)` -- see ALL_CELLS."""
-
-    __slots__ = ()
-
-    def __repr__(self) -> str:
-        return "ALL_CELLS"
-
-
-# "every cell in this modern file", as distinct from `cell=None` = "this is a legacy file
-# with no cells". Those two are different questions with different return shapes, and one
-# argument value used to mean both: `cell=None` returned {id: {cell: [...]}} on a modern
-# file and {id: [...]}} on a legacy one. A caller written for the legacy shape then fed a
-# modern file got a dict of cells where it expected a ranking, and `recall_at_k` scored the
-# cell NAMES as chunk ids -- garbage, silently. Now each intent names itself and the wrong
-# pairing raises.
-ALL_CELLS = _AllCells()
-
-
-def load_ranking(
-    path,
-    # Required on purpose: a default made `load_ranking(path)` silently mean "legacy
-    # file, no cells", which is the ambiguity ALL_CELLS exists to remove.
-    cell: "str | None | _AllCells",
-    *,
-    with_score: bool = False,
-    with_latency: bool = False,
-    with_variant: bool = False,
-    sort: bool = True,
-) -> dict:
-    """Load a `*_scores.jsonl` rerank file into `{question_id: ranking}`.
-
-    ONE loader, because there were nine near-copies of this and AGENT-16 was one of them
-    silently omitting the sort -- which turned Arm 6's own baseline into a first-stage
-    ranking and cost recall@10 0.552 against 0.739.
-
-    TWO ON-DISK SHAPES, and the dispatch is on the RECORD, never on an argument:
-
-      {"id":.., "cells": {name: [[stem, idx, rerank_score], ..]}}
-          Written by `rerank_hpc.py`, which zips rerank scores onto the FIRST-STAGE RRF
-          candidate order -- so the score is attached, not applied. 0/1235 dev cells are
-          in score order as stored. This shape MUST be sorted on load. Entries are always
-          3-wide. Files: `retr7_rr_{dev,test}_scores.jsonl`, `day8_retr16v2_dev_scores.jsonl`,
-          `day8_retr18_test_scores.jsonl`.
-
-      {"id":.., "reranked": [[stem, idx] | [stem, idx, variant_tag], ..]}
-          Already ranked, so this shape is never sorted -- and where a third field exists
-          it is the variant TAG, not a score, so sorting would order by a string.
-          TWO WIDTHS on disk, and both are real:
-            2-wide [stem, idx]              -- the original Arm 3 GPU pass, pre-Arm-4, which
-                                               had no variants to tag: `rerank_scores.jsonl`,
-                                               `rerank_scores_603filings.jsonl`.
-            3-wide [stem, idx, variant_tag] -- the Day 6 Arm 4 per-variant files:
-                                               `day6_arm4_{A,B,C}_rerank_scores.jsonl`.
-          Only 2 and 3 are accepted; any other width raises, naming the file and the width,
-          rather than being coerced into a guess about what the extra field means.
-          `with_variant=True` keeps that tag, giving (stem, idx, variant) back: Arm 4 numbers
-          chunks per (stem, variant), so there the pair alone is an ambiguous id.
-
-    Dispatch is on the RECORD, never on `cell` -- the copy that keyed on `cell is None`
-    returned `{}` for a cell name against a legacy file, with no error. `cell` names the
-    intent (see ALL_CELLS above for the bug that split it out):
-      ALL_CELLS  -> every cell of a modern file, as {id: {cell_name: [...]}}
-      None       -> a legacy no-cells file, as {id: [...]}; raises on a modern record
-      "name"     -> that one cell of a modern file; raises on a legacy record
-
-    `sort=False` is for the two callers that legitimately want stored order -- slicing the
-    first K candidates in first-stage order before re-sorting (`candidate_k_curve.py`,
-    DEPLOY-13) and re-scoring the candidates from scratch (`onnx_rerank_parity.py`).
-    """
-    if cell is ALL_CELLS and with_score:
-        raise ValueError("with_score needs an explicit cell; ALL_CELLS mode returns ids only")
-    if with_variant and cell is not None:
-        raise ValueError(
-            "with_variant only exists for legacy 'reranked' files, whose third field is the "
-            f"variant tag; cell={cell!r} names a modern cells-shaped file, which has none"
-        )
-
-    out: dict = {}
-    cell_seen = False
-    cells_available: set[str] = set()
-
+    out: dict[str, list[tuple[str, int]]] = {}
     with open(path) as f:
         for line in f:
             if not line.strip():
                 continue
             rec = json.loads(line)
-
-            if "cells" in rec:
-                cells_available.update(rec["cells"])
-                if cell is ALL_CELLS:
-                    value = {
-                        name: _project(entries, sort=sort, with_score=False)
-                        for name, entries in rec["cells"].items()
-                    }
-                elif cell is None:
-                    raise ValueError(
-                        f"{path}: record {rec['id']!r} is modern 'cells'-shaped, but "
-                        "cell=None means 'legacy file with no cells' and returns a bare "
-                        "ranking. Pass ALL_CELLS for every cell, or a cell name for one. "
-                        f"Available: {sorted(rec['cells'])}"
-                    )
-                elif cell in rec["cells"]:
-                    cell_seen = True
-                    value = _project(rec["cells"][cell], sort=sort, with_score=with_score)
-                else:
-                    continue
-
-            elif "reranked" in rec:
-                if cell is not None:
-                    raise ValueError(
-                        f"{path}: legacy 'reranked' record {rec['id']!r} has no cells, but "
-                        f"cell={cell!r} was requested. Pass cell=None for this file."
-                    )
-                if with_score:
-                    raise ValueError(
-                        f"{path}: legacy 'reranked' entries carry no score -- the third field, "
-                        "where present, is a variant tag -- so with_score is "
-                        "meaningless here"
-                    )
-                # Already ranked, so `sort` is deliberately ignored; widths per the docstring.
-                # Checked, not sliced blind: a 4-wide entry means a producer we have never seen,
-                # and guessing at its field order is this project's recurring bug.
-                entries = []
-                for e in rec["reranked"]:
-                    if len(e) not in (2, 3):
-                        raise ValueError(
-                            f"{path}: legacy 'reranked' record {rec['id']!r} has a "
-                            f"{len(e)}-wide entry {e!r}; only 2-wide [stem, idx] and "
-                            "3-wide [stem, idx, variant_tag] are known shapes"
-                        )
-                    if not with_variant:
-                        entries.append((e[0], e[1]))
-                    elif len(e) == 3:
-                        entries.append((e[0], e[1], e[2]))
-                    else:
-                        raise ValueError(
-                            f"{path}: with_variant was requested but record {rec['id']!r} "
-                            f"has a 2-wide entry {e!r} carrying no variant tag"
-                        )
-                value = entries
-
-            elif "scores" in rec:
-                # TWO different artefacts carry a 'scores' key and BOTH must be refused, for
-                # different reasons -- so name the real one by measuring the entry, never by
-                # assuming. The message used to assert "5-tuples" unconditionally, which is
-                # false for the year-bias files and invites the next reader to conclude the
-                # guard is broken and override it.
-                first = next((e for e in rec["scores"] if isinstance(e, list)), None)
-                width = len(first) if first is not None else None
-                if width == 3:
-                    why = (
-                        "this is a UNION-POOL score file (`year_bias_recall10_{dev,test}_"
-                        "scores.jsonl`): its entries are [stem, idx, score] over the union of "
-                        "the base AND year-biased candidate pools, one rerank pass answering a "
-                        "two-condition question. Sorting it and taking top-k scores a merged "
-                        "pool as if it were one condition's ranking. Score it with "
-                        "`scripts/archive/year_bias_recall10_score.py`, which rebuilds each "
-                        "condition's pool from `base_pool`/`biased_pool` in the payload"
-                    )
-                else:
-                    why = (
-                        f"this is a SLICE file ({width}-wide entries of slice positions, not "
-                        "chunk rankings) -- different unit, not loadable here"
-                    )
-                raise ValueError(
-                    f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
-                    f"keys were {sorted(rec)}. {why}."
-                )
-
-            else:
-                raise ValueError(
-                    f"{path}: record {rec.get('id')!r} has neither 'cells' nor 'reranked'; "
-                    f"keys were {sorted(rec)}."
-                )
-
-            out[rec["id"]] = (value, rec.get("latency_s")) if with_latency else value
-
-    if isinstance(cell, str) and not cell_seen:
-        raise ValueError(
-            f"{path}: cell {cell!r} appears in no record. Available: "
-            f"{sorted(cells_available) or 'none'}"
-        )
+            if "cells" not in rec:
+                raise ValueError(f"{path}: record {rec.get('id')!r} has no 'cells'; "
+                                 f"keys were {sorted(rec)}")
+            if cell not in rec["cells"]:
+                raise ValueError(f"{path}: record {rec['id']!r} has no cell {cell!r}; "
+                                 f"available: {sorted(rec['cells'])}")
+            entries = rec["cells"][cell]
+            for e in entries:
+                if len(e) != 3:
+                    raise ValueError(f"{path}: record {rec['id']!r} has a {len(e)}-wide entry "
+                                     f"{e!r}; expected [stem, idx, score]")
+            out[rec["id"]] = [(stem, idx) for stem, idx, _ in sorted(entries, key=lambda e: -e[2])]
     return out
-
-
-def _project(entries, *, sort: bool, with_score: bool) -> list[tuple]:
-    ordered = sorted(entries, key=lambda e: -e[2]) if sort else list(entries)
-    if with_score:
-        return [(s, i, score) for s, i, score in ordered]
-    return [(s, i) for s, i, _score in ordered]

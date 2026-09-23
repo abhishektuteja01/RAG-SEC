@@ -1,44 +1,32 @@
-"""Pipeline phase 01 — build the corpus: EDGAR fetch -> parse -> chunk.
+"""OPTIONAL AND SLOW (~1 h, network): rebuild the corpus -- EDGAR fetch -> parse -> chunk.
 
-PRODUCES
+You do not need this to serve or evaluate: the database dump (scripts/setup_db.sh) already
+holds the chunks, and eval falls back to data/gold_chunk_ids.json without data/chunks/.
+
+PRODUCES (all gitignored)
     data/filings/            raw 10-K HTML, one file per (ticker, year, cik)
     data/parsed/             sec-parser block lists, one JSON per filing
     data/chunks/             ~900-word chunks, one JSON per filing
     data/ingest_log.jsonl    one append-only record per filing (timings, counts, errors)
 
 READS
-    T2-RAGBench via rag_sec.dataset.load_t2_ragbench("all") — for the target list only.
-    EDGAR over the network (rag_sec.edgar). Needs a User-Agent; see .env / README.
+    T2-RAGBench via rag_sec.dataset.load_t2_ragbench("all") -- for the target list only.
+    EDGAR over the network (rag_sec.edgar). Needs EDGAR_CONTACT_EMAIL (see .env.example).
 
-DECISIONS.md ROWS THIS BACKS
-    DATA-6    799 is the exact count of unique (cik, report_year) pairs across
-              FinQA+ConvFinQA, i.e. the whole pool. There is nothing to sample.
-    INFRA-8   this script replaced day2_ingest.py + day4_ingest_next200.py +
-              day2_chunk.py, which only existed because the corpus was grown in stages
-              and each stage got its own sampled script. The seed/N_SAMPLES knobs those
-              carried are what let DATA-6's accidental duplicate run happen, and made the
-              documented rebuild stop at ~300 filings.
-    ARM4-2    stored chunks predate chunking.py's `standalone` field, so --rechunk
-              rewrites all 799 files to add one key (content-identical).
-    RETR-7/8  the two chunking flags that default ON; the corpus on disk must match them.
-
-WHEN THIS ACTUALLY RAN (calendar dates, not "Day N" — a dayN_ filename says nothing
-about when the work happened)
-    2026-08-24 -> 08-26   first ingest + parse + chunk pass
-    2026-08-27 -> 08-28   corpus grown to the full 799 filings
-    2026-09-04            re-chunked under RETR-7/RETR-8 (`--rechunk`), which is what the
-                          live data/chunks/ is. Note data/day2_*_log.jsonl and
-                          data/day4_ingest_log.jsonl are the ORIGINAL staged scripts'
-                          logs, kept for provenance; this script writes ingest_log.jsonl.
+799 is the exact count of unique (cik, report_year) pairs across FinQA + ConvFinQA: the
+whole pool, nothing sampled.
 
 TRAPS
   * Every stage skips its own output, so one run reaches 799 and re-running is a no-op.
     That also means a chunking.py or parsing.py change is SILENTLY IGNORED unless you
     pass --rechunk / --reparse.
-  * --rechunk over the live corpus overwrites data/chunks/. If you intend to re-embed
-    afterwards, take the backup FIRST — phase 03's --load diffs the new chunks against
-    that backup, not against the database (INFRA-12).
-  * Re-chunking without re-embedding leaves Postgres holding vectors for the old text.
+  * Gold labels are chunk indices. A chunking change that moves any boundary invalidates
+    them; check with `scripts/rebuild/gold_cache.py check`.
+  * Re-chunking without re-embedding (scripts/rebuild/index.py) leaves Postgres holding
+    vectors for the old text.
+
+Usage:
+    uv run --env-file .env --extra rebuild scripts/rebuild/corpus.py [--limit N]
 """
 
 import argparse
@@ -49,12 +37,8 @@ import time
 import traceback
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 _ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_ROOT / "src"))
-
-load_dotenv()
 
 from rag_sec.chunking import chunk_blocks  # noqa: E402
 from rag_sec.dataset import load_t2_ragbench  # noqa: E402
@@ -68,19 +52,18 @@ from rag_sec.parsing import (  # noqa: E402
 
 # ─── CONSTANTS ──────────────────────────────────────────────────────────────────
 # EXPECTED_FILINGS is an assertion, not a limit: 799 is the measured size of the
-# FinQA+ConvFinQA pool (DATA-6). Every published corpus number is against 799, so a
-# different count means the upstream dataset moved and the numbers no longer compare.
+# FinQA+ConvFinQA pool. A different count means the upstream dataset moved.
 EXPECTED_FILINGS = 799
 
 DATA_DIR = _ROOT / "data"
 FILINGS_DIR = DATA_DIR / "filings"      # raw HTML as downloaded, never rewritten
 PARSED_DIR = DATA_DIR / "parsed"        # parse output, the input to --rechunk
-CHUNKS_DIR = DATA_DIR / "chunks"        # what phase 03 embeds and phase 04 searches
+CHUNKS_DIR = DATA_DIR / "chunks"        # what index.py embeds
 LOG_PATH = DATA_DIR / "ingest_log.jsonl"  # append-only; one line per filing attempt
 
 # T2-RAGBench subset selector. "all" then dropna on company_cik/report_year is what
-# leaves FinQA+ConvFinQA's 799 — TAT-DQA rows carry neither column and drop out here
-# (DATA-3). Selecting the two subsets by name instead would give the same set today but
+# leaves FinQA+ConvFinQA's 799 — TAT-DQA rows carry neither column and drop out here.
+# Selecting the two subsets by name instead would give the same set today but
 # would silently diverge if a third CIK-bearing subset were added.
 DATASET_SUBSET = "all"
 
@@ -195,7 +178,7 @@ def main() -> None:
 
     targets = load_targets()
     if len(targets) != EXPECTED_FILINGS:
-        print(f"WARNING: pool is {len(targets)} filings, expected {EXPECTED_FILINGS} (DATA-6). "
+        print(f"WARNING: pool is {len(targets)} filings, expected {EXPECTED_FILINGS}. "
               "The dataset changed -- every published corpus number is against 799.")
     if args.limit:
         targets = targets[: args.limit]
