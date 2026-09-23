@@ -74,6 +74,9 @@ $COMPOSE up -d --build api   # first build downloads CUDA torch and both models 
 $COMPOSE logs -f api         # wait for "Application startup complete" (~20 s model warm-up)
 ```
 
+The container needs about 6 GB of RAM (the two models are ~4.5 GB). Running the CPU image
+under Docker Desktop, raise its memory limit to 8 GB, or the warm-up is killed.
+
 Check it:
 
 ```bash

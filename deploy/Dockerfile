@@ -54,7 +54,9 @@ import sys; sys.path.insert(0, '/build'); import rag_sec_config as c; \
 from huggingface_hub import snapshot_download; \
 skip = ['*.onnx', '*.h5', '*.msgpack', 'onnx/*']; \
 snapshot_download(c.EMBED_MODEL_NAME, revision=c.EMBED_MODEL_REVISION, ignore_patterns=skip); \
-snapshot_download(c.RERANK_MODEL_NAME, revision=c.RERANK_MODEL_REVISION, ignore_patterns=skip)"
+snapshot_download(c.RERANK_MODEL_NAME, revision=c.RERANK_MODEL_REVISION, ignore_patterns=skip)" \
+    && chmod -R a+rX /models
+# a+rX: the runtime user is not root, and HF writes some cache files root-only.
 
 # ---------------------------------------------------------------------------- runtime
 FROM python:${PYTHON_VERSION}-slim-bookworm AS runtime
