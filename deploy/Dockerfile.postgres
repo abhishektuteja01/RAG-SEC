@@ -1,5 +1,5 @@
-# Extends the pinned pgvector image (DECISIONS.md #4) with ParadeDB's pg_search —
-# a real BM25 index (DECISIONS.md #21), not Postgres's tsvector/ts_rank.
+# Postgres 18 + pgvector (pinned image) + ParadeDB's pg_search, for a real BM25 index
+# (not Postgres's tsvector/ts_rank, which has no length normalization or term saturation).
 FROM pgvector/pgvector:0.8.6-pg18-trixie
 
 ARG PARADEDB_VERSION=0.25.1

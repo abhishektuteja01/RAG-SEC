@@ -1,20 +1,22 @@
+# Build context for deploy/Dockerfile. Only src/, pyproject.toml, uv.lock, the two data
+# files and the wordlist check are copied; everything else stays out of the context.
 .git
 .venv
 data
 !data/company_lexicon.json
 !data/wordlist_web2.txt
-images
+scripts
+deploy
+!deploy/container_wordlist.py
 *.md
-!README.md
 .env
 .env.example
-scripts
-!scripts/checks/container_wordlist.py
 __pycache__
 **/__pycache__
 *.pyc
 .DS_Store
+# macOS tar writes AppleDouble sidecars that match *.py
 ._*
-
-# 4.8 GB of model weights, gitignored but otherwise streamed to the daemon every build.
+# model weights, if any are kept locally
 models
+research_*
