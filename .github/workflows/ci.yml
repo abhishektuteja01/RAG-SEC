@@ -1,35 +1,5 @@
-# The CI quality gate. Two jobs, split on cost, not on tidiness.
-#
-#   guards     static/self-contained checks. No DB, no network, no corpus. Seconds.
-#   gate       replays the committed retrieval fixture and stored answers; fails on regression.
-#
-# The gate's thresholds, against the recorded baseline in data/ci_retrieval_baseline.json
-# (400 dev questions, seed 17, from retr7_rr_dev_scores.jsonl's filtered_stripped cell):
-#
-#   recall@10   0.7854 baseline -- fails if it drops more than 2.0 points (tolerance 0.02)
-#   nDCG@10     0.6593 baseline -- same 2.0-point tolerance
-#   recall@50   0.8196 baseline -- same tolerance; it is the candidate pool, so it moves
-#               for different reasons than the ranked metrics
-#   fixture n   asserted equal to the baseline's n=400; a fixture that lost or gained
-#               questions fails rather than comparing two different sets
-#   numeric_match  0.6647 (115/173 scoreable, AGENT-29) -- may not drop at all. Replayed from
-#               the static arm's stored answers in data/day9_arm6_dev_results.jsonl (dev,
-#               n=200), nothing sent, so it guards the answer scorer, not the model
-#
-# What is deliberately NOT here:
-#   - gold_cache.py's recompute leg and heading_fix.py read data/chunks/, and
-#     bm25_only_recall.py plus short_limit.py's live leg need Postgres with the embedded
-#     corpus; CI has neither. gold_cache and short_limit run their static legs only.
-#   - citation_grounding.py (EVAL-4) reads data/chunks/ for its Arm 6 sets.
-#   - A live answer-accuracy run. Re-sending answers costs money per run, so it belongs on a
-#     schedule, as a separate workflow (COST-39). Not built yet.
-#   - A live p95 latency leg. p95 must be measured in the serving container (DEPLOY-1), and
-#     re-measuring /ask sends every question to Gemini. guards instead gates the STORED
-#     DEPLOY-25 timings against DEPLOY-27's budget (end to end 8.5s, retrieval 5.0s, rerank
-#     4.5s, generation 4.0s, g4dn.xlarge); a fresh file from the host is checked by hand
-#     with the same script. It catches a changed budget or a broken check, not a slow host.
-#   - The cost-per-query leg, for the same reason.
-
+# Replays the stored rerank scores and fails unless test recall@10 is exactly 0.831.
+# No GPU, no database, no API key. Needs network: the question set comes from Hugging Face.
 name: ci
 
 on:
@@ -40,7 +10,7 @@ env:
   UV_VERSION: "0.12.1"
 
 jobs:
-  guards:
+  replay:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -51,55 +21,27 @@ jobs:
         with:
           path: ~/.cache/uv
           key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-      - name: Install locked deps, CPU torch
-        # Exported and pip-installed rather than `uv sync`, because --torch-backend exists on
-        # `uv pip install` and not on `uv sync` (uv 0.12.1). Without it the linux runner pulls
-        # the CUDA-bundled torch wheel: ~2.5GB downloaded on every cold cache, for a job that
-        # only ever imports torch to pick a device.
+      - name: Sync locked deps, CPU torch
+        # Exported and pip-installed rather than `uv sync`: --torch-backend exists on
+        # `uv pip install` only (uv 0.12.1), and without it Linux pulls the CUDA torch wheel.
         run: |
           uv export --frozen --no-dev --no-emit-project --no-hashes -o requirements.txt
           uv venv
           UV_TORCH_BACKEND=cpu uv pip install -r requirements.txt
-      - name: Every read of `chunks` constrains `variant` (RETR-24)
-        run: .venv/bin/python scripts/checks/variant_predicates.py
-      - name: Candidate SQL and RRF ordering unchanged
-        run: .venv/bin/python scripts/checks/candidate_sql.py
-      - name: Static rankings are rank-ordered at point of use (AGENT-16)
-        run: .venv/bin/python scripts/checks/static_ranking_order.py
-      - name: Tracing degrades to a no-op without keys (OBS-*)
-        # Runs with no LANGFUSE_* in the environment on purpose: that IS the property.
-        run: .venv/bin/python scripts/checks/tracing_offline.py
-      - name: Laptop and GPU rerank legs agree on cell config (INFRA-22)
-        run: .venv/bin/python scripts/checks/cell_config.py
-      - name: Arm 6's pinned retrieve() settings match its replayed baseline (AGENT-31, AGENT-36)
-        run: .venv/bin/python scripts/checks/static_replay_provenance.py
-      - name: HNSW read depth covers the deepest LIMIT, static leg (RETR-50)
-        run: .venv/bin/python scripts/checks/short_limit.py --static-only
-      - name: Stored /ask timings are within the p95 budget (DEPLOY-27)
+      - name: Every module imports
+        env:
+          PYTHONPATH: src
         run: |
-          .venv/bin/python scripts/checks/latency_budget.py
-          .venv/bin/python scripts/checks/latency_budget.py \
-            research_latency/deploy25_flags_3config_110q.jsonl --config strip_dense+p10
-      - name: Cached gold labels match the label code and cover every scored id (INFRA-28)
-        # Static leg only: the recompute needs data/chunks/, which CI does not have.
-        run: .venv/bin/python scripts/checks/gold_cache.py check --static-only
-
-  gate:
-    runs-on: ubuntu-latest
-    needs: guards
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install uv
-        run: curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | sh
-      - name: Cache uv downloads
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/uv
-          key: uv-${{ runner.os }}-${{ hashFiles('uv.lock') }}
-      - name: Install locked deps, CPU torch
+          .venv/bin/python -c "import rag_sec.api, rag_sec.answer, rag_sec.eval, rag_sec.dataset, rag_sec.retrieve"
+      - name: Replay test recall@10
+        run: .venv/bin/python scripts/evaluate.py --replay --split test --out replay.json
+      - name: Assert recall@10 == 0.831 on n=1545
         run: |
-          uv export --frozen --no-dev --no-emit-project --no-hashes -o requirements.txt
-          uv venv
-          UV_TORCH_BACKEND=cpu uv pip install -r requirements.txt
-      - name: Retrieval quality gate
-        run: .venv/bin/python scripts/checks/retrieval_gate.py
+          .venv/bin/python - <<'PY'
+          import json
+          r = json.load(open("replay.json"))
+          got, n = round(r["recall_10"]["mean"], 3), r["n_scored"]
+          print(f"recall@10 {got}  n={n}")
+          assert n == 1545, f"expected 1545 scored questions, got {n}"
+          assert got == 0.831, f"expected recall@10 0.831, got {got}"
+          PY

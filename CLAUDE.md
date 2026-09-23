@@ -1,73 +1,17 @@
-# RAG-SEC — orientation
+# RAG-SEC -- orientation
 
-Retrieval-augmented QA over 799 SEC 10-K filings. Built in 14 days as a learning project,
-deployed on EC2. The point is not the app. It is a measured comparison of retrieval
-techniques, one change at a time, so each gain is attributable.
+QA over 799 SEC 10-K filings: company filter -> dense (bge-m3, pgvector) + BM25 (pg_search)
+-> RRF (+ year signals) -> bge-reranker-v2-m3 -> Gemini `gemini-3.7-flash`. Test recall@10 0.831.
 
-**"Arm" = a numbered retrieval configuration.** Each arm adds exactly one technique to the
-previous one. All are scored on the same corpus, split, and gold labels, so the delta between
-two arms is the technique, not the setup.
-
-| Arm | Adds | Status |
-|---|---|---|
-| 1 | dense retrieval | baseline |
-| 2 | + BM25, fused with RRF | — |
-| 3 | + cross-encoder reranker | **shipped** |
-| 4 | table-layout variants | lost |
-| 5 | multi-vector late interaction | never built — no code |
-| 6 | agentic loop | published negative |
-
-## Reproduce the headline number
-
-Replays the serving configuration from stored rerank scores: test recall@10 0.831 on the
-`n18d_p10` row (`RETR-52`, `DEPLOY-25`). No GPU, no Postgres, no API key, no money.
-
-```bash
-uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
-    --scores data/arms_scores.jsonl --split test
-```
-
-Drop `--table arms` and pass `--scores data/retr7_rr_test_scores.jsonl` for the older 2x2
-ablation (0.747, `RETR-39`).
-
-A fresh clone needs no corpus for this. Gold labels resolve against the gitignored
-`data/chunks/` when it exists; without it, `eval.py` reads the same labels from the tracked
-`data/gold_chunk_ids.json` (`INFRA-28`). The question set still comes from Hugging Face, so the
-first run needs network. `data/chunks/` (`01_corpus.py`, ~1 h) is still needed for anything
-that reads chunk text, and Arms 1–2 also need the local embed and Postgres.
-
-## Vocabulary
-
-- **chunk** — a filing cut into a ~900-word piece. The unit everything is stored and searched as.
-- **embedding** — a vector standing for a chunk's meaning, so similar text sits close together.
-- **reranker** — a slower, more careful model that re-orders a shortlist after the fast search picks it.
-- **the cluster** — the university GPU machines. Jobs there are booked and queued, not instant.
-- **variant** — which table layout a chunk was built with. `A` is the real corpus.
-
-## Which doc answers what
-
-| File | Answers |
-|---|---|
-| `README.md` | what this is, and the result |
-| `DECISIONS.md` | why every choice was made — **the only source of truth for any number** |
-| `scripts/README.md` | run order, calendar dates, what each command costs |
-| `INVENTORY.md` | file-by-file map, and what's still missing |
-
-Quote numbers from `DECISIONS.md`'s current baseline table at the top of the file, never from a
-lower table — those predate the `RETR-35` label correction. Cite the decision ID (`RETR-39`,
-`ARM4-10`) so a reader can check you. `README.md`'s chart is safe to quote: its producer
-re-derives every value from `data/` and aborts if one disagrees with the baseline table.
-
-## Rules that always apply
-
-- **Open the file before trusting its shape.** This project's recurring bug is code assuming a
-  shape, order, or provenance the producer of an on-disk artifact never guaranteed (`RETR-24`,
-  `RETR-30`, `AGENT-16`, `INFRA-22`). It survives code review every time.
-- **Phase numbers are not arm numbers.** See `scripts/CLAUDE.md`.
-- **Three commands spend real money on every run**, and three archive scripts do once their
-  resume file is gone. All are under `scripts/`; the cost table is in `scripts/README.md`.
-
-## Skills
-
-- `/explain-arm` — any arm: what it adds, which files, what it scored, the verdict.
-- `/walkthrough` — the "I just cloned this and I'm lost" path.
+- `src/rag_sec/retrieve.py` is the pipeline; its defaults ARE the serving setup. `api.py` adds
+  no retrieval of its own. Candidate SQL lives once, in `candidates.py`.
+- `scripts/evaluate.py --replay` must print test recall@10 0.831 (n=1545); CI asserts it.
+- Gold labels (`eval.py` label functions, `dataset.load_t2_ragbench`, three `data/day*` files)
+  are fingerprinted into `data/gold_chunk_ids.json`. Changing them means
+  `scripts/rebuild/gold_cache.py build` and proving the labels did not move.
+- Every read of `chunks` must constrain `variant` (only 'A' is live); `preflight.py` enforces it.
+- Rerank score files store candidates in first-stage order: read them through
+  `eval.load_ranking`, which sorts. Open any on-disk artifact before trusting its shape.
+- Keep one API worker: concurrent model loading segfaults on Apple MPS.
+- Env comes from `uv run --env-file .env`. Model and dataset revisions are pinned by commit.
+- Research history (all arms, decisions, measurements): git tag `v1-research`.

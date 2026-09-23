@@ -1,146 +1,81 @@
 # RAG-SEC
 
-Retrieval-augmented QA over 799 SEC 10-K filings. It measures, one technique at a time, what
-dense embeddings, hybrid BM25 fusion and cross-encoder reranking each actually buy.
+Question answering over 799 SEC 10-K filings. A question goes through hybrid retrieval and
+reranking, Gemini answers from the top chunks, and the API returns those chunks as sources.
 
-## The result
+Retrieval, in order:
 
-Held-out **test** split, cumulative — dense + BM25/RRF + `bge-reranker-v2-m3`, coverage-based
-gold labels, n=1545:
+1. **Company filter** -- if the question names a company, search only that company's filings.
+2. **Dense search** (`BAAI/bge-m3` embeddings, pgvector) and **BM25** (pg_search), 200 rows
+   each. The dense leg embeds the question with the company name and filing wording removed.
+3. **RRF fusion** of the two lists, plus a small bonus for filings from the year the question
+   names, plus a third list of chunks whose text names that year. The top 50 survive.
+4. **Rerank** the 50 with `BAAI/bge-reranker-v2-m3`, against the question with the company
+   name removed. The top 10 go to the answer model (`gemini-3.7-flash`).
 
-| Cell | recall@10 | recall@50 |
-|---|---|---|
-| reranked baseline | 0.607 ± 0.012 | — |
-| + company filter | 0.644 ± 0.011 | — |
-| + query strip | 0.632 ± 0.012 | — |
-| **+ both** (`RETR-39`) | **0.747 ± 0.010** | 0.785 |
-| **+ year-proximity RRF nudge** (`RETR-40`) | **0.771 ± 0.010** | 0.825 |
-| **+ dense leg embeds the stripped query** (`RETR-51`) | **0.814 ± 0.009** | 0.885 |
-| **+ chunk-year candidate list at read depth 200** (`RETR-52`, **serving**) | **0.831 ± 0.008** | 0.915 |
+On the held-out test split (1,545 questions), **recall@10 is 0.831** and recall@50 is 0.915.
 
-`/ask` now answers at the **0.831 configuration** — the last two rows went from measured to
-serving in `DEPLOY-25`, once they were timed on the deploy host and turned out to be free:
-paired over 110 test questions in the deployed container, all three flags on cost retrieval a
-mean **-0.011s, 95% CI [-0.051, +0.031]**. The recall figure itself is the offline GPU rerank
-pass's, not a re-score through the HTTP path; the two share one candidate generator
-(`candidates.first_stage`, `RETR-53`) and the flags were verified identical in the running
-container, which is why the number transfers. They are query-side and first-stage only — the reranker still scores 50
-candidates, so they cost nothing per answer. Every paired confidence interval excludes zero,
-McNemar p<0.0001, and no subgroup regresses (`RETR-51`/`RETR-52`).
+This repo is the slim, production version. The full research history (every retrieval
+technique tried, measured one change at a time, including the ones that lost) is frozen
+at git tag [`v1-research`](https://github.com/abhishektuteja01/RAG-SEC/tree/v1-research).
 
-Individual questions can still regress even though no subgroup does, and `DEPLOY-25` documents
-a measured case: a gold chunk whose own text never restates the year the question asks for is
-excluded from `RETR-52`'s year list and can fall out of the candidate pool.
+## Layout
 
-Company filter + query strip **together are worth 2.3x their separate gains.** Once every candidate is already the
-right company, the company name left in the query only rewards whichever chunk repeats the
-most boilerplate. The interaction is the finding, not either piece.
+```
+src/rag_sec/   retrieve.py (the pipeline), candidates.py (dense + BM25 + RRF),
+               company.py, fiscal_year.py, store.py (Postgres), answer.py (Gemini),
+               api.py + static/index.html (HTTP API and chat page), eval.py (gold labels + metrics)
+scripts/       evaluate.py, setup_db.sh, rebuild/ (optional, slow corpus rebuild)
+deploy/        Docker images, GPU-host compose file, GUIDE.md
+data/          the few files serving and evaluation need (alias table, wordlist, gold labels,
+               stored rerank scores)
+```
 
-The two newest gains are **reachability, not ranking**: recall@50 moves +0.090 against
-recall@10's +0.059, so most of the win is gold reaching the candidate pool at all, and the
-reranker converts only part of it.
+## Setup
 
-![Retrieval quality by pipeline stage](images/results_chart.png)
-
-The chart covers Arms 1-3 and stops at the published ablation, so it does not yet show the
-last two rows above. Regenerate it with
-`uv run --with matplotlib scripts/archive/results_chart.py` (~3-4 min). Every number is
-recomputed from `data/` at generation time and cross-checked against `DECISIONS.md`'s
-baseline table; a mismatch aborts rather than shipping a stale chart.
-
-## Reproduce it in 90 seconds
-
-The rerank scores are committed, so both the published ablation and the newest arms replay
-with no GPU, no Postgres, no API key and no money:
+Needs [uv](https://docs.astral.sh/uv/) and Docker.
 
 ```bash
-# the 2x2 ablation -- filter+strip, 0.747
-uv run scripts/pipeline/05_arm3_rerank.py score \
-    --scores data/retr7_rr_test_scores.jsonl --split test
-
-# the two first-stage additions -- 0.771 -> 0.814 -> 0.831, with paired CIs and subgroups
-uv run scripts/pipeline/05_arm3_rerank.py score --table arms \
-    --scores data/arms_scores.jsonl --split test
-```
-
-A fresh clone runs these as-is: without the gitignored `data/chunks/`, gold labels come from
-the tracked `data/gold_chunk_ids.json` (`INFRA-28`). The first run needs network, to fetch the
-question set from Hugging Face.
-
-## How it works
-
-Each arm adds exactly one technique to the one above, on the same corpus, split and labels, so
-every delta is attributable. recall@10 is dev, from `RETR-39`:
-
-| Arm | adds | recall@10 | verdict |
-|---|---|---|---|
-| 1 | dense BGE-M3 vectors | 0.337 | the baseline everything else is measured against |
-| 2 | + BM25/RRF fusion | 0.514 | kept — the largest single gain |
-| 3 | + `bge-reranker-v2-m3` | 0.629 | **shipped**; 0.791 with company filter + query strip + a year-proximity RRF nudge (`RETR-40`), and 0.847 measured with the two first-stage additions (`RETR-51`/`RETR-52`), serving defaults since `DEPLOY-25` |
-| 4 | table layouts B and C | — | lost — whole-table A wins on every metric (`ARM4-10`) |
-| 5 | multi-vector late interaction | — | never built: ~378 GB of vectors (`ARM5-1`) |
-| 6 | agentic LangGraph loop | — | closed as a negative (`AGENT-34`): its answer-accuracy win does not survive a fair baseline (`AGENT-30`), and its retrieval deficit is not significant (`AGENT-33`) |
-
-`/explain-arm 3` in Claude Code walks through any one of them.
-
-## What's in the box
-
-```
-INGEST                                  QUERY
-EDGAR filings (.htm)                    question
-      │  edgar.py                             │  company.py   (company filter + query strip)
-      ▼                                       ▼
-parsed sections (.json)                 retrieve.py   (dense + BM25/RRF + bge-reranker-v2-m3)
-      │  parsing.py  (sec-parser)             │
-      ▼                                       ├──►  eval.py        recall@k, nDCG@k, MRR
-chunks (.json)                                │
-      │  chunking.py                          └──►  compress.py    (DSLR slice packing)
-      ▼                                                  │
-embeddings + BM25 index                                  ▼
-      │  store.py                              answer_eval.py, agent.py  (Arm 6's loop)
-      ▼
-Postgres (pgvector + pg_search)  ◄── read by retrieve.py
-```
-
-Every module is under `src/rag_sec/`. `api.py` serves Arm 3 as `POST /ask` and is **deployed**:
-both containers on one `g4dn.xlarge` (Tesla T4) EC2 host, Postgres self-hosted from
-`Dockerfile.postgres` because RDS cannot load `pg_search` (`DEPLOY-2`). It answers correctly, and
-the GPU cutover cut rerank from the CPU host's 156.9 s (`DEPLOY-18`) to **fp16 rerank mean 3.27 s**,
-with exact top-5 parity against fp32 on the ten timing questions (`DEPLOY-21`, `DEPLOY-22`) and test
-recall@10 unchanged at 0.747 over the full split (`DEPLOY-23`).
-
-That is the rerank stage, not the round trip. Measured end to end on the fixed ten questions
-every latency decision here uses, `POST /ask` is **p50 6.7 s** — about 3.4 s of retrieval and
-3 s of Gemini generation (`DEPLOY-25`). So it is usable but **not yet inside the 2-5 s
-interactive target**, and the remaining headroom is generation-side, not retrieval-side. The
-stated p95 budget on that host is 8.5 s end to end; CI checks it against the stored timings,
-not live traffic (`DEPLOY-27`). Arm 6's
-traces and dashboards are in `images/langfuse_*.png`.
-
-Eval set: [T²-RAGBench](https://huggingface.co/datasets/G4KMU/t2-ragbench) (FinQA + ConvFinQA,
-799 unique filings).
-
-## Build it yourself
-
-The corpus (~4 GB) isn't committed; it rebuilds from EDGAR. Setup needs
-[`uv`](https://docs.astral.sh/uv/) and Docker:
-
-```bash
-cp .env.example .env        # POSTGRES_PASSWORD, EDGAR_CONTACT_EMAIL
-docker compose up -d        # Postgres 18 + pgvector + pg_search (BM25)
 uv sync
+cp .env.example .env                  # set POSTGRES_PASSWORD and GOOGLE_API_KEY
+docker compose up -d                  # Postgres with pgvector + pg_search
+scripts/setup_db.sh                   # download and restore the prebuilt database
+uv run --env-file .env uvicorn rag_sec.api:app --workers 1
 ```
 
-[`scripts/README.md`](scripts/README.md) is the run order: every phase, what it produces, what
-it costs, and what a fresh clone can and cannot rebuild.
+Open http://localhost:8000 for the chat page, or call the API:
 
-## Docs
+```bash
+curl -s localhost:8000/ask -H 'Content-Type: application/json' \
+     -d '{"question": "What was Visa Inc.'\''s net revenue in 2015?"}'
+```
 
-| File | Answers |
-|---|---|
-| [`DECISIONS.md`](DECISIONS.md) | why every choice was made — the source of truth for any number |
-| [`scripts/README.md`](scripts/README.md) | run order, real dates, what each command costs |
-| [`INVENTORY.md`](INVENTORY.md) | file-by-file map, and what's still missing |
-| [`CLAUDE.md`](CLAUDE.md) | orientation: what an arm is, the glossary, the traps |
+The first start loads both models (~20 s). Keep `--workers 1`: more workers load more copies
+of the models, and concurrent model loading crashes on Apple MPS. To deploy on a GPU host,
+see [deploy/GUIDE.md](deploy/GUIDE.md).
 
-`/walkthrough` in Claude Code gives a guided tour of the repo.
+## Evaluate
+
+```bash
+# Re-score the stored rerank output: no GPU, no database, no API key (~10 s)
+uv run scripts/evaluate.py --replay            # test recall@10 0.831 (n=1545)
+uv run scripts/evaluate.py --replay --split dev   # dev 0.847
+
+# Run the real retrieval for each question (needs the database and the models)
+uv run --env-file .env scripts/evaluate.py --live --split dev --limit 50
+```
+
+The first run downloads the question set (T2-RAGBench) from Hugging Face. Gold labels come
+from `data/gold_chunk_ids.json`, or are computed from `data/chunks/` if you rebuilt the corpus.
+
+## Rebuild from scratch (optional)
+
+Only needed without the database dump. Slow: about 1 hour to fetch and chunk the filings,
+and 9-10 hours to embed them on an Apple M3.
+
+```bash
+uv run --env-file .env --extra rebuild scripts/rebuild/corpus.py     # needs EDGAR_CONTACT_EMAIL
+uv run --env-file .env --extra rebuild scripts/rebuild/index.py local
+uv run --env-file .env --extra rebuild scripts/rebuild/index.py bm25
+uv run scripts/rebuild/gold_cache.py check     # the gold labels still match the chunks
+```
