@@ -8,6 +8,7 @@
 import contextlib
 import threading
 import time
+from collections.abc import Callable
 from functools import lru_cache, wraps
 
 from rag_sec.candidates import first_stage
@@ -67,6 +68,7 @@ def _model_cache(fn):
         with lock:
             return cached()
 
+    get.loaded = lambda: bool(cached.cache_info().currsize)
     return get
 
 
@@ -111,7 +113,9 @@ def _drain_on_error(device: str):
         raise
 
 
-def retrieve(query: str, k: int = TOP_K) -> list[dict]:
+def retrieve(
+    query: str, k: int = TOP_K, on_stage: Callable[[str, dict], None] | None = None
+) -> list[dict]:
     """Top-k chunks for `query`, best first, as {filing_stem, chunk_index, text, score}.
 
     - Company filter: if the question names a company (read from the question text alone),
@@ -123,10 +127,15 @@ def retrieve(query: str, k: int = TOP_K) -> list[dict]:
 
     Known cost: a right chunk whose own text never names the question's year can drop out
     of the pool.
+
+    `on_stage(name, info)`, if given, is called as each stage starts (for progress display).
+    It sees results only; it changes nothing that is computed.
     """
     t = {}
+    report = on_stage or (lambda name, info: None)
     device = _device()
     with _drain_on_error(device):
+        report("resolve", {})
         t0 = time.perf_counter()
         tickers, fallback_reason = resolve_with_reason(query)
         stripped = strip_entity_framing(query)  # unchanged when no company is found
@@ -134,21 +143,26 @@ def retrieve(query: str, k: int = TOP_K) -> list[dict]:
         t["resolve_s"] = time.perf_counter() - t0
 
         # First-call model loading is timed separately so embed_s stays a per-question number.
+        if not (_embed_model.loaded() and _cross_encoder.loaded()):
+            report("load_models", {})
         t0 = time.perf_counter()
         embed_model = _embed_model()
         cross_encoder = _cross_encoder()
         t["model_init_s"] = time.perf_counter() - t0
+        report("embed", {"tickers": list(tickers)})
         t0 = time.perf_counter()
         with _gpu_lock:
             query_emb = embed_model.encode(stripped, normalize_embeddings=True)
         t["embed_s"] = time.perf_counter() - t0
 
+        report("search", {})
         t0 = time.perf_counter()
         with get_conn() as conn:
             fused, texts = first_stage(conn, query_emb, query, tickers=tickers, query_years=query_years)
         t["search_s"] = time.perf_counter() - t0
 
         candidates = [c for c in fused if c in texts]
+        report("rerank", {"candidates": len(candidates)})
         t0 = time.perf_counter()
         pairs = [(stripped, texts[c]) for c in candidates]
         # Batch pairs by length, then restore order: each batch pads to its longest member,

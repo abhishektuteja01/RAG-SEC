@@ -4,6 +4,7 @@ Uses the `google-genai` SDK directly. It reads GOOGLE_API_KEY from the environme
 """
 
 import re
+from collections.abc import Iterator
 from functools import lru_cache
 
 from rag_sec.config import GENERATION_MODEL
@@ -39,19 +40,29 @@ def _client():
     return genai.Client()
 
 
-def generate_answer(question: str, chunks: list[dict]) -> str:
-    """One Gemini call over the retrieved chunks. Returns the response text (thoughts excluded)."""
+def _request(question: str, chunks: list[dict]) -> dict:
     from google.genai import types
 
-    prompt = ANSWER_PROMPT.format(question=question, evidence=evidence_text(chunks))
-    response = _client().models.generate_content(
-        model=GENERATION_MODEL,
-        contents=prompt,
-        config=types.GenerateContentConfig(
+    return {
+        "model": GENERATION_MODEL,
+        "contents": ANSWER_PROMPT.format(question=question, evidence=evidence_text(chunks)),
+        "config": types.GenerateContentConfig(
             thinking_config=types.ThinkingConfig(thinking_level=THINKING_LEVEL),
         ),
-    )
-    return response.text or ""
+    }
+
+
+def generate_answer(question: str, chunks: list[dict]) -> str:
+    """One Gemini call over the retrieved chunks. Returns the response text (thoughts excluded)."""
+    return _client().models.generate_content(**_request(question, chunks)).text or ""
+
+
+def stream_answer(question: str, chunks: list[dict]) -> Iterator[str]:
+    """The same call as `generate_answer`, yielding text pieces as they arrive. Each chunk's
+    `.text` skips thought parts, so only answer text is yielded."""
+    for chunk in _client().models.generate_content_stream(**_request(question, chunks)):
+        if chunk.text:
+            yield chunk.text
 
 
 # ── parsing the ANSWER line ──────────────────────────────────────────────────────────

@@ -50,6 +50,35 @@ questions, never used for tuning) it scores **recall@10 0.831**.
 The full research history, every decision and measurement, is frozen at the
 [`v1-research`](https://github.com/abhishektuteja01/RAG-SEC/tree/v1-research) tag.
 
+## Latency and cost per question
+
+**Latency**, measured through `/ask` on the AWS `g4dn.xlarge` GPU host (T4, reranker in fp16)
+before it was shut down. 10 test questions end to end:
+
+| Stage | Median | Worst of 10 |
+|---|---|---|
+| Retrieval (embed, search, rerank) | 3.62 s | 4.37 s |
+| of which rerank (50 chunks) | 3.31 s | 3.68 s |
+| Gemini answer | 2.72 s | 3.25 s |
+| **End to end** | **6.61 s** | **7.48 s** |
+
+On an Apple Silicon Mac the same request takes 27-30 s, about 25 s of it reranking.
+
+**Cost**, at standard (not batch) rates:
+
+- **Gemini:** 11,621 input and 825 output tokens per answer on average (704 of the output
+  are hidden "thinking" tokens, billed as output), over 139 answer calls. At $0.75 / $3.75
+  per 1M tokens that is **$0.0118 per question**. Google's price doubles on 2027-01-01, to
+  $0.0236. Prices checked 2026-09-24 on the
+  [Gemini pricing page](https://ai.google.dev/gemini-api/docs/pricing).
+- **GPU host:** $0.526 an hour on demand (us-east-2), paid whether busy or idle. Answering
+  questions back to back at 6.6 s each (~545 an hour), that adds about **$0.001 per question**.
+
+So about **$0.013 per question** with the host fully used, most of it Gemini input tokens.
+
+Sources, at the `v1-research` tag: `research_latency/deploy25_ask_r51r52_on_10q.jsonl`
+(latency) and `data/cost31_thinking_medium.jsonl` (tokens).
+
 ## Run it on your laptop
 
 Timings below were measured on an Apple Silicon Mac.
@@ -114,6 +143,8 @@ Gemini key), about 35 s per question on a Mac:
 uv run --env-file .env scripts/evaluate.py --live --limit 10
 ```
 
+API tests (no database, models or key): `uv run pytest`
+
 ## Deploy on a GPU server
 
 [deploy/GUIDE.md](deploy/GUIDE.md) runs both containers on one NVIDIA GPU machine. On an
@@ -134,7 +165,7 @@ src/rag_sec/
   fiscal_year.py     finds years in text; the year boost
   store.py           Postgres connection, table schema, corpus check
   answer.py          the Gemini prompt and call; reads the ANSWER line
-  api.py             HTTP API: /ask, /ready, /health, and the chat page
+  api.py             HTTP API: /ask, /ask/stream, /ready, /health, and the chat page
   static/index.html  the chat page
   config.py          model names and pinned versions, device choice
   eval.py            gold labels (which chunks are right) and metrics
@@ -142,6 +173,8 @@ src/rag_sec/
   edgar.py           downloads filings from SEC EDGAR (rebuild only)
   parsing.py         10-K HTML to text and tables (rebuild only)
   chunking.py        text and tables to chunks (rebuild only)
+tests/
+  test_api_stream.py  API tests, search and Gemini faked
 scripts/
   setup_db.sh        downloads and restores the database
   evaluate.py        scores recall@10 (--replay or --live)
@@ -161,7 +194,7 @@ data/
 docker-compose.yml   Postgres for your laptop
 .env.example         config template
 pyproject.toml, uv.lock  Python dependencies
-.github/workflows/ci.yml  CI: replays the score, fails unless it is 0.831
+.github/workflows/ci.yml  CI: API tests, then replays the score; fails unless it is 0.831
 CLAUDE.md            notes for AI coding assistants
 ```
 

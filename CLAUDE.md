@@ -5,6 +5,8 @@ QA over 799 SEC 10-K filings: company filter -> dense (bge-m3, pgvector) + BM25 
 
 - `src/rag_sec/retrieve.py` is the pipeline; it has no switches, it IS the serving setup.
   `api.py` adds no retrieval of its own. Candidate SQL lives once, in `candidates.py`.
+- `retrieve(on_stage=)` only reports progress for `/ask/stream`; it must never change results.
+  `uv run pytest` covers the API with search and Gemini faked.
 - `scripts/evaluate.py --replay` must print test recall@10 0.831 (n=1545); CI asserts it.
 - Gold labels (`eval.py` label functions, `dataset.load_t2_ragbench`, three `data/day*` files)
   are fingerprinted into `data/gold_chunk_ids.json`. Changing them means

@@ -1,4 +1,5 @@
-# Replays the stored rerank scores and fails unless test recall@10 is exactly 0.831.
+# Runs the API tests, then replays the stored rerank scores and fails unless test recall@10
+# is exactly 0.831.
 # No GPU, no database, no API key. Needs network: the question set comes from Hugging Face.
 name: ci
 
@@ -33,6 +34,13 @@ jobs:
           PYTHONPATH: src
         run: |
           .venv/bin/python -c "import rag_sec.api, rag_sec.answer, rag_sec.eval, rag_sec.dataset, rag_sec.retrieve"
+      - name: API tests (retrieval and Gemini faked)
+        env:
+          PYTHONPATH: src
+        run: |
+          uv export --frozen --only-group dev --no-hashes -o dev-requirements.txt
+          uv pip install -r dev-requirements.txt
+          .venv/bin/python -m pytest -q tests
       - name: Replay test recall@10
         run: .venv/bin/python scripts/evaluate.py --replay --split test --out replay.json
       - name: Assert recall@10 == 0.831 on n=1545
